@@ -73,7 +73,9 @@ Dimensioni proposte: **5–10 impianti, 100–300 soci, 2 anni di dati orari** (
 | `verbale` | 6–10 | Testi generati |
 | `parametro` | chiave/valore | Fattore CO2, tariffe, con fonte |
 
-Calcolate voi, con script batch (sezione 8): `previsione`, `anomalia`, `ripartizione_mensile`.
+Calcolate voi, con script batch (sezione 8): `previsione_produzione`, `previsione_consumo`, `anomalia`, `ripartizione_mensile`.
+
+Nella tabella `segnalazione` la classificazione dell'LLM va in due coppie di colonne: `categoria_llm`/`urgenza_llm` (mai toccate) e `categoria`/`urgenza` (che l'operatore può correggere). Le etichette "vere" del vostro set di test restano nel CSV generato.
 
 ### Anomalie da iniettare
 
@@ -108,10 +110,12 @@ Si possono generare con un LLM (attenzione: variare stile, lunghezza, errori di 
 |---|---|---|
 | Previsione produzione | Baseline: produzione attesa da irraggiamento × kWp; poi un modello ML sulle feature meteo | MAE, confronto con baseline |
 | Previsione consumi | Profilo medio per tipo socio/ora/giorno; poi ML se serve | MAE |
-| Rilevamento anomalie | Confronto reale vs atteso: scarto anomalo per N ore → anomalia | Precision/recall su `anomalie_vere.csv` |
+| Rilevamento anomalie | Confronto reale vs atteso: scarto anomalo per N ore → anomalia (`stato = aperta`; `tipo` solo se il modello sa distinguerlo, altrimenti vuoto) | Precision/recall su `anomalie_vere.csv` |
 | Ripartizione CER | Formula della sezione 5, per socio e mese | — |
 
 Gli script batch girano offline e **scrivono i risultati direttamente nel database** (connessione letta dalla variabile d'ambiente `DATABASE_URL`, mai scritta nel codice).
+
+**Attenzione alla tabella `anomalia`**: dopo il primo caricamento ci scrive anche l'operatore, che chiude le anomalie dal portale (`stato = chiusa`). Se rilanciate il batch, **aggiungete solo le anomalie nuove**: non svuotate la tabella e non riscrivete le righe esistenti, altrimenti le anomalie già chiuse tornano aperte. Le altre tabelle calcolate (previsioni, ripartizione) le tocca solo il batch: lì potete cancellare e riscrivere senza problemi.
 
 ## 9. Regole per i file
 

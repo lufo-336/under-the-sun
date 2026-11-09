@@ -96,8 +96,13 @@ erDiagram
     float kwh
     float importo_eur
   }
-  PREVISIONE {
+  PREVISIONE_PRODUZIONE {
     int impianto_id FK
+    timestamp ts
+    float kwh_previsti "derivata"
+  }
+  PREVISIONE_CONSUMO {
+    int socio_id FK
     timestamp ts
     float kwh_previsti "derivata"
   }
@@ -105,9 +110,10 @@ erDiagram
     int id PK
     int impianto_id FK
     timestamp inizio
-    timestamp fine
-    string tipo "guasto, sporcizia, stringa, neve"
+    timestamp fine "null se ancora in corso"
+    string tipo "opzionale: guasto, sporcizia, stringa, neve"
     float score "derivata"
+    string stato "aperta, chiusa (la chiude l'operatore)"
   }
   RIPARTIZIONE_MENSILE {
     int socio_id FK
@@ -121,10 +127,12 @@ erDiagram
     int socio_id FK
     int impianto_id FK "opzionale"
     timestamp ts
-    string canale "email, portale"
+    string canale "email, portale; interno da decidere"
     string testo
-    string categoria "da LLM"
-    string urgenza "da LLM"
+    string categoria_llm "da LLM, mai modificata"
+    string urgenza_llm "da LLM, mai modificata"
+    string categoria "valore in uso, corretto dall'operatore"
+    string urgenza "valore in uso, corretto dall'operatore"
     string stato "aperta, in_corso, chiusa"
   }
   VERBALE {
@@ -146,10 +154,16 @@ erDiagram
   SOCIO |o--o{ SEGNALAZIONE : "invia"
   IMPIANTO ||--o{ PRODUZIONE_ORARIA : "produce"
   IMPIANTO ||--o{ METEO_ORARIO : "ha"
-  IMPIANTO ||--o{ PREVISIONE : "ha"
+  IMPIANTO ||--o{ PREVISIONE_PRODUZIONE : "ha"
+  SOCIO ||--o{ PREVISIONE_CONSUMO : "ha"
   IMPIANTO ||--o{ ANOMALIA : "ha"
   IMPIANTO |o--o{ SEGNALAZIONE : "riguarda"
 ```
+
+Note sul modello:
+- **Segnalazioni**: l'LLM scrive sia `categoria_llm`/`urgenza_llm` sia `categoria`/`urgenza`. L'operatore corregge solo le seconde: il confronto tra le due coppie misura l'accuratezza dell'LLM.
+- **Anomalie**: il batch le crea con `stato = aperta`; il `tipo` lo riempie il modello solo se sa riconoscerlo, altrimenti resta vuoto. Le "anomalie aperte" dell'API sono quelle con `stato = aperta`. Sulla tabella scrivono in due, batch e operatore: il batch **aggiunge** le anomalie nuove e non cancella né riscrive quelle esistenti, altrimenti riaprirebbe quelle già chiuse dall'operatore.
+- **Previsioni**: `previsione_produzione` si vede nella pagina Impianti (operatore), `previsione_consumo` nella dashboard del socio.
 
 Domande aperte per il team DA:
 - Serve la cabina primaria (in una CER reale la condivisione vale per cabina)? Proposta: tutti sotto la stessa, campo aggiunto solo se serve.
@@ -168,7 +182,7 @@ sequenceDiagram
   actor O as Operatore
 
   S->>FE: compila segnalazione
-  FE->>BE: POST /api/segnalazioni
+  FE->>BE: POST /api/me/segnalazioni
   BE->>LLM: testo + prompt del team DA
   LLM-->>BE: categoria, urgenza, impianto
   BE->>DB: INSERT segnalazione classificata
@@ -186,7 +200,7 @@ sequenceDiagram
 | Ruolo | Pagina | Dati |
 |---|---|---|
 | Socio | Simulatore di risparmio | consumi orari del socio + formula CER |
-| Socio | Dashboard personale | consumi, kWh condivisi, incentivo, CO2 evitata |
+| Socio | Dashboard personale | consumi reali e previsti, kWh condivisi, incentivo, CO2 evitata |
 | Socio | Le mie segnalazioni | apri nuova, vedi stato |
 | Operatore | Impianti | produzione vs previsione, anomalie |
 | Operatore | Coda segnalazioni | classificate e ordinate per urgenza |
