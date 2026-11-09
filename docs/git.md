@@ -5,7 +5,7 @@ Per chi non ha mai usato Git. Bastano i comandi di questa pagina.
 ## Cosa sono
 
 - **Git**: tiene la storia di ogni modifica ai file. Ogni "salvataggio" si chiama **commit**.
-- **GitHub**: il sito dove sta la copia condivisa del repo (https://github.com/lufo-336/UnderTheSun).
+- **GitHub**: il sito dove sta la copia condivisa del repo (https://github.com/lufo-336/under-the-sun).
 - **Branch**: una "copia di lavoro" separata. Ognuno lavora sul suo branch, poi le modifiche entrano in `main` tramite una **Pull Request (PR)** che un collega approva.
 
 > Su `main` **non si può fare push diretto**: GitHub lo blocca. Si passa sempre da branch + PR.
@@ -24,8 +24,8 @@ Per chi non ha mai usato Git. Bastano i comandi di questa pagina.
    ```
 4. Scarica il repo nella cartella dove vuoi tenerlo:
    ```bash
-   git clone https://github.com/lufo-336/UnderTheSun.git
-   cd UnderTheSun
+   git clone https://github.com/lufo-336/under-the-sun.git
+   cd under-the-sun
    ```
    Al primo push si apre il browser per il login a GitHub: accetta e basta.
 
