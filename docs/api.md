@@ -46,7 +46,7 @@
 | Metodo | Percorso | Note |
 |---|---|---|
 | GET | `/api/me/riepilogo?anno=2026` | totali e dettaglio mensile |
-| GET | `/api/me/consumi?da=&a=&granularita=` | serie dei consumi |
+| GET | `/api/me/consumi?da=&a=&granularita=` | serie dei consumi, reali + previsti |
 | POST | `/api/me/simulazione` | simulatore di risparmio (calcolo al volo, non salva) |
 | GET | `/api/me/segnalazioni` | le mie segnalazioni |
 | POST | `/api/me/segnalazioni` | nuova segnalazione, classificata dall'LLM |
@@ -69,10 +69,11 @@
 ```jsonc
 // GET /api/me/consumi?da=2026-03-01&a=2026-03-02&granularita=ora → 200
 [
-  { "ts": "2026-03-01T00:00:00Z", "kwh": 0.21 },
-  { "ts": "2026-03-01T01:00:00Z", "kwh": 0.18 }
+  { "ts": "2026-03-01T00:00:00Z", "kwh": 0.21, "kwh_previsti": 0.23 },
+  { "ts": "2026-03-01T01:00:00Z", "kwh": 0.18, "kwh_previsti": 0.17 }
 ]
 ```
+> `kwh_previsti` viene da `previsione_consumo` ed è `null` dove il batch non ha ancora calcolato la previsione.
 
 ```jsonc
 // POST /api/me/simulazione
@@ -110,7 +111,8 @@
 | GET | `/api/impianti` | elenco con stato sintetico |
 | GET | `/api/impianti/:id` | dettaglio |
 | GET | `/api/impianti/:id/produzione?da=&a=&granularita=` | produzione reale + prevista |
-| GET | `/api/anomalie?impianto_id=&da=&a=&tipo=` | anomalie rilevate |
+| GET | `/api/anomalie?impianto_id=&da=&a=&tipo=&stato=` | anomalie rilevate |
+| PATCH | `/api/anomalie/:id` | `{ stato }` — l'operatore chiude l'anomalia dopo l'intervento |
 
 ```jsonc
 // GET /api/impianti → 200
@@ -132,9 +134,10 @@
 // GET /api/anomalie?impianto_id=3 → 200
 [
   { "id": 55, "impianto_id": 3, "inizio": "2026-06-01T11:00:00Z", "fine": "2026-06-01T15:00:00Z",
-    "tipo": "guasto", "score": 0.97 }
+    "tipo": "guasto", "score": 0.97, "stato": "aperta" }
 ]
 ```
+> `tipo` può essere `null` (il modello rileva lo scarto ma non sempre la causa); `fine` è `null` se l'anomalia è ancora in corso.
 
 ### Segnalazioni (operatore, admin)
 
@@ -144,7 +147,7 @@
 | GET | `/api/segnalazioni/:id` | dettaglio |
 | PATCH | `/api/segnalazioni/:id` | `{ stato?, categoria?, urgenza? }` — l'operatore può correggere l'LLM |
 
-> Le correzioni dell'operatore sono preziose per il team dati: misurano quanto sbaglia la classificazione.
+> Le correzioni dell'operatore sono preziose per il team dati: misurano quanto sbaglia la classificazione. Per questo il PATCH modifica solo `categoria`/`urgenza`; `categoria_llm`/`urgenza_llm` restano quelle originali e si vedono nelle risposte di operatore e admin (non in quelle del socio).
 
 ### Comunità e soci
 
