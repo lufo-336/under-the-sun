@@ -15,10 +15,10 @@ Portale della Comunità Energetica Rinnovabile (CER) di **Buby Green** — proge
 | Persona | Ruolo |
 |---|---|
 | Luca Foglia | Team leader, architettura, DevOps (WSA) |
-| Mirko Di Vincenzo | Frontend (WSA) |
-| Stefano Spadaccini | Full-stack (WSA) |
-| Geoffrey JR Etinosa | Full-stack (WSA) |
-| Francesco Colohan | Data Analyst / AI |
+| Mirko Di Vincenzo | Frontend, vice team leader (WSA) |
+| Stefano Spadaccini | Backend, vice team leader (WSA) |
+| Geoffrey JR Etinosa | Jolly: dove serve nello sprint, ponte Git per il team dati, prove dell'app (WSA) |
+| Francesco Colohan | Data Analyst / AI, riferimento del team dati |
 | Giuseppe Tommasi | Data Analyst / AI |
 | Cecilia Montebello | Data Analyst / AI |
 
@@ -33,6 +33,7 @@ docs/        architettura, contratto API, brief per il team dati
 
 ## Documentazione
 
+- [Piano di progetto](docs/piano-di-progetto.md) ([PDF](docs/piano-di-progetto.pdf)): storie, ruoli, sprint ← **tutti: partite da qui**
 - [Architettura e modello dati](docs/architettura.md)
 - [Bozza contratto API](docs/api.md)
 - [Brief per il team dati](docs/team-dati.md) ← **data analyst: partite da qui**
@@ -58,3 +59,4 @@ Dettagli, ruoli e chi fa cosa: [docs/piano-di-progetto.md](docs/piano-di-progett
 - Niente push diretti su `main`: branch + Pull Request + almeno una review.
 - Mai committare chiavi API o file `.env`.
 - Mai committare dataset completi: si committano gli script (con seed fisso) e i CSV di esempio.
+- Non usi Git? Metti i file nella cartella Drive del team dati: Geoffrey li porta nel repo con una Pull Request.

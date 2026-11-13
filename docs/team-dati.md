@@ -2,6 +2,8 @@
 
 Ciao Francesco, Giuseppe, Cecilia: questo è il punto di partenza per la parte dati. **È una proposta, non un ordine**: sulla parte dati decidete voi, correggete tutto quello che non torna. L'unica cosa fissa sono le scadenze.
 
+Il vostro **riferimento è Francesco**: è lui il punto di contatto con i WSA. Come dividervi il lavoro lo decidete voi (ditecelo entro il 20 nov). Chi non usa Git lavora nella cartella Drive del team dati e Geoffrey porta i file nel repo. Il quadro generale (storie, ruoli, sprint) è nel [piano di progetto](piano-di-progetto.md).
+
 ## 1. In una frase
 
 Buby Green è, in pratica, una **Comunità Energetica Rinnovabile (CER)**: impianti fotovoltaici condivisi, soci che consumano, un incentivo del GSE sull'energia "condivisa" che viene ripartito tra i soci. **Il cliente non ci dà dati**: li generiamo noi, partendo il più possibile da fonti reali.
@@ -148,6 +150,8 @@ Per ogni colonna: nome, tipo, unità, descrizione, esempio, fonte o regola di ge
 | produzione_oraria | kwh | float | kWh | Energia prodotta nell'ora che inizia a `ts` | 121.4 | PVGIS + anomalie iniettate |
 
 ## 11. Domande aperte (rispondete voi)
+
+Risposte entro il **SAL 1 (ven 20 nov)**: servono per congelare lo schema.
 
 1. Cabina primaria unica o più cabine?
 2. Tariffa GSE oraria con prezzo zonale o valore medio?
