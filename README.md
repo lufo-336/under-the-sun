@@ -46,11 +46,12 @@ React · Node + Express · PostgreSQL · Python (pandas, scikit-learn) · LLM vi
 
 | Periodo | Obiettivo |
 |---|---|
-| 6–13 nov | Repo, ricerca fonti, bozza entità, wireframe pagine, Postgres in docker |
-| 13–20 nov | Schema + data dictionary + contratto API, dati di esempio. **SAL 1 ven 20 nov** |
-| 20 nov – 4 dic | WSA sviluppano su dati di esempio; team dati produce dataset completo, modelli, NLP |
-| 4–11 dic | Integrazione con i dati reali |
-| 11–18 dic | Margine, bugfix, documentazione, prova demo. **Presentazione finale ven 18 dic** |
+| 12–20 nov · sprint 0 | Docker e DB per tutti, wireframe, schema + data dictionary + contratto API, CSV di esempio. **SAL 1 ven 20 nov** |
+| 23 nov – 4 dic · sprint 1 | Primo percorso completo (login, dashboard socio, segnalazioni); dataset completo. **SAL 2 ven 4 dic** |
+| 4–14 dic · sprint 2 | Tutte le pagine, batch e classificazione collegati al portale |
+| 14–21 dic · sprint 3 | Solo correzioni, prova generale ven 18 dic. **Consegna finale lun 21 dic** |
+
+Dettagli, ruoli e chi fa cosa: [docs/piano-di-progetto.md](docs/piano-di-progetto.md) ([PDF](docs/piano-di-progetto.pdf)).
 
 ## Regole di lavoro
 

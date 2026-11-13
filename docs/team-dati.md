@@ -21,9 +21,10 @@ Valutazione per voi: correttezza e qualità dei dati, rigore dell'analisi, utili
 |---|---|
 | **ven 13 nov** | Ricerca fatta (sezione 4), elenco tabelle/colonne rivisto rispetto alla bozza in [architettura.md](architettura.md) |
 | **ven 20 nov — SAL 1** | Data dictionary v1 + **CSV di esempio di 1 settimana** per ogni tabella (servono ai WSA per sviluppare). Schema congelato |
-| **ven 4 dic** | Dataset completo (2 anni), script batch di previsioni/anomalie/ripartizione, classificazione testi funzionante |
-| 4–11 dic | Integrazione con la piattaforma |
-| **ven 18 dic** | Report dei risultati + demo |
+| **ven 4 dic — SAL 2** | Dataset completo (2 anni), 200–300 segnalazioni etichettate, prima versione dei modelli |
+| mer 9 dic | Batch di previsioni/anomalie/ripartizione che scrivono nel DB; prompt con accuratezza misurata |
+| lun 14 dic | Numeri per la presentazione: CO2 evitata, risparmi, accuratezza dei modelli |
+| **lun 21 dic** | Consegna finale: report dei risultati + demo |
 
 ## 4. Ricerca: dove guardare
 
