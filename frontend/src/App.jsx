@@ -1,121 +1,119 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom'
+import AppLayout from './components/AppLayout'
+import LoginPage from './pages/auth/LoginPage'
+import AdminAssembleePage from './pages/admin/AdminAssembleePage'
+import AdminKpiPage from './pages/admin/AdminKpiPage'
+import OperatoreImpiantiPage from './pages/operatore/OperatoreImpiantiPage'
+import OperatoreSegnalazioniPage from './pages/operatore/OperatoreSegnalazioniPage'
+import SocioDashboardPage from './pages/socio/SocioDashboardPage'
+import SocioSegnalazioniPage from './pages/socio/SocioSegnalazioniPage'
+import SocioSimulatorePage from './pages/socio/SocioSimulatorePage'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+const navItemsByRole = {
+  socio: [
+    { to: '/socio/dashboard', label: 'Dashboard', icon: '▣' },
+    { to: '/socio/simulatore', label: 'Simulatore', icon: '↗' },
+    { to: '/socio/segnalazioni', label: 'Segnalazioni', icon: '✦' }
+  ],
+  operatore: [
+    { to: '/operatore/impianti', label: 'Impianti', icon: '▣' },
+    { to: '/operatore/segnalazioni', label: 'Segnalazioni', icon: '✦' }
+  ],
+  admin: [
+    { to: '/admin/kpi', label: 'KPI', icon: '▣' },
+    { to: '/admin/assemblee', label: 'Assemblee', icon: '☰' }
+  ],
+  login: []
+}
+
+function AppRoutes() {
+  const location = useLocation()
+  const currentRole = location.pathname.startsWith('/admin')
+    ? 'admin'
+    : location.pathname.startsWith('/operatore')
+      ? 'operatore'
+      : location.pathname.startsWith('/socio')
+        ? 'socio'
+        : 'login'
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <Routes>
+      <Route path="/" element={<Navigate to="/socio/dashboard" replace />} />
+      <Route
+        path="/login"
+        element={
+          <AppLayout role="login" navItems={navItemsByRole.login}>
+            <LoginPage />
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/socio/dashboard"
+        element={
+          <AppLayout role={currentRole} navItems={navItemsByRole.socio} title="Dashboard socio" subtitle="Riepilogo consumi e prestazioni comunitarie">
+            <SocioDashboardPage />
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/socio/simulatore"
+        element={
+          <AppLayout role={currentRole} navItems={navItemsByRole.socio} title="Simulatore CER" subtitle="Scenario di condivisione e incentivo">
+            <SocioSimulatorePage />
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/socio/segnalazioni"
+        element={
+          <AppLayout role={currentRole} navItems={navItemsByRole.socio} title="Segnalazioni socio" subtitle="Comunicazioni e richieste del membro">
+            <SocioSegnalazioniPage />
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/operatore/impianti"
+        element={
+          <AppLayout role={currentRole} navItems={navItemsByRole.operatore} title="Impianti" subtitle="Monitoraggio produzione e anomalie">
+            <OperatoreImpiantiPage />
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/operatore/segnalazioni"
+        element={
+          <AppLayout role={currentRole} navItems={navItemsByRole.operatore} title="Segnalazioni operatore" subtitle="Coda prioritaria e classificazione LLM">
+            <OperatoreSegnalazioniPage />
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/admin/kpi"
+        element={
+          <AppLayout role={currentRole} navItems={navItemsByRole.admin} title="KPI comunità" subtitle="Indicatore aggregato del portale CER">
+            <AdminKpiPage />
+          </AppLayout>
+        }
+      />
+      <Route
+        path="/admin/assemblee"
+        element={
+          <AppLayout role={currentRole} navItems={navItemsByRole.admin} title="Verbali assemblee" subtitle="Sintesi e dettaglio decisioni della comunità">
+            <AdminAssembleePage />
+          </AppLayout>
+        }
+      />
+    </Routes>
+  )
+}
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
   )
 }
 
