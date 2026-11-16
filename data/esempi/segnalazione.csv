@@ -1,0 +1,3 @@
+id,socio_id,impianto_id,ts,canale,testo,categoria_llm,urgenza_llm,categoria,urgenza,stato
+1,2,2,2026-03-12T14:30:00Z,email,"Buongiorno, oggi l'app dice che il capannone non produce niente, c'è il sole. Potete controllare?",guasto_impianto,alta,guasto_impianto,alta,aperta
+2,1,,2026-03-13T09:05:00Z,portale,Quando arriva l'incentivo di febbraio?,incentivi_ripartizione,bassa,incentivi_ripartizione,bassa,aperta
