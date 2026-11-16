@@ -17,11 +17,11 @@ export default function OperatoreImpiantiPage() {
   const [selectedImpiantoId, setSelectedImpiantoId] = useState(impianti[0]?.id ?? '')
   const [anomalieState, setAnomalieState] = useState(anomalie)
 
-  const selectedImpianto = impianti.find((impianto) => impianto.id === selectedImpiantoId) ?? impianti[0]
-  const chartData = impiantoProductionSeries[selectedImpiantoId] ?? []
+  const selectedImpianto = impianti.find((impianto) => Number(impianto.id) === Number(selectedImpiantoId)) ?? impianti[0]
+  const chartData = impiantoProductionSeries[Number(selectedImpiantoId)] ?? []
 
   const impiantoAnomalie = useMemo(
-    () => anomalieState.filter((item) => item.impianto_id === selectedImpiantoId),
+    () => anomalieState.filter((item) => Number(item.impianto_id) === Number(selectedImpiantoId)),
     [anomalieState, selectedImpiantoId]
   )
 
@@ -46,8 +46,8 @@ export default function OperatoreImpiantiPage() {
             <button
               key={impianto.id}
               type="button"
-              className={`plant-card ${selectedImpiantoId === impianto.id ? 'selected' : ''}`}
-              onClick={() => setSelectedImpiantoId(impianto.id)}
+              className={`plant-card ${Number(selectedImpiantoId) === Number(impianto.id) ? 'selected' : ''}`}
+              onClick={() => setSelectedImpiantoId(Number(impianto.id))}
             >
               <div className="plant-card-top">
                 <strong>{impianto.nome}</strong>
@@ -103,7 +103,7 @@ export default function OperatoreImpiantiPage() {
                     <StatusBadge status={item.stato} />
                   </div>
                   <div className="anomaly-meta">
-                    <span>Score: {item.score}</span>
+                    <span>Score: {Number(item.score).toFixed(2)}</span>
                     <span>Inizio: {formatDateTime(item.inizio)}</span>
                     {item.fine && <span>Chiusura: {formatDateTime(item.fine)}</span>}
                   </div>

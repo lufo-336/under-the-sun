@@ -73,11 +73,11 @@ export const impianti = [
 ]
 
 export const anomalie = [
-  { id: 101, impianto_id: 1, inizio: '2026-10-15T08:00:00Z', fine: null, tipo: 'sensore temperatura', score: 77, stato: 'aperta' },
-  { id: 102, impianto_id: 1, inizio: '2026-10-18T10:00:00Z', fine: '2026-10-20T12:00:00Z', tipo: 'string mismatch', score: 58, stato: 'chiusa' },
-  { id: 201, impianto_id: 2, inizio: '2026-10-17T09:15:00Z', fine: null, tipo: 'inverter', score: 63, stato: 'aperta' },
-  { id: 301, impianto_id: 3, inizio: '2026-10-16T11:30:00Z', fine: null, tipo: 'cavo DC', score: 81, stato: 'aperta' },
-  { id: 302, impianto_id: 3, inizio: '2026-10-14T14:00:00Z', fine: '2026-10-15T09:00:00Z', tipo: 'sovraccarico', score: 65, stato: 'chiusa' }
+  { id: 101, impianto_id: 1, inizio: '2026-10-15T08:00:00Z', fine: null, tipo: 'sensore temperatura', score: 0.77, stato: 'aperta' },
+  { id: 102, impianto_id: 1, inizio: '2026-10-18T10:00:00Z', fine: '2026-10-20T12:00:00Z', tipo: 'string mismatch', score: 0.58, stato: 'chiusa' },
+  { id: 201, impianto_id: 2, inizio: '2026-10-17T09:15:00Z', fine: null, tipo: 'inverter', score: 0.63, stato: 'aperta' },
+  { id: 301, impianto_id: 3, inizio: '2026-10-16T11:30:00Z', fine: null, tipo: 'cavo DC', score: 0.81, stato: 'aperta' },
+  { id: 302, impianto_id: 3, inizio: '2026-10-14T14:00:00Z', fine: '2026-10-15T09:00:00Z', tipo: 'sovraccarico', score: 0.65, stato: 'chiusa' }
 ]
 
 export const segnalazioni = [
@@ -122,7 +122,7 @@ export const verbali = [
 ]
 
 export const impiantoProductionSeries = {
-  'IMP-001': [
+  1: [
     { ts: '2026-10-01T00:00:00Z', kwh: 168, kwh_previsti: 170 },
     { ts: '2026-10-03T00:00:00Z', kwh: 181, kwh_previsti: 176 },
     { ts: '2026-10-05T00:00:00Z', kwh: 196, kwh_previsti: 181 },
@@ -136,7 +136,7 @@ export const impiantoProductionSeries = {
     { ts: '2026-10-21T00:00:00Z', kwh: 214, kwh_previsti: 188 },
     { ts: '2026-10-23T00:00:00Z', kwh: 219, kwh_previsti: 200 }
   ],
-  'IMP-002': [
+  2: [
     { ts: '2026-10-01T00:00:00Z', kwh: 120, kwh_previsti: 122 },
     { ts: '2026-10-03T00:00:00Z', kwh: 128, kwh_previsti: 126 },
     { ts: '2026-10-05T00:00:00Z', kwh: 138, kwh_previsti: 131 },
@@ -150,7 +150,7 @@ export const impiantoProductionSeries = {
     { ts: '2026-10-21T00:00:00Z', kwh: 142, kwh_previsti: 140 },
     { ts: '2026-10-23T00:00:00Z', kwh: 136, kwh_previsti: 138 }
   ],
-  'IMP-003': [
+  3: [
     { ts: '2026-10-01T00:00:00Z', kwh: 205, kwh_previsti: 189 },
     { ts: '2026-10-03T00:00:00Z', kwh: 214, kwh_previsti: 196 },
     { ts: '2026-10-05T00:00:00Z', kwh: 221, kwh_previsti: 203 },
