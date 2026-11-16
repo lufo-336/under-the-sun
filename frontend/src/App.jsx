@@ -1,7 +1,6 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { BrowserRouter } from 'react-router-dom'
 import AppLayout from './components/AppLayout'
-import LoginPage from './pages/auth/LoginPage'
 import AdminAssembleePage from './pages/admin/AdminAssembleePage'
 import AdminKpiPage from './pages/admin/AdminKpiPage'
 import OperatoreImpiantiPage from './pages/operatore/OperatoreImpiantiPage'
@@ -28,83 +27,23 @@ const navItemsByRole = {
   login: []
 }
 
-function AppRoutes() {
-  const location = useLocation()
-  const currentRole = location.pathname.startsWith('/admin')
-    ? 'admin'
-    : location.pathname.startsWith('/operatore')
-      ? 'operatore'
-      : location.pathname.startsWith('/socio')
-        ? 'socio'
-        : 'login'
-
+const AppRoutes = () => {
+  const routesConfig = [
+    { path: '/socio/dashboard', role: 'socio', element: <SocioDashboardPage /> },
+    { path: '/socio/simulatore', role: 'socio', element: <SocioSimulatorePage /> },
+    { path: '/socio/segnalazioni', role: 'socio', element: <SocioSegnalazioniPage /> },
+    { path: '/operatore/impianti', role: 'operatore', element: <OperatoreImpiantiPage /> },
+    { path: '/operatore/segnalazioni', role: 'operatore', element: <OperatoreSegnalazioniPage /> },
+    { path: '/admin/kpi', role: 'admin', element: <AdminKpiPage /> },
+    { path: '/admin/assemblee', role: 'admin', element: <AdminAssembleePage /> },
+    { path: '/', element: <Navigate to="/login" replace /> },
+    { path: '*', element: <Navigate to="/login" replace /> }
+  ]
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/socio/dashboard" replace />} />
-      <Route
-        path="/login"
-        element={
-          <AppLayout role="login" navItems={navItemsByRole.login}>
-            <LoginPage />
-          </AppLayout>
-        }
-      />
-      <Route
-        path="/socio/dashboard"
-        element={
-          <AppLayout role={currentRole} navItems={navItemsByRole.socio} title="Dashboard socio" subtitle="Riepilogo consumi e prestazioni comunitarie">
-            <SocioDashboardPage />
-          </AppLayout>
-        }
-      />
-      <Route
-        path="/socio/simulatore"
-        element={
-          <AppLayout role={currentRole} navItems={navItemsByRole.socio} title="Simulatore CER" subtitle="Scenario di condivisione e incentivo">
-            <SocioSimulatorePage />
-          </AppLayout>
-        }
-      />
-      <Route
-        path="/socio/segnalazioni"
-        element={
-          <AppLayout role={currentRole} navItems={navItemsByRole.socio} title="Segnalazioni socio" subtitle="Comunicazioni e richieste del membro">
-            <SocioSegnalazioniPage />
-          </AppLayout>
-        }
-      />
-      <Route
-        path="/operatore/impianti"
-        element={
-          <AppLayout role={currentRole} navItems={navItemsByRole.operatore} title="Impianti" subtitle="Monitoraggio produzione e anomalie">
-            <OperatoreImpiantiPage />
-          </AppLayout>
-        }
-      />
-      <Route
-        path="/operatore/segnalazioni"
-        element={
-          <AppLayout role={currentRole} navItems={navItemsByRole.operatore} title="Segnalazioni operatore" subtitle="Coda prioritaria e classificazione LLM">
-            <OperatoreSegnalazioniPage />
-          </AppLayout>
-        }
-      />
-      <Route
-        path="/admin/kpi"
-        element={
-          <AppLayout role={currentRole} navItems={navItemsByRole.admin} title="KPI comunità" subtitle="Indicatore aggregato del portale CER">
-            <AdminKpiPage />
-          </AppLayout>
-        }
-      />
-      <Route
-        path="/admin/assemblee"
-        element={
-          <AppLayout role={currentRole} navItems={navItemsByRole.admin} title="Verbali assemblee" subtitle="Sintesi e dettaglio decisioni della comunità">
-            <AdminAssembleePage />
-          </AppLayout>
-        }
-      />
+      {routesConfig.map(({ path, role, element }) => (
+        <Route key={path} path={path} element={<AppLayout role={role} navItems={navItemsByRole[role]}>{element}</AppLayout>} />
+      ))}
     </Routes>
   )
 }

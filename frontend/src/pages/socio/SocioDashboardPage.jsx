@@ -11,7 +11,7 @@ import {
 } from 'recharts'
 import KpiCard from '../../components/KpiCard'
 import { consumoSerie, socioSummary } from '../../mocks/mockData'
-import { formatCurrency, formatKg, formatNumber, formatShortDate } from '../../utils/formatters'
+import { formatShortDate } from '../../utils/formatters'
 
 export default function SocioDashboardPage() {
   const [selectedYear, setSelectedYear] = useState(socioSummary.anno)
@@ -24,7 +24,7 @@ export default function SocioDashboardPage() {
 
   const kpis = [
     { label: 'kWh condivisi', value: socioSummary.kwh_condivisi, helper: 'Quota CER attiva', tone: 'emerald' },
-    { label: 'Incentivo maturato (€)', value: socioSummary.incentivo_eur, helper: 'Anno 2026', tone: 'amber' },
+    { label: 'Incentivo maturato (€)', value: socioSummary.incentivo_eur, helper: 'Anno 2026', tone: 'amber', format: 'eur' },
     { label: 'CO2 evitata (kg)', value: socioSummary.co2_evitata_kg, helper: 'Riduzione stimata', tone: 'green' },
     { label: 'Totale kWh consumati', value: socioSummary.kwh_consumati, helper: 'Consumi dell’anno', tone: 'slate' }
   ]
@@ -58,6 +58,7 @@ export default function SocioDashboardPage() {
             value={item.value}
             helper={item.helper}
             tone={item.tone}
+            format={item.format}
           />
         ))}
       </div>

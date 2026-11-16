@@ -3,7 +3,6 @@ import {
   BarChart,
   CartesianGrid,
   Legend,
-  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -11,7 +10,7 @@ import {
 } from 'recharts'
 import KpiCard from '../../components/KpiCard'
 import { communityEnergySeries, communityKpi } from '../../mocks/mockData'
-import { formatCurrency, formatKg, formatNumber, formatShortDate } from '../../utils/formatters'
+import { formatNumber, formatShortDate } from '../../utils/formatters'
 
 const metrics = [
   { label: 'Soci', value: communityKpi.soci, helper: 'Totale iscritti', tone: 'emerald' },
@@ -19,7 +18,7 @@ const metrics = [
   { label: 'kWp totali', value: communityKpi.kwp_totali, helper: 'Potenza installata', tone: 'amber' },
   { label: 'kWh prodotti', value: communityKpi.kwh_prodotti, helper: 'Produzione annuale', tone: 'green' },
   { label: 'kWh condivisi', value: communityKpi.kwh_condivisi, helper: 'Quota condivisa', tone: 'emerald' },
-  { label: 'Incentivo €', value: communityKpi.incentivo_eur, helper: 'Bonus erogati', tone: 'amber' },
+  { label: 'Incentivo €', value: communityKpi.incentivo_eur, helper: 'Bonus erogati', tone: 'amber', format: 'eur' },
   { label: 'CO2 evitata (kg)', value: communityKpi.co2_evitata_kg, helper: 'Riduzione ambientale', tone: 'green' },
   { label: 'Anomalie aperte', value: communityKpi.anomalie_aperte, helper: 'Monitoraggio tecnico', tone: 'slate' },
   { label: 'Segnalazioni aperte', value: communityKpi.segnalazioni_aperte, helper: 'Supporto ai soci', tone: 'amber' }
@@ -30,7 +29,7 @@ export default function AdminKpiPage() {
     <div className="page-stack">
       <div className="kpi-grid admin-grid">
         {metrics.map((item) => (
-          <KpiCard key={item.label} label={item.label} value={item.value} helper={item.helper} tone={item.tone} />
+          <KpiCard key={item.label} label={item.label} value={item.value} helper={item.helper} tone={item.tone} format={item.format} />
         ))}
       </div>
 

@@ -1,12 +1,16 @@
 import { formatCurrency, formatKg, formatNumber } from '../utils/formatters'
 
-export default function KpiCard({ label, value, suffix, helper, tone = 'emerald' }) {
+export default function KpiCard({ label, value, suffix, helper, tone = 'emerald', format }) {
+  const normalizedLabel = String(label ?? '').toLowerCase()
+
   const formatValue = () => {
-    if (typeof value === 'number' && label.toLowerCase().includes('euro')) {
+    const shouldFormatAsEuro = format === 'eur' || normalizedLabel.includes('€') || normalizedLabel.includes('euro')
+
+    if (typeof value === 'number' && shouldFormatAsEuro) {
       return formatCurrency(value)
     }
 
-    if (typeof value === 'number' && label.toLowerCase().includes('co2')) {
+    if (typeof value === 'number' && normalizedLabel.includes('co2')) {
       return formatKg(value)
     }
 

@@ -67,24 +67,24 @@ export const simulatore = {
 }
 
 export const impianti = [
-  { id: 'IMP-001', nome: 'Tetto Scuola Pinerolo', comune: 'Pinerolo', lat: 44.886, lon: 7.332, kwp: 180, data_attivazione: '2024-04-05T00:00:00Z', anomalie_aperte: 2 },
-  { id: 'IMP-002', nome: 'Pensilina Municipio', comune: 'Bobbio Pellice', lat: 44.802, lon: 7.196, kwp: 120, data_attivazione: '2023-09-12T00:00:00Z', anomalie_aperte: 1 },
-  { id: 'IMP-003', nome: 'Capannone Zona Industriale', comune: 'Pinerolo', lat: 44.879, lon: 7.355, kwp: 260, data_attivazione: '2025-01-18T00:00:00Z', anomalie_aperte: 3 }
+  { id: 1, nome: 'Tetto Scuola Pinerolo', comune: 'Pinerolo', lat: 44.886, lon: 7.332, kwp: 180, data_attivazione: '2024-04-05T00:00:00Z', anomalie_aperte: 2 },
+  { id: 2, nome: 'Pensilina Municipio', comune: 'Bobbio Pellice', lat: 44.802, lon: 7.196, kwp: 120, data_attivazione: '2023-09-12T00:00:00Z', anomalie_aperte: 1 },
+  { id: 3, nome: 'Capannone Zona Industriale', comune: 'Pinerolo', lat: 44.879, lon: 7.355, kwp: 260, data_attivazione: '2025-01-18T00:00:00Z', anomalie_aperte: 3 }
 ]
 
 export const anomalie = [
-  { id: 'AN-101', impianto_id: 'IMP-001', inizio: '2026-10-15T08:00:00Z', fine: null, tipo: 'sensore temperatura', score: 77, stato: 'aperta' },
-  { id: 'AN-102', impianto_id: 'IMP-001', inizio: '2026-10-18T10:00:00Z', fine: '2026-10-20T12:00:00Z', tipo: 'string mismatch', score: 58, stato: 'chiusa' },
-  { id: 'AN-201', impianto_id: 'IMP-002', inizio: '2026-10-17T09:15:00Z', fine: null, tipo: 'inverter', score: 63, stato: 'aperta' },
-  { id: 'AN-301', impianto_id: 'IMP-003', inizio: '2026-10-16T11:30:00Z', fine: null, tipo: 'cavo DC', score: 81, stato: 'aperta' },
-  { id: 'AN-302', impianto_id: 'IMP-003', inizio: '2026-10-14T14:00:00Z', fine: '2026-10-15T09:00:00Z', tipo: 'sovraccarico', score: 65, stato: 'chiusa' }
+  { id: 101, impianto_id: 1, inizio: '2026-10-15T08:00:00Z', fine: null, tipo: 'sensore temperatura', score: 77, stato: 'aperta' },
+  { id: 102, impianto_id: 1, inizio: '2026-10-18T10:00:00Z', fine: '2026-10-20T12:00:00Z', tipo: 'string mismatch', score: 58, stato: 'chiusa' },
+  { id: 201, impianto_id: 2, inizio: '2026-10-17T09:15:00Z', fine: null, tipo: 'inverter', score: 63, stato: 'aperta' },
+  { id: 301, impianto_id: 3, inizio: '2026-10-16T11:30:00Z', fine: null, tipo: 'cavo DC', score: 81, stato: 'aperta' },
+  { id: 302, impianto_id: 3, inizio: '2026-10-14T14:00:00Z', fine: '2026-10-15T09:00:00Z', tipo: 'sovraccarico', score: 65, stato: 'chiusa' }
 ]
 
 export const segnalazioni = [
-  { id: 'SEG-101', ts: '2026-10-28T09:10:00Z', canale: 'web', testo: 'Il contatore del tetto scolastico segnala un calo anomalo nelle ore pomeridiane, potrebbe essere un guasto al sensore.', impianto_id: 'IMP-001', categoria_llm: 'impianto', urgenza_llm: 'alta', categoria: 'impianto', urgenza: 'alta', stato: 'aperta' },
-  { id: 'SEG-102', ts: '2026-10-27T15:20:00Z', canale: 'telefono', testo: 'Ho notato che il riepilogo mensile non corrisponde alle spese medie di casa: il mercato del fotovoltaico è chiaro ma il conto appare più alto.', impianto_id: null, categoria_llm: 'billing', urgenza_llm: 'media', categoria: 'billing', urgenza: 'media', stato: 'aperta' },
-  { id: 'SEG-103', ts: '2026-10-26T12:00:00Z', canale: 'app', testo: 'Vorrei ricevere un chiarimento sull’andamento dei kWh condivisi nelle ultime settimane.', impianto_id: 'IMP-002', categoria_llm: 'informazione', urgenza_llm: 'bassa', categoria: 'informazione', urgenza: 'bassa', stato: 'chiusa' },
-  { id: 'SEG-104', ts: '2026-10-23T18:45:00Z', canale: 'email', testo: 'Il pannello del capannone mostra un forte calo di generazione rispetto alla media giornaliera.', impianto_id: 'IMP-003', categoria_llm: 'impianto', urgenza_llm: 'alta', categoria: 'impianto', urgenza: 'alta', stato: 'aperta' }
+  { id: 101, ts: '2026-10-28T09:10:00Z', canale: 'web', testo: 'Il contatore del tetto scolastico segnala un calo anomalo nelle ore pomeridiane, potrebbe essere un guasto al sensore.', impianto_id: 1, categoria_llm: 'impianto', urgenza_llm: 'alta', categoria: 'impianto', urgenza: 'alta', stato: 'aperta' },
+  { id: 102, ts: '2026-10-27T15:20:00Z', canale: 'telefono', testo: 'Ho notato che il riepilogo mensile non corrisponde alle spese medie di casa: il mercato del fotovoltaico è chiaro ma il conto appare più alto.', impianto_id: null, categoria_llm: 'billing', urgenza_llm: 'media', categoria: 'billing', urgenza: 'media', stato: 'aperta' },
+  { id: 103, ts: '2026-10-26T12:00:00Z', canale: 'app', testo: 'Vorrei ricevere un chiarimento sull’andamento dei kWh condivisi nelle ultime settimane.', impianto_id: 2, categoria_llm: 'informazione', urgenza_llm: 'bassa', categoria: 'informazione', urgenza: 'bassa', stato: 'chiusa' },
+  { id: 104, ts: '2026-10-23T18:45:00Z', canale: 'email', testo: 'Il pannello del capannone mostra un forte calo di generazione rispetto alla media giornaliera.', impianto_id: 3, categoria_llm: 'impianto', urgenza_llm: 'alta', categoria: 'impianto', urgenza: 'alta', stato: 'aperta' }
 ]
 
 export const communityKpi = {
@@ -116,9 +116,9 @@ export const communityEnergySeries = [
 ]
 
 export const verbali = [
-  { id: 'VER-001', data_assemblea: '2026-10-15T09:00:00Z', sintesi: 'La comunità ha approvato il piano di riequilibrio tra produzione e prelievo nei mesi estivi, con riduzione delle anomalie del 18%.', testo_completo: 'Durante l’assemblea straordinaria del 15 ottobre, i soci hanno approvato la nuova configurazione del sistema di allocazione dei kWh condivisi. È stato confermato l’aumento di efficienza dell’impianto del tetto scolastico e il piano di manutenzione preventiva dei sensori, con priorità alle zone a maggior carico nel mese di ottobre.' },
-  { id: 'VER-002', data_assemblea: '2026-09-12T18:00:00Z', sintesi: 'Rinnovato il programma di incentivazione per le utenze domestiche e introdotto il supporto ai soci con consumo elevato durante le ore diurne.', testo_completo: 'L’assemblea di settembre ha dedicato ampio spazio alla revisione dei criteri per la partecipazione ai bonus energetici e all’allocazione più equa delle quote di scambio. Sono stati presentati i primi risultati del monitoraggio delle utenze ad alto consumo e si è deciso di allargare il piano d’assistenza a 18 famiglie.' },
-  { id: 'VER-003', data_assemblea: '2026-08-20T17:30:00Z', sintesi: 'Consolidato il nuovo modello di gestione delle segnalazioni e definita la road map del semestre successivo.', testo_completo: 'Con il verbale del 20 agosto si è definita la governance delle segnalazioni e delle anomalie. I membri del comitato hanno approvato la roadmap per le prossime 6 settimane, con azioni prioritarie su manutenzione impianti, supporto agli utenti e digitalizzazione delle comunicazioni tra soci e operatori.' }
+  { id: 1, data_assemblea: '2026-10-15T09:00:00Z', sintesi: 'La comunità ha approvato il piano di riequilibrio tra produzione e prelievo nei mesi estivi, con riduzione delle anomalie del 18%.', testo_completo: 'Durante l’assemblea straordinaria del 15 ottobre, i soci hanno approvato la nuova configurazione del sistema di allocazione dei kWh condivisi. È stato confermato l’aumento di efficienza dell’impianto del tetto scolastico e il piano di manutenzione preventiva dei sensori, con priorità alle zone a maggior carico nel mese di ottobre.' },
+  { id: 2, data_assemblea: '2026-09-12T18:00:00Z', sintesi: 'Rinnovato il programma di incentivazione per le utenze domestiche e introdotto il supporto ai soci con consumo elevato durante le ore diurne.', testo_completo: 'L’assemblea di settembre ha dedicato ampio spazio alla revisione dei criteri per la partecipazione ai bonus energetici e all’allocazione più equa delle quote di scambio. Sono stati presentati i primi risultati del monitoraggio delle utenze ad alto consumo e si è deciso di allargare il piano d’assistenza a 18 famiglie.' },
+  { id: 3, data_assemblea: '2026-08-20T17:30:00Z', sintesi: 'Consolidato il nuovo modello di gestione delle segnalazioni e definita la road map del semestre successivo.', testo_completo: 'Con il verbale del 20 agosto si è definita la governance delle segnalazioni e delle anomalie. I membri del comitato hanno approvato la roadmap per le prossime 6 settimane, con azioni prioritarie su manutenzione impianti, supporto agli utenti e digitalizzazione delle comunicazioni tra soci e operatori.' }
 ]
 
 export const impiantoProductionSeries = {
