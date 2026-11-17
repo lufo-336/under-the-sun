@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CalendarDays, ChevronDown, Sparkles } from 'lucide-react'
 import { verbali } from '../../mocks/mockData'
 import { formatShortDate } from '../../utils/formatters'
 
@@ -10,42 +11,37 @@ export default function AdminAssembleePage() {
   }
 
   return (
-    <div className="page-stack">
-      <section className="panel-section">
-        <div className="panel-header">
-          <div>
-            <p className="section-kicker">Verbali assemblee</p>
-            <h3>Documentazione comunitaria</h3>
-          </div>
-        </div>
+    <div className="space-y-5">
+      {verbali.map((verbale) => {
+        const isExpanded = expandedIds.includes(verbale.id)
+        return (
+          <article key={verbale.id} className="rounded-2xl border border-border bg-card p-5 shadow-soft sm:p-6">
+            <h2 className="text-lg font-bold text-foreground">{verbale.id}</h2>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground tabular-nums">
+              <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />{formatShortDate(verbale.data_assemblea)}</span>
+              <span className="text-muted-foreground">Verbale assemblea</span>
+            </div>
 
-        <div className="assembly-list">
-          {verbali.map((verbale) => {
-            const isExpanded = expandedIds.includes(verbale.id)
+            <div className="mt-4 rounded-xl border border-accent/40 bg-accent-soft p-4">
+              <p className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-accent-strong">
+                <Sparkles className="h-4 w-4" aria-hidden="true" /> Sintesi automatica LLM
+              </p>
+              <p className="text-sm leading-relaxed text-foreground">{verbale.sintesi}</p>
+            </div>
 
-            return (
-              <article key={verbale.id} className="assembly-card">
-                <div className="assembly-head">
-                  <div>
-                    <span className="assembly-date">{formatShortDate(verbale.data_assemblea)}</span>
-                    <h4>{verbale.id}</h4>
-                  </div>
-                  <button type="button" className="secondary-button" onClick={() => handleToggle(verbale.id)}>
-                    {isExpanded ? 'Chiudi verbale' : 'Apri verbale'}
-                  </button>
-                </div>
-
-                <div className="summary-box">
-                  <span>Sintesi automatica LLM</span>
-                  <p>{verbale.sintesi}</p>
-                </div>
-
-                {isExpanded && <div className="full-text-box">{verbale.testo_completo}</div>}
-              </article>
-            )
-          })}
-        </div>
-      </section>
+            <button
+              type="button"
+              onClick={() => handleToggle(verbale.id)}
+              aria-expanded={isExpanded}
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+            >
+              {isExpanded ? 'Chiudi verbale' : 'Leggi il verbale completo'}
+              <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+            </button>
+            {isExpanded && <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-muted-foreground">{verbale.testo_completo}</p>}
+          </article>
+        )
+      })}
     </div>
   )
 }

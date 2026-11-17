@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { BrowserRouter } from 'react-router-dom'
+import { AlertTriangle, BarChart3, Calculator, FileText, Gauge, LayoutDashboard, MessageSquare } from 'lucide-react'
 import AppLayout from './components/AppLayout'
 import LoginPage from './pages/auth/LoginPage'
 import AdminAssembleePage from './pages/admin/AdminAssembleePage'
@@ -9,21 +10,20 @@ import OperatoreSegnalazioniPage from './pages/operatore/OperatoreSegnalazioniPa
 import SocioDashboardPage from './pages/socio/SocioDashboardPage'
 import SocioSegnalazioniPage from './pages/socio/SocioSegnalazioniPage'
 import SocioSimulatorePage from './pages/socio/SocioSimulatorePage'
-import './App.css'
 
 const navItemsByRole = {
   socio: [
-    { to: '/socio/dashboard', label: 'Dashboard', icon: '▣' },
-    { to: '/socio/simulatore', label: 'Simulatore', icon: '↗' },
-    { to: '/socio/segnalazioni', label: 'Segnalazioni', icon: '✦' }
+    { to: '/socio/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/socio/simulatore', label: 'Simulatore', icon: Calculator },
+    { to: '/socio/segnalazioni', label: 'Segnalazioni', icon: MessageSquare }
   ],
   operatore: [
-    { to: '/operatore/impianti', label: 'Impianti', icon: '▣' },
-    { to: '/operatore/segnalazioni', label: 'Segnalazioni', icon: '✦' }
+    { to: '/operatore/impianti', label: 'Impianti', icon: Gauge },
+    { to: '/operatore/segnalazioni', label: 'Segnalazioni', icon: AlertTriangle }
   ],
   admin: [
-    { to: '/admin/kpi', label: 'KPI', icon: '▣' },
-    { to: '/admin/assemblee', label: 'Assemblee', icon: '☰' }
+    { to: '/admin/kpi', label: 'KPI', icon: BarChart3 },
+    { to: '/admin/assemblee', label: 'Assemblee', icon: FileText }
   ],
   login: []
 }

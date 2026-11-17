@@ -9,9 +9,13 @@ import {
   XAxis,
   YAxis
 } from 'recharts'
+import { Euro, Leaf, PlugZap, Zap } from 'lucide-react'
 import KpiCard from '../../components/KpiCard'
+import Panel from '../../components/Panel'
 import { consumoSerie, socioSummary } from '../../mocks/mockData'
-import { formatCurrency, formatKg, formatNumber, formatShortDate } from '../../utils/formatters'
+import { formatShortDate } from '../../utils/formatters'
+
+const granularities = ['ora', 'giorno', 'mese']
 
 export default function SocioDashboardPage() {
   const [selectedYear, setSelectedYear] = useState(socioSummary.anno)
@@ -23,71 +27,75 @@ export default function SocioDashboardPage() {
   }, [granularity])
 
   const kpis = [
-    { label: 'kWh condivisi', value: socioSummary.kwh_condivisi, helper: 'Quota CER attiva', tone: 'emerald' },
-    { label: 'Incentivo maturato (€)', value: socioSummary.incentivo_eur, helper: 'Anno 2026', tone: 'amber' },
-    { label: 'CO2 evitata (kg)', value: socioSummary.co2_evitata_kg, helper: 'Riduzione stimata', tone: 'green' },
-    { label: 'Totale kWh consumati', value: socioSummary.kwh_consumati, helper: 'Consumi dell’anno', tone: 'slate' }
+    { label: 'kWh condivisi', value: socioSummary.kwh_condivisi, helper: 'Quota CER attiva', tone: 'green', icon: Zap },
+    { label: 'Incentivo maturato (€)', value: socioSummary.incentivo_eur, helper: `Anno ${selectedYear}`, tone: 'sun', icon: Euro },
+    { label: 'CO2 evitata (kg)', value: socioSummary.co2_evitata_kg, helper: 'Riduzione stimata', tone: 'green', icon: Leaf },
+    { label: 'Totale kWh consumati', value: socioSummary.kwh_consumati, helper: "Consumi dell'anno", tone: 'slate', icon: PlugZap }
   ]
 
   return (
-    <div className="page-stack">
-      <div className="toolbar-panel">
-        <div className="field-group">
-          <label htmlFor="anno-socio">Anno</label>
-          <select id="anno-socio" value={selectedYear} onChange={(event) => setSelectedYear(Number(event.target.value))}>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <label className="grid min-w-32 gap-1.5 text-xs font-semibold text-muted-foreground">
+          Anno
+          <select
+            value={selectedYear}
+            onChange={(event) => setSelectedYear(Number(event.target.value))}
+            className="h-10 rounded-xl border border-input bg-card px-3 text-sm text-foreground"
+          >
             <option value={2026}>2026</option>
             <option value={2025}>2025</option>
           </select>
-        </div>
-
-        <div className="field-group">
-          <label htmlFor="granularity-socio">Granularità</label>
-          <select id="granularity-socio" value={granularity} onChange={(event) => setGranularity(event.target.value)}>
-            <option value="ora">Ora</option>
-            <option value="giorno">Giorno</option>
-            <option value="mese">Mese</option>
-          </select>
-        </div>
+        </label>
       </div>
 
-      <div className="kpi-grid four-columns">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((item) => (
-          <KpiCard
-            key={item.label}
-            label={item.label}
-            value={item.value}
-            helper={item.helper}
-            tone={item.tone}
-          />
+          <KpiCard key={item.label} {...item} />
         ))}
       </div>
 
-      <section className="panel-section chart-panel">
-        <div className="panel-header">
-          <div>
-            <p className="section-kicker">Andamento consumo 2026</p>
-            <h3>Confronto consumo reale vs previsto</h3>
+      <Panel
+        eyebrow={`Andamento consumo ${selectedYear}`}
+        title="Consumo reale vs previsto"
+        action={
+          <div className="flex rounded-full bg-muted p-1">
+            {granularities.map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setGranularity(value)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold capitalize transition ${granularity === value ? 'bg-card text-foreground shadow-soft' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                {value}
+              </button>
+            ))}
           </div>
-          <span className="muted-text">Picco anomalo rilevato il 15/10</span>
-        </div>
-
-        <div className="chart-wrap">
-          <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={chartData}>
-              <CartesianGrid stroke="#dfe7e5" strokeDasharray="4 4" />
-              <XAxis dataKey="ts" tickFormatter={(value) => formatShortDate(value)} minTickGap={20} />
-              <YAxis tickFormatter={(value) => `${value} kWh`} />
+        }
+      >
+        {granularity === 'giorno' && (
+          <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-strong">
+            Picco anomalo rilevato il 15/10
+          </p>
+        )}
+        <div className="-ml-2 h-[300px] w-full">
+          <ResponsiveContainer>
+            <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+              <CartesianGrid stroke="var(--border)" strokeDasharray="4 4" vertical={false} />
+              <XAxis dataKey="ts" tickFormatter={formatShortDate} tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} minTickGap={20} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }} axisLine={false} tickLine={false} width={48} />
               <Tooltip
                 formatter={(value, name) => [`${value} kWh`, name === 'kwh' ? 'Consumo reale' : 'Previsto']}
-                labelFormatter={(value) => formatShortDate(value)}
+                labelFormatter={formatShortDate}
+                contentStyle={{ border: '1px solid var(--border)', borderRadius: 12, boxShadow: 'var(--shadow-soft)' }}
               />
-              <Legend />
-              <Line type="monotone" dataKey="kwh" stroke="#10b981" strokeWidth={3} name="kwh reale" />
-              <Line type="monotone" dataKey="kwh_previsti" stroke="#f59e0b" strokeWidth={2} name="kwh previsti" />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Line type="monotone" dataKey="kwh" stroke="var(--chart-1)" strokeWidth={2.5} dot={false} name="kWh reali" />
+              <Line type="monotone" dataKey="kwh_previsti" stroke="var(--chart-2)" strokeWidth={2.5} dot={false} name="kWh previsti" />
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </section>
+      </Panel>
     </div>
   )
 }
