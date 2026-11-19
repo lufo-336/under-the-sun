@@ -145,8 +145,10 @@ Il campione comprende 14 famiglie, 4 imprese (bar, panificio, officina, parrucch
 |---|---|---|
 | id | intero | Identificativo |
 | data_assemblea | data | Data dell'assemblea |
-| testo | testo | Verbale completo. I numeri citati vengono dai dati del campione |
+| testo | testo | Verbale completo, con gli a capo racchiusi tra virgolette come previsto dal formato CSV. I numeri citati vengono dai dati del campione |
 | sintesi | testo | Vuota: la scrive l'LLM |
+
+Nel campione c'è il verbale dell'assemblea del 9 luglio 2026 (id 7), che commenta i dati di giugno degli impianti 1–3, il guasto del 1° giugno e le segnalazioni del mese.
 
 ---
 

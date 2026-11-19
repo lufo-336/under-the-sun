@@ -1,6 +1,6 @@
 # Guida al dataset UnderTheSun (team dati)
 
-Versione 1.5 del 19 novembre 2026, a cura di Francesco (riferimento del team dati).
+Versione 1.6 del 19 novembre 2026, a cura di Francesco (riferimento del team dati).
 
 La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa le scelte che lì erano aperte. Le voci segnate **[DA CONFERMARE]** vanno discusse alla prossima riunione; tutto il resto è deciso. Se cambia una decisione, si aggiorna prima questa guida e poi il codice.
 
@@ -203,7 +203,7 @@ Ogni anomalia "vera" si scrive in `anomalie_vere.csv`, con le colonne `id`, `imp
 2. **Varietà tra soci.** Ogni socio ha un moltiplicatore fisso `scala`, estratto da una distribuzione lognormale con media 1. La deviazione standard è circa 0,35 per le famiglie e 0,5 per imprese ed enti. Così ci sono famiglie piccole e grandi.
 3. **Forma oraria.** Un profilo di 24 valori per tipo di socio e tipo di giorno: feriale, sabato, domenica o festivo. I festivi italiani si ricavano con la libreria `holidays`.
    - **Famiglia:** picco la mattina (7–8) e la sera (19–22), consumi bassi di notte, un po' più alti a metà giornata nel weekend.
-   - **Imprese ed enti:** consumi alti negli orari di apertura del profilo, bassi fuori orario (resta il consumo di base). Per esempio la scuola è aperta lunedì–venerdì 8–16 nei giorni di lezione del calendario scolastico della Regione Piemonte (nel 2025/26 dal 10 settembre al 10 giugno, con il ponte del 1° giugno) ed è chiusa nelle vacanze, a luglio e ad agosto; per la versione completa servono anche i calendari 2024/25 e 2026/27; il ristorante lavora 11–15 e 19–23, il bar soprattutto dalla mattina al pomeriggio; l'officina lunedì–venerdì 8–18.
+   - **Imprese ed enti:** consumi alti negli orari di apertura del profilo, bassi fuori orario (resta il consumo di base). Per esempio la scuola è aperta lunedì–venerdì 8–16 nei giorni di lezione del calendario scolastico della Regione Piemonte (nel 2025/26 dal 10 settembre al 10 giugno, con il ponte del 1° giugno; il 2026/27 inizia lunedì 14 settembre) ed è chiusa nelle vacanze, a luglio e ad agosto; per la versione completa serve ancora il calendario 2024/25; il ristorante lavora 11–15 e 19–23, il bar soprattutto dalla mattina al pomeriggio; l'officina lunedì–venerdì 8–18.
    - **Primo compito sul file ARERA delle famiglie:** controllare come è fatto il "prelievo medio orario".
      - Se contiene un valore per ogni ora del giorno, si usa direttamente quella forma.
      - Altrimenti si usa il profilo descritto sopra, riscalato in modo da rispettare le percentuali F1/F2/F3 di ARERA.
@@ -211,7 +211,7 @@ Ogni anomalia "vera" si scrive in `anomalie_vere.csv`, con le colonne `id`, `imp
      - F1 = lunedì–venerdì 8–19;
      - F2 = lunedì–venerdì 7–8 e 19–23, sabato 7–23;
      - F3 = lunedì–sabato 23–7, domenica e festivi tutto il giorno.
-4. **Ora italiana, poi UTC.** I profili sono in ora italiana, perché le persone si svegliano alle 7 locali, e poi si convertono in UTC. Con pandas: `tz_localize('Europe/Rome')` e poi `tz_convert('UTC')`. Questa conversione gestisce i giorni del cambio d'ora, che hanno 23 o 25 ore: nel periodo sono il 30/3/2025, il 26/10/2025, il 29/3/2026 e il 25/10/2026.
+4. **Ora italiana e UTC.** I profili sono pensati in ora italiana, perché le persone si svegliano alle 7 locali, ma la serie si costruisce sulle ore UTC. Per ogni ora UTC si ricava l'ora italiana con `tz_convert('Europe/Rome')` e si legge il valore del profilo. Così i giorni del cambio d'ora, che hanno 23 o 25 ore, non creano ore mancanti o doppie: nel periodo sono il 30/3/2025, il 26/10/2025, il 29/3/2026 e il 25/10/2026.
 5. **Rumore.** Ogni ora si moltiplica per un fattore casuale normale con media 1 e deviazione standard 0,15, troncato a zero. In più ogni socio ha le abitudini spostate di 0 o ±1 ora.
 6. **Riscalatura finale.** Il totale mensile di ogni socio deve risultare uguale a volume ARERA × `scala`.
 7. **Facoltativo, se avanza tempo:** legare i consumi estivi alla temperatura, per cui nei giorni più caldi si usa di più il condizionatore. Così il modello di previsione dei consumi ha una variabile meteo da sfruttare.
@@ -306,7 +306,7 @@ Se si sceglie un'alternativa, basta togliere `impianto_id_llm` e la parte del pr
 
 #### Verbali
 
-- **Quanti:** 8 assemblee, una a trimestre, a partire da novembre 2024.
+- **Quanti:** 8 assemblee, una a trimestre: a gennaio, aprile, luglio e ottobre del 2025 e del 2026. Ogni verbale commenta i dati del trimestre appena concluso.
 - **Contenuto:** 1–2 pagine ciascuno, coerenti con i dati: nuovi soci, guasti, incentivi ricevuti.
 - **Sintesi:** la colonna `sintesi` resta vuota nel dataset, perché la scrive l'LLM.
 
@@ -456,7 +456,7 @@ Si lanciano dopo ogni generazione. Se un controllo fallisce, il dataset non si c
   - `previsione_consumo`: il profilo senza rumore;
   - `anomalia`: una riga, cioè il guasto dell'impianto 3 dal `2026-06-01T11:00:00Z` al `2026-06-01T15:00:00Z`, con `score` 0.97 e `stato` `aperta`, come in `api.md`;
   - `ripartizione_mensile`: la formula del §3.6 applicata a giugno.
-- **Testi:** 15 segnalazioni e 1 verbale scritti a mano o con un LLM, con le colonne `_llm` riempite a mano. Tra le segnalazioni, 2–3 riguardano il guasto del 1 giugno.
+- **Testi:** 15 segnalazioni e 1 verbale scritti a mano o con un LLM, con le colonne `_llm` riempite a mano. Tra le segnalazioni, 2–3 riguardano il guasto del 1 giugno. Il verbale è quello dell'assemblea del 9 luglio 2026 (id 7) e cita i numeri di giugno degli impianti 1–3, calcolati dai CSV del campione.
 
 **Consegna:**
 
