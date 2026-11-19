@@ -88,6 +88,7 @@ CONFIGURAZIONI = {
             "imprese": ["bar", "panificio", "officina", "parrucchiere"],
             "enti": [("scuola", "Pinerolo"), ("uffici_comunali", "San Secondo di Pinerolo")],
         },
+        "volumi_consumo": "provvisori",  # scorciatoia del §7: volumi annui fissi per tipo di socio
         "taratura_pvgis": False,  # k_impianto = 1 (scorciatoia del §7)
         "anomalie_casuali": False,  # §3.3: in giugno 2026 sugli impianti 1-3 c'è solo il guasto fisso
         "cartella": CARTELLA_ESEMPI,
@@ -98,6 +99,7 @@ CONFIGURAZIONI = {
         "ultimo_ts": "2026-10-31T23:00:00Z",  # 17.520 ore
         "impianti": [1, 2, 3, 4, 5, 6, 7, 8],
         "soci": "tutti",
+        "volumi_consumo": "arera",  # volumi mensili ARERA (§3.4)
         "taratura_pvgis": True,
         "anomalie_casuali": True,
         "cartella": CARTELLA_OUTPUT,

@@ -6,8 +6,8 @@ Uso, dalla cartella data/ con l'ambiente virtuale attivo:
     python generazione/genera.py --config piccola --solo-intestazioni  -> CSV vuoti
 
 I moduli (anagrafiche, meteo, pvgis, produzione, consumi, derivate) si aggiungono
-uno alla volta, nell'ordine di CLAUDE.md. Per ora ci sono i passi 1-4:
-anagrafiche, meteo, pvgis e produzione.
+uno alla volta, nell'ordine di CLAUDE.md. Per ora ci sono i passi 1-5:
+anagrafiche, meteo, pvgis, produzione e consumi.
 """
 
 import argparse
@@ -18,6 +18,7 @@ import requests
 
 import anagrafiche
 import config
+import consumi
 import meteo
 import produzione
 import pvgis
@@ -109,6 +110,9 @@ def main() -> None:
 
     print("\n4. Produzione")
     scrivi_tutte(produzione.genera(conf, impianti, tabelle_meteo["meteo_orario"], k), cartella)
+
+    print("\n5. Consumi")
+    scrivi_tutte(consumi.genera(conf, tabelle_anagrafiche["socio"], tabelle_anagrafiche["socio_profilo"]), cartella)
 
 
 if __name__ == "__main__":

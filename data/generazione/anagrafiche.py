@@ -122,6 +122,15 @@ def _giorni_a_caso(rng: np.random.Generator, dal: str, al: str, quanti: int) -> 
     return np.datetime64(dal) + rng.integers(0, giorni, size=quanti)
 
 
+def estrai_scala(rng: np.random.Generator, tipo: str) -> float:
+    """Prima estrazione dal generatore di un socio: la scala, lognormale con media 1.
+
+    consumi.py la ripete per far avanzare il generatore nello stesso ordine.
+    """
+    sigma = SIGMA_SCALA[tipo]
+    return float(rng.lognormal(mean=-(sigma**2) / 2, sigma=sigma))
+
+
 def genera_soci() -> tuple[pd.DataFrame, pd.DataFrame]:
     """Genera i 240 soci: restituisce le tabelle socio e socio_profilo."""
     rng = config.rng_anagrafica()
@@ -179,12 +188,7 @@ def genera_soci() -> tuple[pd.DataFrame, pd.DataFrame]:
     posti["nome"] = nomi
 
     # 7. scala: prima estrazione dal generatore proprio del socio (§2)
-    scale = []
-    for posto in posti.itertuples():
-        sigma = SIGMA_SCALA[posto.tipo]
-        scala = config.rng_socio(posto.id).lognormal(mean=-(sigma**2) / 2, sigma=sigma)
-        scale.append(round(scala, 3))
-    posti["scala"] = scale
+    posti["scala"] = [round(estrai_scala(config.rng_socio(p.id), p.tipo), 3) for p in posti.itertuples()]
 
     posti["data_adesione"] = posti["data_adesione"].dt.strftime("%Y-%m-%d")
     socio = posti[config.COLONNE["socio"]]
