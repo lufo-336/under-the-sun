@@ -1,6 +1,6 @@
 # Guida al dataset UnderTheSun (team dati)
 
-Versione 1.6 del 19 novembre 2026, a cura di Francesco (riferimento del team dati).
+Versione 1.7 del 19 novembre 2026, a cura di Francesco (riferimento del team dati).
 
 La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa le scelte che lì erano aperte. Le voci segnate **[DA CONFERMARE]** vanno discusse alla prossima riunione; tutto il resto è deciso. Se cambia una decisione, si aggiorna prima questa guida e poi il codice.
 
@@ -100,7 +100,7 @@ Dal 2025 è in vigore la nuova classificazione ATECO: verificate nel file ARERA 
 - **Date senza ora:** formato `2026-06-01`. La colonna `mese` contiene il primo giorno del mese (`2026-06-01`). I mesi si calcolano in UTC, come farebbe `date_trunc('month', ts)` in PostgreSQL.
 - **Unità nel nome della colonna:** `_kwh`, `_kwp`, `_eur`, `_kg`, `_wm2`, `_c`, `_pct`, `_cm`, `_gradi`. Fanno eccezione le colonne che si chiamano solo `kwh` o `kwp` nelle tabelle di Luca: lì il nome è già l'unità, e le API le usano così.
 - **Valori mancanti:** cella vuota, che diventa NULL. Mai `NaN`, `None` o `-`.
-- **Decimali:** al massimo 3 per l'energia, 2 per gli euro e 1 per il meteo.
+- **Decimali:** al massimo 3 per l'energia e per i kg di CO2, 2 per gli euro e 1 per il meteo.
 - **ID:** interi a partire da 1, coerenti tra i file.
 - **Seed:** `42`. Ogni impianto e ogni socio ha un proprio generatore casuale: `numpy.random.default_rng([42, 0, id])` per gli impianti e `numpy.random.default_rng([42, 1, id])` per i soci. Le scelte che riguardano tutta la comunità (tipo, comune e data di adesione dei soci) usano `numpy.random.default_rng([42, 2])`. Così i numeri di un socio non cambiano se si generano più o meno soci, e socio e impianto con lo stesso id non condividono la stessa sequenza casuale. Con lo stesso seed escono gli stessi file.
 - **Fine riga:** `\n` (LF). Il file `data/.gitattributes` con la riga `*.csv text eol=lf` evita che Git su Windows li trasformi in CRLF.
@@ -239,7 +239,7 @@ Ogni anomalia "vera" si scrive in `anomalie_vere.csv`, con le colonne `id`, `imp
 
 ```
 kwh_immessi(h)   = somma della produzione di tutti gli impianti
-kwh_prelevati(h) = somma dei consumi dei soci con data_adesione ≤ h
+kwh_prelevati(h) = somma dei consumi dei soci con data_adesione ≤ h   (un socio conta dalle 00:00 UTC del giorno di adesione)
 kwh_condivisi(h) = min(kwh_immessi(h), kwh_prelevati(h))
 quota_s(h)       = kwh_condivisi(h) × consumo_s(h) / kwh_prelevati(h)
 ```

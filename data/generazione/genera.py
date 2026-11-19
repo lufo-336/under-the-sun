@@ -6,8 +6,9 @@ Uso, dalla cartella data/ con l'ambiente virtuale attivo:
     python generazione/genera.py --config piccola --solo-intestazioni  -> CSV vuoti
 
 I moduli (anagrafiche, meteo, pvgis, produzione, consumi, derivate) si aggiungono
-uno alla volta, nell'ordine di CLAUDE.md. Per ora ci sono i passi 1-5:
-anagrafiche, meteo, pvgis, produzione e consumi.
+uno alla volta, nell'ordine di CLAUDE.md. Per ora ci sono i passi 1-6:
+anagrafiche, meteo, pvgis, produzione, consumi e derivate.
+segnalazione.csv e verbale.csv sono scritti a mano e il generatore non li tocca.
 """
 
 import argparse
@@ -19,6 +20,7 @@ import requests
 import anagrafiche
 import config
 import consumi
+import derivate
 import meteo
 import produzione
 import pvgis
@@ -109,10 +111,16 @@ def main() -> None:
     print(pvgis.riepilogo_pvcalc(impianti).to_string(index=False))
 
     print("\n4. Produzione")
-    scrivi_tutte(produzione.genera(conf, impianti, tabelle_meteo["meteo_orario"], k), cartella)
+    tabelle_produzione = produzione.genera(conf, impianti, tabelle_meteo["meteo_orario"], k)
+    scrivi_tutte(tabelle_produzione, cartella)
 
     print("\n5. Consumi")
-    scrivi_tutte(consumi.genera(conf, tabelle_anagrafiche["socio"], tabelle_anagrafiche["socio_profilo"]), cartella)
+    tabelle_consumi = consumi.genera(conf, tabelle_anagrafiche["socio"], tabelle_anagrafiche["socio_profilo"])
+    scrivi_tutte(tabelle_consumi, cartella)
+
+    print("\n6. Derivate (bolletta e tabelle provvisorie del campione)")
+    tutte = {**tabelle_anagrafiche, **tabelle_meteo, **tabelle_produzione, **tabelle_consumi}
+    scrivi_tutte(derivate.genera(conf, tutte, k), cartella)
 
 
 if __name__ == "__main__":

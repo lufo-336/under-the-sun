@@ -91,6 +91,7 @@ CONFIGURAZIONI = {
         "volumi_consumo": "provvisori",  # scorciatoia del §7: volumi annui fissi per tipo di socio
         "taratura_pvgis": False,  # k_impianto = 1 (scorciatoia del §7)
         "anomalie_casuali": False,  # §3.3: in giugno 2026 sugli impianti 1-3 c'è solo il guasto fisso
+        "tabelle_provvisorie": True,  # §7: previsioni, anomalia e ripartizione con valori provvisori
         "cartella": CARTELLA_ESEMPI,
     },
     "completa": {
@@ -102,6 +103,7 @@ CONFIGURAZIONI = {
         "volumi_consumo": "arera",  # volumi mensili ARERA (§3.4)
         "taratura_pvgis": True,
         "anomalie_casuali": True,
+        "tabelle_provvisorie": False,  # §4: nel dataset completo le scrivono i batch
         "cartella": CARTELLA_OUTPUT,
     },
 }

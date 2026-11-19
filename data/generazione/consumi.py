@@ -81,11 +81,11 @@ ORARI = {
 # --- Calendario scolastico della Regione Piemonte (§3.4) ----------------------
 # Date incluse agli estremi, come nel calendario ufficiale. Le lezioni sono dal
 # lunedì al venerdì; i festivi nazionali vengono da holidays.
-# 2025/26: https://www.regione.piemonte.it/web/node/20460 (letto il 19/11/2026).
+# 2025/26: https://www.regione.piemonte.it/web/node/20460 (verificato il 19/11/2026).
 # 2026/27: https://www.regione.piemonte.it/web/pinforma/notizie/calendario-scolastico-2026-2027
-#   (date prese dal riepilogo di una ricerca web: da ricontrollare sulla pagina
-#   prima della versione completa). Al campione serve solo che il 1/9/2026, le cui
-#   prime ore in ora italiana chiudono l'anno dei volumi, non sia giorno di lezione.
+#   (verificato il 19/11/2026: le lezioni iniziano lunedì 14 settembre 2026).
+#   Al campione serve perché le prime ore del 1/9/2026, in ora italiana, chiudono
+#   l'anno dei volumi provvisori.
 # Manca il 2024/25, che serve per la versione completa.
 CALENDARI_SCOLASTICI = {
     "2025/26": {

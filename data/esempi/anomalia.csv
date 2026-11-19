@@ -1,1 +1,2 @@
 id,impianto_id,inizio,fine,tipo,score,stato
+1,3,2026-06-01T11:00:00Z,2026-06-01T15:00:00Z,guasto,0.97,aperta
