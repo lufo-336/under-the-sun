@@ -1,6 +1,6 @@
 # Guida al dataset UnderTheSun (team dati)
 
-Versione 1.1 del 19 novembre 2026, a cura di Francesco (riferimento del team dati).
+Versione 1.4 del 19 novembre 2026, a cura di Francesco (riferimento del team dati).
 
 La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa le scelte che lì erano aperte. Le voci segnate **[DA CONFERMARE]** vanno discusse alla prossima riunione; tutto il resto è deciso. Se cambia una decisione, si aggiorna prima questa guida e poi il codice.
 
@@ -28,7 +28,7 @@ La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa l
 
 - **Coerenza con `api.md`,** che usa già un impianto a Pinerolo.
 - **Una sola cabina primaria.** I comuni sono vicini tra loro, quindi è plausibile che siano sotto la stessa cabina, che è la condizione per condividere energia in una CER. Assumiamo una cabina unica.
-- **Neve coerente con il meteo.** I comuni sono un mix di pianura (Pinerolo, Buriasco, Cavour) e di fondovalle (Val Pellice e Val Chisone). In valle nevica di più, quindi l'anomalia "neve" coincide con nevicate vere.
+- **Neve coerente con il meteo.** I comuni sono un mix di pianura (Pinerolo, Buriasco, Cavour) e di fondovalle (Val Pellice e Val Chisone). In valle nevica di più, quindi l'anomalia "neve" coincide con nevicate vere. Da verificare nella versione completa: gli impianti di valle (5, 6, 8) devono cadere in una cella della griglia meteo diversa da quella degli impianti di pianura.
 - **Dati disponibili per tutte le fonti:**
   - Open-Meteo e PVGIS coprono ogni punto d'Europa;
   - ARERA pubblica i dati della provincia di Torino, la più grande del Piemonte, quindi con medie più stabili;
@@ -47,7 +47,7 @@ La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa l
 | 7 | Capannone agricolo Cavour | Cavour | 44.79 | 7.37 | 200 | 15 | 5 | 2024-08-05 |
 | 8 | Tetto RSA Villar Perosa | Villar Perosa | 44.92 | 7.25 | 110 | 25 | -30 | 2024-10-01 |
 
-- **Coordinate.** Sono approssimate al centro del comune, con 2 decimali (circa 1 km). Bastano, perché la griglia dei dati meteo è di qualche km. L'impianto 3 usa le coordinate di `api.md`. Il primo script le controlla con la geocoding API di Open-Meteo.
+- **Coordinate.** Sono approssimate al centro del comune, con 2 decimali (circa 1 km). Bastano: la griglia di Open-Meteo è di circa 10 km, quindi impianti a pochi km di distanza possono cadere nella stessa cella e avere lo stesso meteo; cambia solo la temperatura, corretta per la quota. Succede ai tre impianti del campione. L'impianto 3 usa le coordinate di `api.md`. Il primo script le controlla con la geocoding API di Open-Meteo.
 - **Potenza.** 950 kWp in totale, tutti ≤ 200 kWp, quindi tutti nella stessa fascia di tariffa (§3.5).
 - **Azimut.** 0 = sud, −90 = est, +90 = ovest: è la convenzione di PVGIS e Open-Meteo. Attenzione: la libreria `pvlib` usa invece 180 = sud.
 - **Attivazione.** Tutti gli impianti sono attivi prima dell'inizio del periodo, quindi le serie di produzione sono complete.
@@ -56,7 +56,12 @@ La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa l
 
 - **Composizione:** 240 soci, cioè 200 famiglie, 30 imprese e 10 enti.
 - **Nomi:** finti, generati con la libreria Faker (lingua `it_IT`, seed 42). Imprese ed enti hanno nomi plausibili, come "Panificio Rostagno" o "Scuola primaria Lauro".
-- **Comune:** uno degli 8 comuni degli impianti, in proporzione approssimativa agli abitanti. Pinerolo è il più numeroso.
+- **Comune:** uno degli 8 comuni degli impianti, in proporzione approssimativa agli abitanti (pesi indicativi, non verificati). Pinerolo è il più numeroso.
+- **ID:** in ordine di data di adesione.
+- **Enti:**
+  - sono tutti soci fondatori;
+  - quelli che ospitano un impianto stanno nel comune dell'impianto: scuola a Pinerolo, uffici comunali a San Secondo, impianto sportivo a Bricherasio, biblioteca a Torre Pellice, RSA a Villar Perosa;
+  - gli altri enti stanno in comuni vicini.
 - **`data_adesione`:**
   - 120 soci fondatori aderiscono tra giugno e ottobre 2024;
   - gli altri 120 sono distribuiti tra novembre 2024 e giugno 2026.
@@ -66,7 +71,8 @@ La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa l
 | tipo | profilo | ATECO di riferimento | quanti |
 |---|---|---|---|
 | famiglia | famiglia | (domestico) | 200 |
-| impresa | bar_ristorante | 56.10 / 56.30 | 8 |
+| impresa | bar | 56.30 | 4 |
+| impresa | ristorante | 56.10 | 4 |
 | impresa | alimentari | 47.11 | 6 |
 | impresa | panificio | 10.71 | 4 |
 | impresa | officina | 25.62 | 6 |
@@ -96,7 +102,8 @@ Dal 2025 è in vigore la nuova classificazione ATECO: verificate nel file ARERA 
 - **Valori mancanti:** cella vuota, che diventa NULL. Mai `NaN`, `None` o `-`.
 - **Decimali:** al massimo 3 per l'energia, 2 per gli euro e 1 per il meteo.
 - **ID:** interi a partire da 1, coerenti tra i file.
-- **Seed:** `42`. Ogni impianto e ogni socio ha un proprio generatore casuale: `numpy.random.default_rng([42, 0, id])` per gli impianti e `numpy.random.default_rng([42, 1, id])` per i soci. Così i numeri di un socio non cambiano se si generano più o meno soci, e socio e impianto con lo stesso id non condividono la stessa sequenza casuale. Con lo stesso seed escono gli stessi file.
+- **Seed:** `42`. Ogni impianto e ogni socio ha un proprio generatore casuale: `numpy.random.default_rng([42, 0, id])` per gli impianti e `numpy.random.default_rng([42, 1, id])` per i soci. Le scelte che riguardano tutta la comunità (tipo, comune e data di adesione dei soci) usano `numpy.random.default_rng([42, 2])`. Così i numeri di un socio non cambiano se si generano più o meno soci, e socio e impianto con lo stesso id non condividono la stessa sequenza casuale. Con lo stesso seed escono gli stessi file.
+- **Fine riga:** `\n` (LF). Il file `data/.gitattributes` con la riga `*.csv text eol=lf` evita che Git su Windows li trasformi in CRLF.
 - **Intervalli `inizio`–`fine`:** `inizio` è incluso, `fine` è escluso. Un guasto dalle 11:00 alle 15:00 azzera le ore 11, 12, 13 e 14.
 - **Cartelle:**
   - `data/esempi/` contiene il campione del SAL 1 e **va su GitHub**;
@@ -159,7 +166,7 @@ kwh         = min(kwh_teorici, kwp) × effetto_anomalie
    - `peakpower=<kwp>`, `loss=14`, `angle=<inclinazione>`, `aspect=<azimut>`;
    - `pvcalculation=1`, `startyear=2023`, `endyear=2023`, `outputformat=json`.
 2. **Calcolare il modello sul 2023:** scaricare da Open-Meteo lo stesso anno per lo stesso punto e applicare la formula con `k = 1`.
-3. **Calcolare il fattore:** `k_impianto = kWh annui PVGIS 2023 / kWh annui del modello 2023`.
+3. **Calcolare il fattore:** `k_impianto = kWh annui PVGIS 2023 / kWh annui del modello 2023`. Ci si aspetta circa 0,95: nel campione, a parità di irraggiamento, il modello rende il 5% più di PVGIS, perché non considera le perdite per riflessione sui moduli.
 4. **Validare:** annotare nel report l'errore orario tra modello e PVGIS (MAE e correlazione). Questa è la validazione del modello di produzione.
 
 **Due controlli:**
@@ -196,7 +203,7 @@ Ogni anomalia "vera" si scrive in `anomalie_vere.csv`, con le colonne `id`, `imp
 2. **Varietà tra soci.** Ogni socio ha un moltiplicatore fisso `scala`, estratto da una distribuzione lognormale con media 1. La deviazione standard è circa 0,35 per le famiglie e 0,5 per imprese ed enti. Così ci sono famiglie piccole e grandi.
 3. **Forma oraria.** Un profilo di 24 valori per tipo di socio e tipo di giorno: feriale, sabato, domenica o festivo. I festivi italiani si ricavano con la libreria `holidays`.
    - **Famiglia:** picco la mattina (7–8) e la sera (19–22), consumi bassi di notte, un po' più alti a metà giornata nel weekend.
-   - **Imprese ed enti:** consumi alti negli orari di apertura del profilo, bassi fuori orario (resta il consumo di base). Per esempio la scuola è aperta lunedì–venerdì 8–16 ed è chiusa a luglio, agosto e nelle vacanze; il bar-ristorante lavora 11–15 e 19–23; l'officina lunedì–venerdì 8–18.
+   - **Imprese ed enti:** consumi alti negli orari di apertura del profilo, bassi fuori orario (resta il consumo di base). Per esempio la scuola è aperta lunedì–venerdì 8–16 ed è chiusa a luglio, agosto e nelle vacanze; il ristorante lavora 11–15 e 19–23, il bar soprattutto dalla mattina al pomeriggio; l'officina lunedì–venerdì 8–18.
    - **Primo compito sul file ARERA delle famiglie:** controllare come è fatto il "prelievo medio orario".
      - Se contiene un valore per ogni ora del giorno, si usa direttamente quella forma.
      - Altrimenti si usa il profilo descritto sopra, riscalato in modo da rispettare le percentuali F1/F2/F3 di ARERA.
@@ -454,6 +461,7 @@ Si lanciano dopo ogni generazione. Se un controllo fallisce, il dataset non si c
 - **Nota per i WSA:**
   - `ripartizione_mensile` del campione è calcolata su 3 impianti e 20 soci, quindi l'energia condivisa è quasi uguale ai consumi diurni. Nel dataset completo i valori di giugno cambieranno, perché dipendono da tutti gli 8 impianti e i 240 soci.
   - Cambieranno anche i consumi, quando i volumi ARERA sostituiranno quelli provvisori.
+  - Calerà di circa il 5% anche la produzione, quando si farà la taratura con PVGIS (§3.2).
 - **Mercoledì 18:** mandare a Luca le intestazioni dei CSV, anche senza dati, perché gli servono per lo script di caricamento.
 
 ---

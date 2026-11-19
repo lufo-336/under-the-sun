@@ -76,6 +76,8 @@ Il campione comprende 14 famiglie, 4 imprese (bar, panificio, officina, parrucch
 | ts | data e ora (UTC) | Inizio dell'ora |
 | kwh | decimale | Energia prodotta nell'ora, **comprese le anomalie**: è il dato "misurato" |
 
+⚠ **Senza taratura.** Nel campione il modello non è ancora tarato su PVGIS e rende circa il 5% più di PVGIS a parità di irraggiamento. Nel dataset completo la produzione di giugno calerà quindi di circa il 5%. Giugno 2026, inoltre, è stato più soleggiato della media: la produzione del mese supera la media PVGIS di giugno del 15–16%.
+
 ### meteo_orario.csv (2.160 righe = 3 impianti × 720 ore)
 
 | Colonna | Tipo | Descrizione |
@@ -189,7 +191,7 @@ Nel campione c'è una sola riga: il guasto dell'impianto 3 dal `2026-06-01T11:00
 | Colonna | Tipo | Descrizione |
 |---|---|---|
 | socio_id | intero | Socio |
-| profilo | testo | Profilo di consumo (per esempio `famiglia`, `bar_ristorante`, `scuola`) |
+| profilo | testo | Profilo di consumo (per esempio `famiglia`, `bar`, `scuola`) |
 | ateco | testo | Codice ATECO di riferimento; vuoto per le famiglie |
 | scala | decimale | Moltiplicatore del consumo del socio (media 1) |
 
