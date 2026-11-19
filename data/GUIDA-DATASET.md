@@ -1,6 +1,6 @@
 # Guida al dataset UnderTheSun (team dati)
 
-Versione 1.7 del 19 novembre 2026, a cura di Francesco (riferimento del team dati).
+Versione 1.8 del 19 novembre 2026, a cura di Francesco (riferimento del team dati).
 
 La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa le scelte che lì erano aperte. Le voci segnate **[DA CONFERMARE]** vanno discusse alla prossima riunione; tutto il resto è deciso. Se cambia una decisione, si aggiorna prima questa guida e poi il codice.
 
@@ -270,7 +270,7 @@ co2_evitata_kg = kwh_condivisi × fattore_co2_kg_kwh
   - per ogni `guasto` e `stringa` in `anomalie_vere.csv` ci sono 1–3 segnalazioni nei giorni successivi su quell'impianto, a volte con il nome esatto e a volte vaghe ("i pannelli della scuola");
   - ogni anomalia ha una comunicazione `interno`.
 - **Varietà:** lunghezze da una a dieci righe, registri diversi, errori di battitura e qualche caso ambiguo tra due categorie. I testi si generano con un LLM, poi un campione si controlla a mano.
-- **Stato:** le segnalazioni più vecchie di 30 giorni sono `chiusa`, le più recenti `aperta` o `in_corso`.
+- **Stato:** le segnalazioni più vecchie di 30 giorni sono tutte `chiusa`. Tra le più recenti, quelle già risolte sono `chiusa` e le altre `aperta` o `in_corso`.
 - **Classificazione:** con LLM (domanda aperta 4). Per il report si può aggiungere un confronto con un classificatore classico (TF-IDF + regressione logistica).
 
 #### Chi indica l'impianto **[DA CONFERMARE]**
