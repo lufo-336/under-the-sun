@@ -23,11 +23,11 @@ Chi lavora qui sta imparando: spiega le scelte in modo semplice e breve.
 - Dataset completo: `python generazione/genera.py --config completa` (scrive in `data/output/`)
 - Controlli: `python generazione/controlli.py --config piccola` (oppure `completa`)
 
-## Git: lo gestisce Francesco, non tu
+## Git: decide chi lavora con te
 
-- **Chi fa le operazioni Git:** branch, commit, push e pull li fa Francesco con GitHub Desktop, dopo aver controllato i file.
-- **Comandi vietati:** non eseguire mai comandi git che modificano il repo o mandano dati su GitHub, come `git add`, `commit`, `push`, `pull`, `merge`, `reset`, `checkout`, `switch` e `stash`.
-- **Comandi ammessi:** solo quelli in lettura, cioè `git status`, `git diff` e `git log`.
+- **Chi fa le operazioni Git:** di norma branch, commit, push e pull li fa la persona che lavora con te, per esempio con GitHub Desktop, dopo aver controllato i file.
+- **Comandi che modificano il repo o mandano dati su GitHub,** come `git add`, `commit`, `push`, `pull`, `merge`, `reset`, `checkout`, `switch` e `stash`: usali solo se chi lavora con te lo chiede esplicitamente in quella sessione.
+- **Comandi in lettura,** cioè `git status`, `git diff` e `git log`: sempre ammessi.
 - **Quando un pezzo di lavoro è pronto,** scrivi un riepilogo con:
   - i file creati o modificati e cosa fanno;
   - l'esito dei controlli;
