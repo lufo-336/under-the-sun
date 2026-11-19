@@ -6,15 +6,21 @@ Uso, dalla cartella data/ con l'ambiente virtuale attivo:
     python generazione/genera.py --config piccola --solo-intestazioni  -> CSV vuoti
 
 I moduli (anagrafiche, meteo, pvgis, produzione, consumi, derivate) si aggiungono
-uno alla volta, nell'ordine di CLAUDE.md. Per ora c'è solo --solo-intestazioni.
+uno alla volta, nell'ordine di CLAUDE.md. Per ora ci sono i passi 1-4:
+anagrafiche, meteo, pvgis e produzione.
 """
 
 import argparse
 from pathlib import Path
 
 import pandas as pd
+import requests
 
+import anagrafiche
 import config
+import meteo
+import produzione
+import pvgis
 
 
 def scrivi_csv(df: pd.DataFrame, nome: str, cartella: Path) -> Path:
@@ -35,9 +41,23 @@ def scrivi_csv(df: pd.DataFrame, nome: str, cartella: Path) -> Path:
     return percorso
 
 
+def scrivi_tutte(tabelle: dict[str, pd.DataFrame], cartella: Path) -> None:
+    """Scrive le tabelle di un passo e ne stampa il numero di righe."""
+    for nome, tabella in tabelle.items():
+        scrivi_csv(tabella, nome, cartella)
+        print(f"  {nome}.csv: {len(tabella)} righe")
+
+
 def scrivi_intestazioni(cartella: Path) -> None:
-    """Scrive i CSV delle tabelle del database con la sola riga di intestazione."""
+    """Scrive i CSV delle tabelle del database con la sola riga di intestazione.
+
+    I file che esistono già non si toccano: alcuni contengono dati, e
+    segnalazione.csv e verbale.csv sono scritti a mano.
+    """
     for nome in config.TABELLE_DB:
+        if (cartella / f"{nome}.csv").exists():
+            print(f"  {nome}.csv: esiste già, non lo tocco")
+            continue
         vuota = pd.DataFrame(columns=config.COLONNE[nome])
         percorso = scrivi_csv(vuota, nome, cartella)
         print(f"  {percorso.name}")
@@ -61,7 +81,34 @@ def main() -> None:
         scrivi_intestazioni(cartella)
         return
 
-    raise SystemExit("Nessun modulo ancora pronto: per ora usa --solo-intestazioni.")
+    print(f"Configurazione {args.config}: {conf['descrizione']}")
+    print(f"Cartella: {cartella}")
+
+    print("\n1. Anagrafiche")
+    tabelle_anagrafiche = anagrafiche.genera(conf)
+    scrivi_tutte(tabelle_anagrafiche, cartella)
+
+    print("\n  Coordinate degli impianti rispetto al centro del comune (geocoding Open-Meteo):")
+    try:
+        controllo = anagrafiche.controlla_coordinate(anagrafiche.tabella_impianti())
+        print(controllo.to_string(index=False))
+    except requests.RequestException as errore:
+        print(f"  controllo saltato, Open-Meteo non raggiungibile: {errore}")
+
+    impianti = tabelle_anagrafiche["impianto"]
+
+    print("\n2. Meteo (Open-Meteo)")
+    tabelle_meteo = meteo.genera(conf, impianti)
+    scrivi_tutte(tabelle_meteo, cartella)
+
+    print("\n3. PVGIS (riferimento per la produzione)")
+    k = pvgis.k_impianti(conf, impianti)
+    print(f"  k_impianto: {k}")
+    print("  PVcalc, medie 2005-2023:")
+    print(pvgis.riepilogo_pvcalc(impianti).to_string(index=False))
+
+    print("\n4. Produzione")
+    scrivi_tutte(produzione.genera(conf, impianti, tabelle_meteo["meteo_orario"], k), cartella)
 
 
 if __name__ == "__main__":

@@ -1,1 +1,4 @@
 id,nome,comune,lat,lon,kwp,inclinazione_gradi,azimut_gradi,data_attivazione
+1,Tetto municipio San Secondo,San Secondo di Pinerolo,44.87,7.3,60.0,25.0,15.0,2024-03-15
+2,Capannone artigiano Buriasco,Buriasco,44.87,7.41,150.0,10.0,-20.0,2024-05-02
+3,Tetto scuola Pinerolo,Pinerolo,44.88,7.35,180.0,15.0,0.0,2024-04-01

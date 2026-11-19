@@ -1,1 +1,9 @@
 chiave,valore,fonte
+fattore_co2_kg_kwh,0.4133,"ISPRA, Rapporto 430/2026, Tab. 1.7: produzione termoelettrica lorda da fonti fossili, 2025 (dato preliminare)"
+tariffa_premio_eur_kwh,0.13,"DM MASE 414/2023, Allegato 1: impianti fino a 200 kW, fotovoltaico al Nord, prezzo zonale fino a 140 €/MWh"
+valorizzazione_arera_eur_kwh,0.008,"ARERA, TIAD (delibera 727/2022): circa 8 €/MWh nel 2023. Da aggiornare con il valore 2025-2026"
+prezzo_energia_famiglia_eur_kwh,0.351,"ARERA, Relazione annuale 2026 (dati 2025): prezzo finale medio dei clienti domestici, 35,12 c€/kWh"
+prezzo_energia_impresa_eur_kwh,0.351,"Provvisorio, uguale alle famiglie. Da aggiornare con il prezzo medio dei clienti BT altri usi (Relazione annuale ARERA)"
+prezzo_energia_ente_eur_kwh,0.351,"Provvisorio, uguale alle famiglie. Da aggiornare con il prezzo medio dei clienti BT altri usi (Relazione annuale ARERA)"
+perdite_sistema_pct,14.0,"PVGIS, valore predefinito delle perdite di sistema"
+coeff_temperatura_pct_c,-0.4,Valore tipico per moduli in silicio cristallino

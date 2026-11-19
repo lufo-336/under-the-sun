@@ -9,9 +9,11 @@ Gli altri moduli leggono da qui. Se cambia una regola, prima si aggiorna la guid
 poi questo file.
 """
 
+import json
 from pathlib import Path
 
 import numpy as np
+import requests
 
 # --- Cartelle ---------------------------------------------------------------
 
@@ -31,8 +33,41 @@ def rng_impianto(impianto_id: int) -> np.random.Generator:
 
 
 def rng_socio(socio_id: int) -> np.random.Generator:
-    """Generatore casuale proprio di un socio: default_rng([42, 1, id])."""
+    """Generatore casuale proprio di un socio: default_rng([42, 1, id]).
+
+    Ordine fisso delle estrazioni (chi lo usa deve rispettarlo):
+    1. scala (anagrafiche.py);
+    2. spostamento delle abitudini, 0 o ±1 ora (consumi.py);
+    3. rumore orario (consumi.py).
+    """
     return np.random.default_rng([SEED, 1, socio_id])
+
+
+def rng_anagrafica() -> np.random.Generator:
+    """Generatore per le scelte che riguardano tutta la comunità: tipo, comune e
+    data di adesione dei 240 soci. default_rng([42, 2]).
+
+    L'anagrafica si genera sempre intera, quindi queste scelte sono le stesse
+    in PICCOLA e in COMPLETA.
+    """
+    return np.random.default_rng([SEED, 2])
+
+
+# --- Cache delle fonti (CLAUDE.md) ------------------------------------------
+
+
+def scarica_json(url: str, parametri: dict, percorso_cache: Path) -> dict:
+    """Restituisce la risposta JSON di un'API, scaricandola solo la prima volta.
+
+    La risposta grezza si salva in percorso_cache e da lì si rilegge: la stessa
+    cosa non si scarica due volte. Per riscaricarla si cancella il file.
+    """
+    if not percorso_cache.exists():
+        risposta = requests.get(url, params=parametri, timeout=120)
+        risposta.raise_for_status()
+        percorso_cache.parent.mkdir(parents=True, exist_ok=True)
+        percorso_cache.write_text(risposta.text, encoding="utf-8")
+    return json.loads(percorso_cache.read_text(encoding="utf-8"))
 
 
 # --- Le due configurazioni --------------------------------------------------
@@ -50,9 +85,11 @@ CONFIGURAZIONI = {
             "aderenti_entro": "2026-06-01",
             "famiglie": 14,
             "socio_api": 42,  # usato in api.md: incluso se è una famiglia aderente in tempo
-            "imprese": ["bar_ristorante", "panificio", "officina", "parrucchiere"],
+            "imprese": ["bar", "panificio", "officina", "parrucchiere"],
             "enti": [("scuola", "Pinerolo"), ("uffici_comunali", "San Secondo di Pinerolo")],
         },
+        "taratura_pvgis": False,  # k_impianto = 1 (scorciatoia del §7)
+        "anomalie_casuali": False,  # §3.3: in giugno 2026 sugli impianti 1-3 c'è solo il guasto fisso
         "cartella": CARTELLA_ESEMPI,
     },
     "completa": {
@@ -61,6 +98,8 @@ CONFIGURAZIONI = {
         "ultimo_ts": "2026-10-31T23:00:00Z",  # 17.520 ore
         "impianti": [1, 2, 3, 4, 5, 6, 7, 8],
         "soci": "tutti",
+        "taratura_pvgis": True,
+        "anomalie_casuali": True,
         "cartella": CARTELLA_OUTPUT,
     },
 }
