@@ -1,6 +1,6 @@
 # Guida al dataset UnderTheSun (team dati)
 
-Versione 1.4 del 19 novembre 2026, a cura di Francesco (riferimento del team dati).
+Versione 1.5 del 19 novembre 2026, a cura di Francesco (riferimento del team dati).
 
 La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa le scelte che lì erano aperte. Le voci segnate **[DA CONFERMARE]** vanno discusse alla prossima riunione; tutto il resto è deciso. Se cambia una decisione, si aggiorna prima questa guida e poi il codice.
 
@@ -203,7 +203,7 @@ Ogni anomalia "vera" si scrive in `anomalie_vere.csv`, con le colonne `id`, `imp
 2. **Varietà tra soci.** Ogni socio ha un moltiplicatore fisso `scala`, estratto da una distribuzione lognormale con media 1. La deviazione standard è circa 0,35 per le famiglie e 0,5 per imprese ed enti. Così ci sono famiglie piccole e grandi.
 3. **Forma oraria.** Un profilo di 24 valori per tipo di socio e tipo di giorno: feriale, sabato, domenica o festivo. I festivi italiani si ricavano con la libreria `holidays`.
    - **Famiglia:** picco la mattina (7–8) e la sera (19–22), consumi bassi di notte, un po' più alti a metà giornata nel weekend.
-   - **Imprese ed enti:** consumi alti negli orari di apertura del profilo, bassi fuori orario (resta il consumo di base). Per esempio la scuola è aperta lunedì–venerdì 8–16 ed è chiusa a luglio, agosto e nelle vacanze; il ristorante lavora 11–15 e 19–23, il bar soprattutto dalla mattina al pomeriggio; l'officina lunedì–venerdì 8–18.
+   - **Imprese ed enti:** consumi alti negli orari di apertura del profilo, bassi fuori orario (resta il consumo di base). Per esempio la scuola è aperta lunedì–venerdì 8–16 nei giorni di lezione del calendario scolastico della Regione Piemonte (nel 2025/26 dal 10 settembre al 10 giugno, con il ponte del 1° giugno) ed è chiusa nelle vacanze, a luglio e ad agosto; per la versione completa servono anche i calendari 2024/25 e 2026/27; il ristorante lavora 11–15 e 19–23, il bar soprattutto dalla mattina al pomeriggio; l'officina lunedì–venerdì 8–18.
    - **Primo compito sul file ARERA delle famiglie:** controllare come è fatto il "prelievo medio orario".
      - Se contiene un valore per ogni ora del giorno, si usa direttamente quella forma.
      - Altrimenti si usa il profilo descritto sopra, riscalato in modo da rispettare le percentuali F1/F2/F3 di ARERA.
@@ -447,6 +447,9 @@ Si lanciano dopo ogni generazione. Se un controllo fallisce, il dataset non si c
 **Scorciatoie ammesse solo per il campione:**
 
 - **Consumi:** se il file ARERA non è ancora pronto, si usano volumi provvisori, dichiarati tali: famiglia 2.700 kWh/anno, impresa 15.000, ente 40.000.
+  - **Come si applicano:** il volume annuo di ogni socio, moltiplicato per la sua scala, si distribuisce sull'anno dal 1/9/2025 al 31/8/2026 seguendo il profilo orario, cioè giorni e orari di apertura. Giugno riceve la sua parte.
+  - **Perché quell'anno:** è un anno scolastico intero, coperto dal calendario 2025/26 già verificato.
+  - **Effetto:** la scuola, che a giugno fa lezione solo 6 giorni, consuma meno della media annua.
 - **Taratura PVGIS:** facoltativa, si può lasciare `k = 1`.
 - **Tabelle calcolate, con valori provvisori:**
   - `previsione_produzione`: la formula senza anomalie, così si vede lo scarto del guasto;

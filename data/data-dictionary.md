@@ -66,7 +66,7 @@ Il campione comprende 14 famiglie, 4 imprese (bar, panificio, officina, parrucch
 | ts | data e ora (UTC) | Inizio dell'ora |
 | kwh | decimale | Energia prelevata dalla rete nell'ora |
 
-⚠ **Volumi provvisori.** Nel campione i consumi annui sono 2.700 kWh per una famiglia, 15.000 per un'impresa e 40.000 per un ente. Il consumo di giugno è un dodicesimo di questi valori, moltiplicato per la scala del socio, e non è ancora riscalato sulle fasce F1/F2/F3 di ARERA.
+⚠ **Volumi provvisori.** Nel campione i consumi annui sono 2.700 kWh per una famiglia, 15.000 per un'impresa e 40.000 per un ente. Ogni volume annuo, moltiplicato per la scala del socio, è distribuito sull'anno dal 1/9/2025 al 31/8/2026 seguendo giorni e orari di apertura: giugno è la parte che gli spetta. Per questo la scuola, che a giugno fa lezione solo 6 giorni (il 1° giugno c'è il ponte e le lezioni finiscono il 10), consuma meno della media. I consumi non sono ancora riscalati sulle fasce F1/F2/F3 di ARERA.
 
 ### produzione_oraria.csv (2.160 righe = 3 impianti × 720 ore)
 
