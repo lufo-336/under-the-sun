@@ -210,13 +210,29 @@ titolo: |||md
   Portale della **Comunità Energetica Rinnovabile Buby Green** · team **PlusUltra** · stato al **lunedì 23 novembre 2026** (SAL 1 fatto, Sprint 1 appena iniziato)
 
   **In breve**
-  - su `main` sono già uniti database (#6), campione dati giugno 2026 (#8), backend JWT (#9) e mappa D2 (#21)
-  - chiuse le PR superate (#4, #7); restano in revisione #10 (CI), #5 (wireframe + restyling) e #23 (login JWT)
-  - 10 Issue aperte (#11–#20) per arrivare al SAL 2 di venerdì 4 dicembre (mini SAL col cliente ven 27 nov)
+  - su `main` sono già uniti database (#6), campione dati giugno 2026 (#8), backend JWT (#9), mappa D2 (#21) e docs post-SAL 1 (#22)
+  - chiuse le PR superate (#4, #7); aperte #10 (CI), #5 (wireframe + restyling), #23 (login JWT) e #24 (proposta DB team dati)
+  - 11 Issue aperte (#11–#20 e #25) per arrivare al SAL 2 di venerdì 4 dicembre (mini SAL col cliente ven 27 nov)
 
-  **Come si usa:** clicca un riquadro con l'icona del link per aprire la sua pagina di dettaglio (schema, scelte, codice reale, storico GitHub).\
+  **Come si usa:** usa i bottoni blu qui sotto o clicca un riquadro con l'icona del link per aprire le pagine di dettaglio (schema, scelte, codice reale, storico GitHub).\
   Sui riquadri con la "i" passa il mouse per una nota veloce. Ctrl + e Ctrl − del browser ingrandiscono e rimpiccioliscono.
 |||
+
+nav: "Accesso rapido alle pagine di dettaglio" {
+  class: area
+  grid-rows: 2
+  grid-columns: 4
+  grid-gap: 16
+
+  p_db: "Database (14 tabelle) →" {class: vai; link: layers.database}
+  p_be: "Backend (Express + JWT) →" {class: vai; link: layers.backend}
+  p_llm: "Flusso segnalazione + LLM →" {class: vai; link: layers.flusso_llm}
+  p_fe: "Frontend (React + Vite) →" {class: vai; link: layers.frontend}
+  p_dati: "Pipeline dati (Python) →" {class: vai; link: layers.dati}
+  p_ci: "CI, DevOps e processo →" {class: vai; link: layers.devops}
+  p_s1: "Piano Sprint 1 (11 Issue) →" {class: vai; link: layers.sprint1}
+  p_hist: "Storico GitHub (PR e review) →" {class: vai; link: layers.storico}
+}
 
 calendario: "Dove siamo nel calendario" {
   class: area
@@ -329,11 +345,11 @@ mappa: "Architettura · chi parla con chi" {
         link: layers.backend
         tooltip: "creaApp({ db, config }): i test passano un database finto, così npm test gira senza Postgres."
       }
-      s1: "Sprint 1 · Stefano\n/api/me/riepilogo (#14)\n/api/me/consumi (#14)\n/api/me/segnalazioni\n+ LLM (#16)" {
+      s1: "Sprint 1 · Stefano + Geoffrey\n/api/me/riepilogo e /consumi (#14)\n/api/me/segnalazioni + LLM (#16)\n/api/verbali e /:id · Geoffrey (#25)" {
         class: sprint1
         link: layers.backend
       }
-      s2: "Sprint 2\nsimulazione · anomalie\ncoda operatore\ncomunità · soci · verbali" {
+      s2: "Sprint 2\nsimulazione · anomalie\ncoda operatore\ncomunità · soci" {
         class: sprint2
         link: layers.backend
       }
@@ -412,16 +428,16 @@ mappa: "Architettura · chi parla con chi" {
       class: revisione
       link: layers.devops
     }
-    s1: "Sprint 1\n#6, #8, #9 su main · resta #10\ncheck obbligatori (#11)\nfrontend in Compose (#20)" {
+    s1: "Sprint 1\n#6, #8, #9 su main · resta #10\ncheck obbligatori (#11)\nreview #10/#5/#23 e Compose (#20)" {
       class: sprint1
       link: layers.devops
     }
-    storico: "Storico GitHub · PR e review\n8 PR unite · 3 aperte · 2 chiuse\n10 Issue Sprint 1 (#11–#20)" {
+    storico: "Storico GitHub · PR e review\n8 PR unite · 4 aperte · 2 chiuse\n11 Issue Sprint 1 (#11–#20, #25)" {
       class: fatto
       link: layers.storico
       tooltip: "Clicca per lo storico completo del repository con i link a tutte le PR e alle review."
     }
-    s1_link: "Piano Sprint 1 · dipendenze\nle 10 Issue in ordine (#11–#20)" {
+    s1_link: "Piano Sprint 1 · dipendenze\nle 11 Issue in ordine (#11–#20, #25)" {
       class: sprint1
       link: layers.sprint1
       tooltip: "Clicca per il piano dettagliato dello Sprint 1."
@@ -951,12 +967,13 @@ layers: {
       pr9: "PR #9 · scheletro backend" {class: vai; link: https://github.com/lufo-336/under-the-sun/pull/9}
       i14: "Issue #14 · area socio" {class: vai; link: https://github.com/lufo-336/under-the-sun/issues/14}
       i16: "Issue #16 · segnalazioni" {class: vai; link: https://github.com/lufo-336/under-the-sun/issues/16}
+      i25: "Issue #25 · verbali (Geoffrey)" {class: vai; link: https://github.com/lufo-336/under-the-sun/issues/25}
     }
 
     titolo: |||md
       # Backend · Node 22 + Express 5 + pg
       **Stato:** scheletro **unito su `main`** (PR #9 di Stefano, approvata e provata su Windows e Fedora con chiamate HTTP reali). 4 endpoint e 7 test.\
-      **Sprint 1 (Stefano):** area socio `/api/me/riepilogo` e `/api/me/consumi` (#14), segnalazioni con LLM e fallback (#16).
+      **Sprint 1:** Stefano su area socio (`/api/me/riepilogo` e `/consumi`, #14) e segnalazioni con LLM (#16); **Geoffrey** su `GET /api/verbali` e `/:id` (US-14, #25).
     |||
 
     richiesta: "Il percorso di una richiesta dentro Express" {
@@ -989,8 +1006,8 @@ layers: {
       grid-gap: 20
 
       fatto: "Su main · PR #9\nGET /api/salute · pubblico, usato dal healthcheck\nPOST /api/auth/login · { email, password } → { token, utente }\nGET /api/auth/me · utente riletto dal DB\nGET /api/impianti · solo operatore e admin" {class: fatto}
-      s1: "Sprint 1 · Stefano\nGET /api/me/riepilogo?anno= · totali e mesi (#14)\nGET /api/me/consumi?da=&a=&granularita= (#14)\nGET /api/me/segnalazioni · solo le proprie (#16)\nPOST /api/me/segnalazioni · LLM + fallback 201 (#16)" {class: sprint1}
-      s2: "Sprint 2\nPOST /api/me/simulazione · calcolo al volo\nGET /api/impianti/:id/produzione · PATCH /api/anomalie/:id\nGET/PATCH /api/segnalazioni · coda per urgenza\nGET /api/comunita/* · /api/soci · /api/verbali" {class: sprint2}
+      s1: "Sprint 1 · Stefano + Geoffrey\nGET /api/me/riepilogo?anno= · totali e mesi (#14)\nGET /api/me/consumi?da=&a=&granularita= (#14)\nGET/POST /api/me/segnalazioni · LLM + fallback (#16)\nGET /api/verbali e /:id · solo admin (#25, Geoffrey)" {class: sprint1}
+      s2: "Sprint 2\nPOST /api/me/simulazione · calcolo al volo\nGET /api/impianti/:id/produzione · PATCH /api/anomalie/:id\nGET/PATCH /api/segnalazioni · coda per urgenza\nGET /api/comunita/* · /api/soci" {class: sprint2}
     }
 
     scelte: "Scelte architetturali e perché" {
@@ -1836,8 +1853,8 @@ layers: {
       # CI, DevOps e processo di lavoro
       **Stato:** #6, #8 e #9 già **unite su `main`**; CI di base scritta (PR #10 di Luca, 3 job su 3 verdi, review chiesta a Geoffrey, Stefano e Mirko).\
       Ruleset `protezione-main` attivo: PR obbligatoria con 1 approvazione, niente force-push.\
-      **Sprint 1:** unire #10 e attivare i check CI obbligatori su `main` (#11, Luca); servizio `frontend` in Compose e giro di prova a mano su ogni PR\
-      (#20, Geoffrey).
+      **Sprint 1:** unire #10 e attivare i check CI obbligatori su `main` (#11, Luca); review #10, prova pratica #5/#23 e servizio `frontend` in Compose\
+      (#20, Geoffrey), più endpoint verbali (#25, Geoffrey).
     |||
 
     flusso: "Il giro di una modifica" {
@@ -2101,11 +2118,16 @@ layers: {
         }
       }
 
-      qa: "QA e DevOps · Geoffrey" {
+      qa: "QA e backend · Geoffrey" {
         class: sottoarea
-        i20: "#20\nfrontend in Compose\ngiro di prova a mano\nsulle PR di US-01, 02, 05" {
+        direction: down
+        i20: "#20 · QA e Compose\nreview #10 · prova #5/#23\nfrontend in Compose" {
           class: sprint1
           link: https://github.com/lufo-336/under-the-sun/issues/20
+        }
+        i25: "#25 · US-14 · verbali\nGET /api/verbali e /:id\nsolo admin + test" {
+          class: sprint1
+          link: https://github.com/lufo-336/under-the-sun/issues/25
         }
       }
 
@@ -2118,6 +2140,7 @@ layers: {
       base.pr6 -> chiusura.i11: {class: f-fatto}
       base.pr8 -> chiusura.i11: {class: f-fatto}
       base.pr9 -> chiusura.i11: {class: f-fatto}
+      base.pr9 -> qa.i25: {class: f-fatto}
       base.pr10 -> chiusura.i11: {class: f-revisione}
       base.pr5 -> chiusura.i12: {class: f-revisione}
       base.pr8 -> td.i18: {class: f-fatto}
@@ -2139,6 +2162,7 @@ layers: {
       td.i18 -> sal2: {class: f-sprint1}
       td.i19 -> sal2: {class: f-sprint1}
       qa.i20 -> sal2: {class: f-sprint1}
+      qa.i25 -> sal2: {class: f-sprint1}
     }
 
     regole: "Regole di lavoro dello Sprint 1" {
@@ -2190,13 +2214,13 @@ layers: {
       ci: "CI e processo →" {class: vai; link: _.layers.devops}
       s1: "Piano Sprint 1 →" {class: vai; link: _.layers.sprint1}
       prs: "Tutte le PR su GitHub" {class: vai; link: https://github.com/lufo-336/under-the-sun/pulls?q=is%3Apr}
-      issues: "Issue #11–#20 su GitHub" {class: vai; link: https://github.com/lufo-336/under-the-sun/milestone/1}
+      issues: "Issue Sprint 1 (#11–#20, #25)" {class: vai; link: https://github.com/lufo-336/under-the-sun/milestone/1}
     }
 
     titolo: |||md
       # Storico del repository GitHub (`lufo-336/under-the-sun`)
-      Cronologia completa delle **Pull Request** e delle **review** dal 6 al 23 novembre 2026: **8 PR unite su `main`**, **3 PR aperte in revisione**,\
-      **2 PR chiuse perché inglobate**, più le **10 Issue dello Sprint 1** (#11–#20). Ogni riquadro apre direttamente la PR o la review su GitHub.
+      Cronologia completa delle **Pull Request** e delle **review** dal 6 al 23 novembre 2026: **8 PR unite su `main`**, **4 PR aperte**,\
+      **2 PR chiuse perché inglobate**, più le **11 Issue dello Sprint 1** (#11–#20 e #25). Ogni riquadro apre direttamente la PR o la review su GitHub.
     |||
 
     unite: "Unite su main · fondamenta e documentazione (8 PR)" {
@@ -2239,23 +2263,27 @@ layers: {
       }
     }
 
-    aperte: "Aperte in revisione · prossimi merge (3 PR)" {
+    aperte: "Aperte · in revisione o discussione (4 PR)" {
       class: area
-      grid-rows: 1
-      grid-columns: 3
+      grid-rows: 2
+      grid-columns: 2
       grid-gap: 20
 
-      pr10: "PR #10 · 23 nov · Luca\nCI di base GitHub Actions (3/3 verdi)\nin attesa di 1 Approve (#11)" {
+      pr10: "PR #10 · 23 nov · Luca\nCI di base GitHub Actions (3/3 verdi)\nin attesa di 1 Approve (#11, #20)" {
         class: revisione
         link: https://github.com/lufo-336/under-the-sun/pull/10
       }
-      pr5: "PR #5 · 15–23 nov · Mirko\nWireframe 8 viste + restyling (d5c537e)\nreview da rifare (#12)" {
+      pr5: "PR #5 · 15–23 nov · Mirko\nWireframe 8 viste + restyling (d5c537e)\nreview e prova pratica (#12, #20)" {
         class: revisione
         link: https://github.com/lufo-336/under-the-sun/pull/5
       }
-      pr23: "PR #23 · 23 nov · Mirko\nFrontend login JWT e ruoli (US-01)\nin attesa di review (#13)" {
+      pr23: "PR #23 · 23 nov · Mirko\nFrontend login JWT e ruoli (US-01)\nreview e prova pratica (#13, #20)" {
         class: revisione
         link: https://github.com/lufo-336/under-the-sun/pull/23
+      }
+      pr24: "PR #24 · 23 nov · ASTROBLAST25\nProposta design relazionale DB\nin discussione interna nel team dati" {
+        class: sprint2
+        link: https://github.com/lufo-336/under-the-sun/pull/24
       }
     }
 

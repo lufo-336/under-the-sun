@@ -17,7 +17,7 @@ Portale della Comunità Energetica Rinnovabile (CER) di **Buby Green** — proge
 | Luca Foglia | Team leader, architettura, DevOps (WSA) |
 | Mirko Di Vincenzo | Frontend, vice team leader (WSA) |
 | Stefano Spadaccini | Backend, vice team leader (WSA) |
-| Geoffrey JR Etinosa | Jolly: dove serve nello sprint, ponte Git per il team dati, prove dell'app (WSA) |
+| Geoffrey JR Etinosa | Jolly, QA e supporto backend/DevOps: review/prove PR, verbali (US-14), Compose (WSA) |
 | Francesco Colohan | Data Analyst / AI, riferimento del team dati |
 | Giuseppe Tommasi | Data Analyst / AI |
 | Cecilia Montebello | Data Analyst / AI |
