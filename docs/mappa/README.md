@@ -4,6 +4,10 @@ Mappa cliccabile dell'architettura di **UnderTheSun**, scritta in [D2](https://d
 
 ## 1. Aprire la mappa (senza installare nulla)
 
+### Online (GitHub Pages)
+Apri direttamente nel browser: **<https://lufo-336.github.io/under-the-sun/>** (si aggiorna automaticamente a ogni modifica su `main`).
+
+### In locale (dopo `git clone` o `git pull`)
 1. Apri la cartella `out/index/`.
 2. Doppio clic su **`index.html`**: si apre nel browser e porta subito alla mappa (`index.svg`).
 
