@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Leaf, ShieldCheck, Sun, Users, Wrench } from 'lucide-react'
-import { demoUsers } from '../../mocks/mockData'
+import { useAuth } from '../../context/useAuth'
 
 const roles = [
   { key: 'socio', label: 'Socio', icon: Users },
@@ -9,25 +9,68 @@ const roles = [
   { key: 'admin', label: 'Admin', icon: ShieldCheck }
 ]
 
+const roleHomes = {
+  socio: '/socio/dashboard',
+  operatore: '/operatore/impianti',
+  admin: '/admin/kpi'
+}
+
+const demoCredentials = {
+  socio: { email: 'socio1@example.com', password: 'demo123' },
+  operatore: { email: 'operatore@example.com', password: 'demo123' },
+  admin: { email: 'admin@example.com', password: 'demo123' }
+}
+
 export default function LoginPage() {
   const navigate = useNavigate()
-  const [formData, setFormData] = useState({ email: 'maria.rossi@user.com', password: 'demo123' })
+  const location = useLocation()
+  const { login, isAuthenticated, user } = useAuth()
+  const [formData, setFormData] = useState({ email: 'socio1@example.com', password: 'demo123' })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(roleHomes[user.ruolo] || '/login', { replace: true })
+    }
+  }, [isAuthenticated, navigate, user])
 
   const handleChange = (event) => {
     const { name, value } = event.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handleLogin = async (credentials = formData) => {
+    setError('')
+    setLoading(true)
+
+    try {
+      const authenticatedUser = await login(credentials.email, credentials.password)
+      const returnTo = location.state?.from
+      const rolePrefix = authenticatedUser.ruolo === 'socio' ? '/socio/'
+        : authenticatedUser.ruolo === 'operatore' ? '/operatore/'
+          : authenticatedUser.ruolo === 'admin' ? '/admin/' : null
+      const destination = returnTo?.startsWith(rolePrefix) ? returnTo : roleHomes[authenticatedUser.ruolo]
+      navigate(destination || '/login', { replace: true })
+    } catch (requestError) {
+      setError(requestError.status === 401
+        ? 'Credenziali non valide.'
+        : requestError.message || 'Impossibile accedere al backend.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleSubmit = (event) => {
     event.preventDefault()
-    navigate('/socio/dashboard')
+    handleLogin()
   }
 
   const handleQuickAccess = (roleKey) => {
-    const user = demoUsers[roleKey]
-    if (!user) return
-    setFormData({ email: user.email, password: user.password })
-    navigate(user.home)
+    const credentials = demoCredentials[roleKey]
+    if (!credentials) return
+    setFormData(credentials)
+    handleLogin(credentials)
   }
 
   return (
@@ -70,7 +113,10 @@ export default function LoginPage() {
                 className="h-11 rounded-xl border border-input bg-background px-3"
               />
             </label>
-            <button type="submit" className="h-11 w-full rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-glow transition hover:brightness-105">Accedi</button>
+            {error && <p role="alert" className="rounded-xl bg-destructive-soft px-3 py-2 text-sm font-semibold text-destructive-foreground">{error}</p>}
+            <button type="submit" disabled={loading} className="h-11 w-full rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-glow transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60">
+              {loading ? 'Accesso…' : 'Accedi'}
+            </button>
           </form>
 
           <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
@@ -81,8 +127,9 @@ export default function LoginPage() {
               <button
                 key={key}
                 type="button"
+                disabled={loading}
                 onClick={() => handleQuickAccess(key)}
-                className="flex flex-col items-center gap-1.5 rounded-xl border border-border bg-background py-3 text-xs font-semibold text-foreground transition hover:border-primary hover:bg-secondary"
+                className="flex flex-col items-center gap-1.5 rounded-xl border border-border bg-background py-3 text-xs font-semibold text-foreground transition hover:border-primary hover:bg-secondary disabled:opacity-60"
               >
                 <Icon className="h-5 w-5 text-primary" aria-hidden="true" /> {label}
               </button>

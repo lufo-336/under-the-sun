@@ -1,5 +1,14 @@
 const API_BASE_URL = '/api'
 
+export class ApiError extends Error {
+  constructor(codice, messaggio, status) {
+    super(messaggio)
+    this.name = 'ApiError'
+    this.codice = codice
+    this.status = status
+  }
+}
+
 async function request(endpoint, { method = 'GET', body, token, headers = {} } = {}) {
   const config = {
     method,
@@ -8,8 +17,9 @@ async function request(endpoint, { method = 'GET', body, token, headers = {} } =
     }
   }
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  const accessToken = token || localStorage.getItem('under_the_sun_token')
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`
   }
 
   if (body && !(body instanceof FormData)) {
@@ -20,14 +30,28 @@ async function request(endpoint, { method = 'GET', body, token, headers = {} } =
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, config)
+  const contentType = response.headers.get('content-type') || ''
+  let data = null
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(errorText || 'Errore di richiesta API')
+  if (contentType.includes('application/json')) {
+    data = await response.json().catch(() => null)
+  } else {
+    data = await response.text()
   }
 
-  const contentType = response.headers.get('content-type') || ''
-  return contentType.includes('application/json') ? response.json() : response.text()
+  if (!response.ok) {
+    const errore = data?.errore
+    if (response.status === 401) {
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'))
+    }
+    throw new ApiError(
+      errore?.codice || (response.status === 401 ? 'CREDENZIALI_ERRATE' : 'ERRORE_API'),
+      errore?.messaggio || (typeof data === 'string' && data) || 'Errore di richiesta API',
+      response.status
+    )
+  }
+
+  return data
 }
 
 export const apiClient = {

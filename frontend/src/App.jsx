@@ -1,9 +1,11 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { BrowserRouter } from 'react-router-dom'
+import { Navigate, Route, Routes, BrowserRouter } from 'react-router-dom'
 import { AlertTriangle, BarChart3, Calculator, FileText, Gauge, LayoutDashboard, MessageSquare } from 'lucide-react'
 import AppLayout from './components/AppLayout'
+import ProtectedRoute from './components/ProtectedRoute'
+import { AuthProvider } from './context/AuthContext.jsx'
 import AdminAssembleePage from './pages/admin/AdminAssembleePage'
 import AdminKpiPage from './pages/admin/AdminKpiPage'
+import LoginPage from './pages/auth/LoginPage'
 import OperatoreImpiantiPage from './pages/operatore/OperatoreImpiantiPage'
 import OperatoreSegnalazioniPage from './pages/operatore/OperatoreSegnalazioniPage'
 import SocioDashboardPage from './pages/socio/SocioDashboardPage'
@@ -23,27 +25,36 @@ const navItemsByRole = {
   admin: [
     { to: '/admin/kpi', label: 'KPI', icon: BarChart3 },
     { to: '/admin/assemblee', label: 'Assemblee', icon: FileText }
-  ],
-  login: []
+  ]
 }
 
-const AppRoutes = () => {
-  const routesConfig = [
-    { path: '/socio/dashboard', role: 'socio', element: <SocioDashboardPage /> },
-    { path: '/socio/simulatore', role: 'socio', element: <SocioSimulatorePage /> },
-    { path: '/socio/segnalazioni', role: 'socio', element: <SocioSegnalazioniPage /> },
-    { path: '/operatore/impianti', role: 'operatore', element: <OperatoreImpiantiPage /> },
-    { path: '/operatore/segnalazioni', role: 'operatore', element: <OperatoreSegnalazioniPage /> },
-    { path: '/admin/kpi', role: 'admin', element: <AdminKpiPage /> },
-    { path: '/admin/assemblee', role: 'admin', element: <AdminAssembleePage /> },
-    { path: '/', element: <Navigate to="/login" replace /> },
-    { path: '*', element: <Navigate to="/login" replace /> }
-  ]
+const protectedRoutes = [
+  { path: '/socio/dashboard', role: 'socio', element: <SocioDashboardPage /> },
+  { path: '/socio/simulatore', role: 'socio', element: <SocioSimulatorePage /> },
+  { path: '/socio/segnalazioni', role: 'socio', element: <SocioSegnalazioniPage /> },
+  { path: '/operatore/impianti', role: 'operatore', element: <OperatoreImpiantiPage /> },
+  { path: '/operatore/segnalazioni', role: 'operatore', element: <OperatoreSegnalazioniPage /> },
+  { path: '/admin/kpi', role: 'admin', element: <AdminKpiPage /> },
+  { path: '/admin/assemblee', role: 'admin', element: <AdminAssembleePage /> }
+]
+
+function AppRoutes() {
   return (
     <Routes>
-      {routesConfig.map(({ path, role, element }) => (
-        <Route key={path} path={path} element={<AppLayout role={role} navItems={navItemsByRole[role]}>{element}</AppLayout>} />
+      <Route path="/login" element={<LoginPage />} />
+      {protectedRoutes.map(({ path, role, element }) => (
+        <Route
+          key={path}
+          path={path}
+          element={
+            <ProtectedRoute allowedRole={role}>
+              <AppLayout role={role} navItems={navItemsByRole[role]}>{element}</AppLayout>
+            </ProtectedRoute>
+          }
+        />
       ))}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )
 }
@@ -51,7 +62,9 @@ const AppRoutes = () => {
 function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </BrowserRouter>
   )
 }

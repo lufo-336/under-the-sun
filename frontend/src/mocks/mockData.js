@@ -167,7 +167,7 @@ export const impiantoProductionSeries = {
 }
 
 export const demoUsers = {
-  socio: { nome: 'Maria Rossi', email: 'maria.rossi@user.com', password: 'demo123', home: '/socio/dashboard' },
-  operatore: { nome: 'Sara Verdi', email: 'sara.verdi@operator.com', password: 'demo123', home: '/operatore/impianti' },
-  admin: { nome: 'Admin CER', email: 'admin@cer.it', password: 'demo123', home: '/admin/kpi' }
+  socio: { nome: 'Socio prova', email: 'socio1@example.com', password: 'demo123', home: '/socio/dashboard' },
+  operatore: { nome: 'Operatore prova', email: 'operatore@example.com', password: 'demo123', home: '/operatore/impianti' },
+  admin: { nome: 'Admin prova', email: 'admin@example.com', password: 'demo123', home: '/admin/kpi' }
 }
