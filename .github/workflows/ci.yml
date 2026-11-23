@@ -1,0 +1,126 @@
+# Controlli automatici (CI) a ogni Pull Request e a ogni push su main.
+# Ogni job controlla prima se la relativa parte del progetto è già presente sul
+# branch: così il workflow resta verde anche mentre le prime PR stanno entrando.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Se arriva un nuovo commit sulla stessa PR, ferma la corsa precedente.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  backend:
+    name: Backend (test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Controlla se backend/ esiste
+        id: presente
+        run: |
+          if [ -f backend/package.json ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "backend/ non ancora presente su questo branch: controllo saltato."
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.presente.outputs.ok == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Installa dipendenze, lint e test
+        if: steps.presente.outputs.ok == 'true'
+        working-directory: backend
+        run: |
+          npm ci
+          npm run lint --if-present
+          npm test
+
+  frontend:
+    name: Frontend (lint e build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Controlla se frontend/ esiste
+        id: presente
+        run: |
+          if [ -f frontend/package.json ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "frontend/ non ancora presente su questo branch: controllo saltato."
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.presente.outputs.ok == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Installa dipendenze, lint e build
+        if: steps.presente.outputs.ok == 'true'
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run lint --if-present
+          npm run build
+
+  integrazione:
+    name: Database, seed e Compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Controlla quali servizi e dati esistono
+        id: presente
+        run: |
+          echo "compose=$(test -f compose.yaml && test -f .env.example && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "csv=$(test -f data/esempi/impianto.csv && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "backend=$(test -f backend/Dockerfile && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Prepara .env di prova
+        if: steps.presente.outputs.compose == 'true'
+        run: cp .env.example .env
+
+      - name: Avvia stack completo (database, migrazioni e backend)
+        if: steps.presente.outputs.compose == 'true' && steps.presente.outputs.backend == 'true'
+        run: docker compose up -d --build --wait backend
+
+      - name: Avvia database e applica migrazioni (senza backend)
+        if: steps.presente.outputs.compose == 'true' && steps.presente.outputs.backend == 'false'
+        run: |
+          docker compose up -d --wait db
+          docker compose run --rm migrate
+
+      - name: Carica i CSV di esempio (controllo contratto schema <-> dati)
+        if: steps.presente.outputs.compose == 'true' && steps.presente.outputs.csv == 'true'
+        run: docker compose run --rm seed
+
+      - name: Crea account di prova e verifica /api/salute
+        if: steps.presente.outputs.compose == 'true' && steps.presente.outputs.backend == 'true'
+        run: |
+          docker compose exec -T backend npm run crea-utenti
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 --retry-all-errors http://127.0.0.1:3000/api/salute
+
+      - name: Log dei container in caso di errore
+        if: failure() && steps.presente.outputs.compose == 'true'
+        run: docker compose logs --no-color
+
+      - name: Pulizia container e volumi
+        if: always() && steps.presente.outputs.compose == 'true'
+        run: docker compose down -v
