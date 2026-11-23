@@ -77,7 +77,7 @@ Forma: *come [chi] voglio [cosa] per [perché]*. Priorità: **I** = indispensabi
 | US‑11 | team dati, lanciare i batch che scrivono nel DB | previsioni, anomalie e ripartizione visibili nel portale | I | 2 | Francesco + DA, Luca |
 | US‑12 | team dati, misurare l'accuratezza della classificazione | un numero ("x % di categorie giuste") nel report | I | 2 | team dati |
 | US‑13 | sviluppatore, avviare tutto con un comando | `docker compose up` funziona su ogni PC del team | I | 0 | Luca |
-| US‑14 | admin, leggere i verbali con la sintesi dell'LLM | sintesi presente per ogni verbale | U | 2–3 | Stefano, team dati |
+| US‑14 | admin, leggere i verbali con la sintesi dell'LLM | sintesi presente per ogni verbale | U | 1 (backend), 2–3 (sintesi LLM) | Geoffrey (backend), team dati |
 | US‑15 | operatore, vedere vicino a un'anomalia le segnalazioni dello stesso impianto | stesso impianto, stessi giorni | U | 2 | Geoffrey |
 | US‑16 | socio, vedere lo storico delle bollette | elenco mese per mese | U | 2 | Geoffrey |
 | US‑17 | admin, vedere l'elenco dei soci con il dettaglio | filtro per tipo di socio | E | 3 | Geoffrey |
@@ -106,7 +106,7 @@ Le due regole che reggono tutto:
 
 ![Container: i pezzi che girano e chi parla con chi](img/02-container.png)
 
-**Mappa interattiva**: in `docs/mappa/` c'è una mappa cliccabile dell'architettura (dopo il clone si apre `docs/mappa/out/index/index.html`). Mostra chi parla con chi, lo stato di ogni pezzo (fatto, in revisione, Sprint 1, Sprint 2), le scelte architetturali con il perché e il codice reale; ha una pagina per database, backend, segnalazioni, frontend, dati, CI e piano dello Sprint 1.
+**Mappa interattiva**: in `docs/mappa/` c'è una mappa cliccabile dell'architettura (dopo il clone si apre `docs/mappa/out/index/index.html`). Mostra chi parla con chi, lo stato di ogni pezzo (fatto, in revisione, Sprint 1, Sprint 2), le scelte architetturali con il perché e il codice reale; ha una pagina per database, backend, segnalazioni, frontend, dati, CI, piano dello Sprint 1 e storico GitHub.
 
 ## 7. La versione commerciale (teoria)
 
@@ -136,7 +136,7 @@ Il prototipo deve funzionare un pomeriggio, su un PC, con dati finti. Un prodott
 | **Luca** | Team leader, DevOps | Docker, database e migrazioni, CI, integrazione, merge su `main`, stato settimanale al cliente, presentazione principale |
 | **Stefano** | Backend · vice | API, login e ruoli, simulatore, chiamata all'LLM |
 | **Mirko** | Frontend · vice | wireframe, pagine React, grafici, navigazione per ruolo |
-| **Geoffrey** | Jolly | dove c'è il collo di bottiglia dello sprint; più due compiti fissi: **ponte Git** per il team dati e **giro di prova** dell'app prima dei merge, copione della demo |
+| **Geoffrey** | Jolly · QA e supporto backend/DevOps | review e **giro di prova** pratico delle PR, endpoint backend dedicati (verbali US-14, storie utili US-15/16), servizio `frontend` in Compose, eventuale ponte Git per il team dati, copione della demo |
 | **Francesco** | Riferimento del team dati | il punto di contatto unico tra team dati e WSA |
 | **Francesco, Giuseppe, Cecilia** | Team dati | gli obiettivi della sezione 9; si dividono il lavoro tra loro |
 
@@ -182,11 +182,11 @@ Ogni sprint inizia e finisce con un incontro di laboratorio, così si pianifica 
 | Chi | Cosa |
 |---|---|
 | Stefano + Mirko | login, dashboard del socio con dati veri dal DB, invio delle segnalazioni (US-01, 02, 05) |
-| Geoffrey | dove serve; giro di prova a ogni PR |
+| Geoffrey | review PR #10 (CI) e prova pratica PR #5/#23 (#20); endpoint backend verbali `GET /api/verbali` (US-14, #25); `frontend` in Compose |
 | Luca | CI completa, integrazione, revisione delle PR |
 | Team dati | **dataset completo di 2 anni**; 200–300 segnalazioni etichettate; prima versione dei modelli |
 
-I compiti sono le **Issue #11–#20** su GitHub, nella milestone *Sprint 1 — Primo percorso completo (SAL 2)*: ognuna ha un responsabile, le dipendenze e il "fatto quando". La pagina `sprint1` della mappa le mostra in ordine.
+I compiti sono le **Issue #11–#20 e #25** su GitHub, nella milestone *Sprint 1 — Primo percorso completo (SAL 2)*: ognuna ha un responsabile, le dipendenze e il "fatto quando". La pagina `sprint1` della mappa le mostra in ordine.
 
 ### Sprint 2 — Tutto collegato (4 → 14 dic)
 

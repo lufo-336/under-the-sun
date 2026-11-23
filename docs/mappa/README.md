@@ -20,7 +20,7 @@ Mappa cliccabile dell'architettura di **UnderTheSun**, scritta in [D2](https://d
 | `frontend.svg` | struttura React, mock di oggi e API dello Sprint 1, codice |
 | `dati.svg` | pipeline Python, le due configurazioni, formula della ripartizione |
 | `devops.svg` | giro di una modifica, i 3 job della CI, ordine di merge |
-| `sprint1.svg` | le 10 Issue dello Sprint 1, chi le fa e cosa aspetta cosa |
+| `sprint1.svg` | le 11 Issue dello Sprint 1 (#11–#20 e #25), chi le fa e cosa aspetta cosa |
 | `storico.svg` | storico del repository GitHub: PR unite, aperte, chiuse e review principali |
 
 ### Come navigarla
