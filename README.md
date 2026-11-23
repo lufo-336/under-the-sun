@@ -56,16 +56,19 @@ React · Node + Express · PostgreSQL · Python (pandas, scikit-learn) · LLM vi
 
 Dettagli, ruoli e chi fa cosa: [docs/piano-di-progetto.md](docs/piano-di-progetto.md) ([PDF](docs/piano-di-progetto.pdf)).
 
-## Avvio (per ora solo il database)
+## Avvio (database e backend)
 
 Serve Docker Desktop (o Docker con Compose).
 
 ```bash
 cp .env.example .env             # una volta sola
-docker compose up -d db migrate  # Postgres + schema, su localhost:5433
+docker compose up -d --build     # Postgres + schema (localhost:5433) + backend (localhost:3000)
 docker compose run --rm seed     # carica i CSV di data/esempi
+docker compose exec backend npm run crea-utenti   # account di prova
 docker compose down -v           # ripartire da zero (cancella i dati)
 ```
+
+Account di prova ed endpoint pronti: [backend/README.md](backend/README.md).
 
 Lo schema sta in `db/migrations/`, il caricamento in `db/seed/carica.sql`. I CSV devono avere le intestazioni uguali alle colonne della tabella, nello stesso ordine: se no il caricamento si ferma e non carica niente.
 
