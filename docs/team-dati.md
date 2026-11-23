@@ -22,11 +22,12 @@ Valutazione per voi: correttezza e qualità dei dati, rigore dell'analisi, utili
 | Quando | Cosa vi serve avere |
 |---|---|
 | **ven 13 nov** | Ricerca fatta (sezione 4), elenco tabelle/colonne rivisto rispetto alla bozza in [architettura.md](architettura.md) |
-| **ven 20 nov — SAL 1** | Data dictionary v1 + **CSV di esempio di 1 settimana** per ogni tabella (servono ai WSA per sviluppare). Schema congelato |
+| **lun 23 nov — SAL 1** (spostato da ven 20) | Data dictionary v1 + **CSV di esempio di 1 settimana** per ogni tabella (servono ai WSA per sviluppare). Schema congelato |
 | **ven 4 dic — SAL 2** | Dataset completo (2 anni), 200–300 segnalazioni etichettate, prima versione dei modelli |
 | mer 9 dic | Batch di previsioni/anomalie/ripartizione che scrivono nel DB; prompt con accuratezza misurata |
 | lun 14 dic | Numeri per la presentazione: CO2 evitata, risparmi, accuratezza dei modelli |
-| **lun 21 dic** | Consegna finale: report dei risultati + demo |
+| **ven 18 dic — SAL finale col cliente** | Risultati e demo da mostrare al cliente |
+| **gennaio 2027** | Rifiniture; nell'ultima lezione la presentazione finale (report dei risultati + demo) |
 
 ## 4. Ricerca: dove guardare
 
@@ -151,7 +152,7 @@ Per ogni colonna: nome, tipo, unità, descrizione, esempio, fonte o regola di ge
 
 ## 11. Domande aperte (rispondete voi)
 
-Risposte entro il **SAL 1 (ven 20 nov)**: servono per congelare lo schema.
+Risposte entro il **SAL 1 (lun 23 nov)**: servono per congelare lo schema.
 
 1. Cabina primaria unica o più cabine?
 2. Tariffa GSE oraria con prezzo zonale o valore medio?

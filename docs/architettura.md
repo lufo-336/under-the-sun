@@ -1,6 +1,6 @@
 # UnderTheSun — architettura (bozza)
 
-Bozza da validare con il team dati prima del SAL 1 (20 nov). Modello di calcolo: CER realistico (vedi [team-dati.md](team-dati.md)). Contratto API: [api.md](api.md).
+Versione del SAL 1 (lun 23 nov 2026). Lo stato di ogni pezzo (fatto, in revisione, Sprint 1, Sprint 2) è nella [mappa interattiva](mappa/README.md). Modello di calcolo: CER realistico (vedi [team-dati.md](team-dati.md)). Contratto API: [api.md](api.md).
 
 I diagrammi sono in Mermaid (GitHub li disegna). Versioni PNG in [img/](img/).
 

@@ -1,17 +1,19 @@
 # UnderTheSun — piano di progetto
 
-> **v0.1 — bozza da discutere** · 12 nov 2026 · team PlusUltra
+> **v0.2** · aggiornato al 23 nov 2026 · team PlusUltra
 > Cosa costruiamo, come è fatto, chi fa cosa e quando. Tutto è una proposta: ditemi cosa non va.
+>
+> **Novità della v0.2**: calendario aggiornato dopo il SAL 1 (mini SAL col cliente il 27 nov, SAL finale col cliente il 18 dic, presentazione finale a gennaio 2027), scaletta dei SAL, stato dello Sprint 0, Issue dello Sprint 1 e mappa interattiva dell'architettura.
 
 ## 1. Come leggerlo e come rispondere
 
 Dieci pagine circa. Se avete poco tempo, leggete almeno le sezioni **4 (storie)**, **8 (ruoli)** e **9 (roadmap)**.
 
 - **Entro martedì 17 novembre** scrivete sul gruppo WhatsApp cosa cambiereste, cosa manca, cosa non è chiaro. Anche un "per me va bene" è utile.
-- Venerdì **20 novembre** (SAL 1, in aula) confermiamo insieme la versione 1.0.
+- Al **SAL 1** (in aula, spostato da venerdì 20 a **lunedì 23 novembre**) confermiamo insieme la versione 1.0.
 - Se non siamo d'accordo su qualcosa ne parliamo; se non si trova una sintesi, decide il team leader.
 
-Il dettaglio tecnico è nei documenti del repo `under-the-sun`: `docs/architettura.md` (modello dati), `docs/api.md` (contratto API), `docs/team-dati.md` (brief per il team dati), `docs/git.md` (guida Git).
+Il dettaglio tecnico è nei documenti del repo `under-the-sun`: `docs/architettura.md` (modello dati), `docs/api.md` (contratto API), `docs/team-dati.md` (brief per il team dati), `docs/git.md` (guida Git), `docs/mappa/` (mappa interattiva dell'architettura, con lo stato di ogni pezzo).
 
 ## 2. Il prodotto in una pagina
 
@@ -42,7 +44,7 @@ Regola di privacy: il socio vede **solo i propri dati**; l'operatore vede gli im
 
 ## 4. Cinque storie
 
-Sono anche il **copione della demo** del 21 dicembre: se queste cinque storie funzionano dal vivo, il progetto è riuscito.
+Sono anche il **copione della demo** per il SAL finale col cliente (18 dicembre) e per la presentazione finale di gennaio: se queste cinque storie funzionano dal vivo, il progetto è riuscito.
 
 **Maria a fine mese.** Maria entra nel portale dal telefono. In alto vede tre numeri: i kWh che ha consumato a ottobre, i 6,40 € di incentivo che le spettano e i 18 kg di CO2 evitata. Sotto, un grafico mette a confronto i suoi consumi con la previsione: a metà mese c'è un picco, e lei si ricorda della lavatrice rotta che girava a vuoto.
 
@@ -104,6 +106,8 @@ Le due regole che reggono tutto:
 
 ![Container: i pezzi che girano e chi parla con chi](img/02-container.png)
 
+**Mappa interattiva**: in `docs/mappa/` c'è una mappa cliccabile dell'architettura (dopo il clone si apre `docs/mappa/out/index/index.html`). Mostra chi parla con chi, lo stato di ogni pezzo (fatto, in revisione, Sprint 1, Sprint 2), le scelte architetturali con il perché e il codice reale; ha una pagina per database, backend, segnalazioni, frontend, dati, CI e piano dello Sprint 1.
+
 ## 7. La versione commerciale (teoria)
 
 Il prototipo deve funzionare un pomeriggio, su un PC, con dati finti. Un prodotto vero deve funzionare per anni, con dati personali veri. Non la costruiamo, ma sapere come sarebbe ci serve per rispondere al cliente.
@@ -148,17 +152,18 @@ Ogni sprint inizia e finisce con un incontro di laboratorio, così si pianifica 
 
 | Incontro | Cosa si fa |
 |---|---|
-| ven 20 nov · **SAL 1** | chiusura sprint 0; schema e API congelati |
-| lun 23 nov | pianificazione sprint 1 |
-| ven 27 nov | punto a metà sprint 1 |
+| lun 23 nov · **SAL 1** (spostato da ven 20) | chiusura sprint 0; schema e contratto API; pianificazione sprint 1 |
+| ven 27 nov · **mini SAL col cliente** | punto a metà sprint 1: stato del progetto e 3–4 domande puntuali per il cliente |
 | ~mar 1 dic, online | punto flessibile (tra il 27 nov e il 9 dic non ci sono incontri) |
-| ven 4 dic · **SAL 2** | chiusura sprint 1 |
+| ven 4 dic · **SAL 2** | chiusura sprint 1 (quel giorno non c'è lezione di laboratorio) |
 | mer 9 dic | punto a metà sprint 2 |
 | lun 14 dic | chiusura sprint 2; da qui niente funzioni nuove |
-| ven 18 dic | **prova generale** della demo |
-| lun 21 dic · **consegna finale** | presentazione al cliente |
+| ven 18 dic · **SAL finale col cliente** | il prototipo con le cinque storie |
+| gennaio 2027 (probabilmente 2–3 lezioni) | rifiniture; nell'ultima lezione la **presentazione finale** |
 
-### Sprint 0 — Fondamenta (12 → 20 nov)
+**Scaletta di ogni SAL**: come siamo organizzati · chi ha fatto cosa · cosa si farà poi · scelte operate sull'architettura.
+
+### Sprint 0 — Fondamenta (12 → 23 nov)
 
 | Chi | Cosa | Entro |
 |---|---|---|
@@ -170,6 +175,8 @@ Ogni sprint inizia e finisce con un incontro di laboratorio, così si pianifica 
 | Team dati | fonti scelte, data dictionary, **CSV di esempio di 1 settimana**, risposte alle 6 domande aperte | ven 20 nov |
 | Tutti | commenti a questo documento | **mar 17 nov** |
 
+**Com'è andata** (SAL 1, 23 nov): pronti e approvati il database in Docker (PR #6), il campione di dati di giugno 2026 (PR #8) e lo scheletro del backend (PR #9); in revisione la CI di base (PR #10) e il wireframe (PR #5 con il restyling della #7). Il merge su `main` è il primo compito dello Sprint 1.
+
 ### Sprint 1 — Primo percorso completo (23 nov → 4 dic)
 
 | Chi | Cosa |
@@ -178,6 +185,8 @@ Ogni sprint inizia e finisce con un incontro di laboratorio, così si pianifica 
 | Geoffrey | dove serve; giro di prova a ogni PR |
 | Luca | CI completa, integrazione, revisione delle PR |
 | Team dati | **dataset completo di 2 anni**; 200–300 segnalazioni etichettate; prima versione dei modelli |
+
+I compiti sono le **Issue #11–#20** su GitHub, nella milestone *Sprint 1 — Primo percorso completo (SAL 2)*: ognuna ha un responsabile, le dipendenze e il "fatto quando". La pagina `sprint1` della mappa le mostra in ordine.
 
 ### Sprint 2 — Tutto collegato (4 → 14 dic)
 
@@ -188,9 +197,9 @@ Ogni sprint inizia e finisce con un incontro di laboratorio, così si pianifica 
 | Luca + Francesco | batch che scrivono nel DB (US-11) |
 | Team dati | accuratezza della classificazione (US-12); numeri per la presentazione: CO2, risparmi, accuratezza dei modelli |
 
-### Sprint 3 — Rifinitura e prova (14 → 21 dic)
+### Sprint 3 — Rifinitura (14 dic → gennaio)
 
-Solo correzioni. Copione della demo (Geoffrey), slide (Luca, con una parte per ciascun gruppo), prova generale il 18, consegna il 21.
+Solo correzioni. SAL finale col cliente il 18 dicembre; a gennaio rifiniture e, nell'ultima lezione, la presentazione finale. Copione della demo (Geoffrey), slide (Luca, con una parte per ciascun gruppo).
 
 **Comunicazione**: sul gruppo WhatsApp ognuno scrive **lunedì e giovedì** tre righe: fatto, prossimo, bloccato. Da lì il team leader prepara lo stato settimanale per il cliente.
 
@@ -207,7 +216,7 @@ Solo correzioni. Copione della demo (Geoffrey), slide (Luca, con una parte per c
 
 | Rischio | Cosa facciamo |
 |---|---|
-| Il dataset arriva tardi e blocca le pagine | i WSA sviluppano sui CSV di 1 settimana del 20 nov |
+| Il dataset arriva tardi e blocca le pagine | i WSA sviluppano sul campione di giugno 2026 (PR #8), con gli stessi ID del dataset completo |
 | Dodici giorni senza incontri (27 nov → 9 dic) | punto online flessibile + aggiornamenti su WhatsApp |
 | Verifiche in mezzo agli sprint (NoSQL 23 nov, Python 30 nov) | lo sprint 1 ha due settimane per assorbirle |
 | Git blocca il team dati | cartella Drive + Geoffrey come ponte |
