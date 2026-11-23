@@ -70,6 +70,8 @@ erDiagram
     float lat
     float lon
     float kwp
+    float inclinazione_gradi
+    float azimut_gradi "0 = sud, -90 = est"
     date data_attivazione
   }
   PRODUZIONE_ORARIA {
@@ -80,9 +82,11 @@ erDiagram
   METEO_ORARIO {
     int impianto_id FK
     timestamp ts
-    float irraggiamento
-    float temperatura
-    float nuvolosita
+    float irraggiamento_wm2 "piano orizzontale"
+    float irraggiamento_pannelli_wm2 "piano dei moduli"
+    float temperatura_c
+    float nuvolosita_pct
+    float neve_cm
   }
   CONSUMO_ORARIO {
     int socio_id FK
@@ -125,9 +129,10 @@ erDiagram
   SEGNALAZIONE {
     int id PK
     int socio_id FK
-    int impianto_id FK "opzionale"
+    int impianto_id FK "opzionale, corretto dall'operatore"
+    int impianto_id_llm FK "da LLM, mai modificato"
     timestamp ts
-    string canale "email, portale; interno da decidere"
+    string canale "email, portale, interno"
     string testo
     string categoria_llm "da LLM, mai modificata"
     string urgenza_llm "da LLM, mai modificata"

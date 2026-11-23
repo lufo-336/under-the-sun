@@ -29,6 +29,8 @@ data/        script di generazione, notebook, batch (previsioni, anomalie, ripar
 backend/     API Node + Express — WSA
 frontend/    React — WSA
 docs/        architettura, contratto API, brief per il team dati
+db/          migrazioni dello schema (dbmate) e caricamento dei CSV — WSA
+compose.yaml servizi Docker
 ```
 
 ## Documentazione
@@ -56,6 +58,22 @@ React · Node + Express · PostgreSQL · Python (pandas, scikit-learn) · LLM vi
 Ogni SAL segue la stessa scaletta: come siamo organizzati, chi ha fatto cosa, cosa si farà poi, scelte operate sull'architettura.
 
 Dettagli, ruoli e chi fa cosa: [docs/piano-di-progetto.md](docs/piano-di-progetto.md) ([PDF](docs/piano-di-progetto.pdf)).
+
+## Avvio (database e backend)
+
+Serve Docker Desktop (o Docker con Compose).
+
+```bash
+cp .env.example .env             # una volta sola
+docker compose up -d --build     # Postgres + schema (localhost:5433) + backend (localhost:3000)
+docker compose run --rm seed     # carica i CSV di data/esempi
+docker compose exec backend npm run crea-utenti   # account di prova
+docker compose down -v           # ripartire da zero (cancella i dati)
+```
+
+Account di prova ed endpoint pronti: [backend/README.md](backend/README.md).
+
+Lo schema sta in `db/migrations/`, il caricamento in `db/seed/carica.sql`. I CSV devono avere le intestazioni uguali alle colonne della tabella, nello stesso ordine: se no il caricamento si ferma e non carica niente.
 
 ## Regole di lavoro
 

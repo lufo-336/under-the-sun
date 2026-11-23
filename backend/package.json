@@ -1,0 +1,25 @@
+{
+  "name": "underthesun-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API REST del portale UnderTheSun (Node + Express)",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --env-file-if-exists=../.env --watch src/server.js",
+    "crea-utenti": "node --env-file-if-exists=../.env scripts/crea-utenti-prova.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "supertest": "^7.3.2"
+  }
+}
