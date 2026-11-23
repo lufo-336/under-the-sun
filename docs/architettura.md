@@ -1,4 +1,4 @@
-# UnderTheSun — architettura (bozza)
+# UnderTheSun — architettura
 
 Versione del SAL 1 (lun 23 nov 2026). Lo stato di ogni pezzo (fatto, in revisione, Sprint 1, Sprint 2) è nella [mappa interattiva](mappa/README.md). Modello di calcolo: CER realistico (vedi [team-dati.md](team-dati.md)). Contratto API: [api.md](api.md).
 

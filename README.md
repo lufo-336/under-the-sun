@@ -37,7 +37,7 @@ compose.yaml servizi Docker
 
 - [Piano di progetto](docs/piano-di-progetto.md) ([PDF](docs/piano-di-progetto.pdf)): storie, ruoli, sprint ← **tutti: partite da qui**
 - [Architettura e modello dati](docs/architettura.md)
-- [Bozza contratto API](docs/api.md)
+- [Contratto API](docs/api.md)
 - [Brief per il team dati](docs/team-dati.md) ← **data analyst: partite da qui**
 - [Guida rapida a Git](docs/git.md) ← **mai usato Git? leggi qui**
 - [Mappa interattiva dell'architettura](docs/mappa/README.md): schema cliccabile con lo stato fino allo Sprint 1; dopo il clone apri `docs/mappa/out/index/index.html`
@@ -73,7 +73,7 @@ docker compose down -v           # ripartire da zero (cancella i dati)
 
 Account di prova ed endpoint pronti: [backend/README.md](backend/README.md).
 
-Lo schema sta in `db/migrations/`, il caricamento in `db/seed/carica.sql`. I CSV devono avere le intestazioni uguali alle colonne della tabella, nello stesso ordine: se no il caricamento si ferma e non carica niente.
+Lo schema sta in `db/migrations/`, il caricamento in `db/seed/carica.sql`. I CSV devono avere le intestazioni uguali alle colonne della tabella, nello stesso ordine: se no il caricamento si ferma e non carica niente. Su un database già popolato `seed` si ferma senza scrivere nulla (chiavi duplicate): per ricaricare i CSV da zero lancia prima `docker compose down -v`.
 
 ## Regole di lavoro
 

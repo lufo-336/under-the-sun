@@ -175,7 +175,7 @@ Ogni sprint inizia e finisce con un incontro di laboratorio, così si pianifica 
 | Team dati | fonti scelte, data dictionary, **CSV di esempio di 1 settimana**, risposte alle 6 domande aperte | ven 20 nov |
 | Tutti | commenti a questo documento | **mar 17 nov** |
 
-**Com'è andata** (SAL 1, 23 nov): pronti e approvati il database in Docker (PR #6), il campione di dati di giugno 2026 (PR #8) e lo scheletro del backend (PR #9); in revisione la CI di base (PR #10) e il wireframe (PR #5 con il restyling della #7). Il merge su `main` è il primo compito dello Sprint 1.
+**Com'è andata** (SAL 1, 23 nov): uniti su `main` il database in Docker (PR #6), il campione di dati di giugno 2026 (PR #8), lo scheletro del backend (PR #9) e la mappa interattiva D2 (PR #21); chiuse le PR superate (#4 e #7). Restano in revisione la CI di base (PR #10) e il frontend (PR #5 con il restyling della #7, più la PR #23 per il login JWT).
 
 ### Sprint 1 — Primo percorso completo (23 nov → 4 dic)
 
