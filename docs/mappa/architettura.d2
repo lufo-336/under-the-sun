@@ -210,12 +210,11 @@ titolo: |||md
   Portale della **Comunità Energetica Rinnovabile Buby Green** · team **PlusUltra** · stato al **lunedì 23 novembre 2026** (SAL 1 fatto, Sprint 1 appena iniziato)
 
   **In breve**
-  - 3 PR di codice approvate e provate: #6 database, #8 dati, #9 backend
-  - 2 PR in revisione: #5 frontend (con il restyling della #7), #10 CI
-  - su `main` c'è ancora solo la documentazione: i merge sono il primo compito dello Sprint 1 (Issue #11)
-  - 10 Issue aperte (#11–#20) per arrivare al SAL 2 di venerdì 4 dicembre
+  - su `main` sono già uniti database (#6), campione dati giugno 2026 (#8), backend JWT (#9) e mappa D2 (#21)
+  - chiuse le PR superate (#4, #7); restano in revisione #10 (CI), #5 (wireframe + restyling) e #23 (login JWT)
+  - 10 Issue aperte (#11–#20) per arrivare al SAL 2 di venerdì 4 dicembre (mini SAL col cliente ven 27 nov)
 
-  **Come si usa:** clicca un riquadro con l'icona del link per aprire la sua pagina di dettaglio (schema, scelte, codice reale).\
+  **Come si usa:** clicca un riquadro con l'icona del link per aprire la sua pagina di dettaglio (schema, scelte, codice reale, storico GitHub).\
   Sui riquadri con la "i" passa il mouse per una nota veloce. Ctrl + e Ctrl − del browser ingrandiscono e rimpiccioliscono.
 |||
 
@@ -246,7 +245,7 @@ legenda: "Legenda · cosa è fatto e cosa manca" {
   grid-columns: 6
   grid-gap: 20
 
-  l1: "Fatto · Sprint 0\nPR approvata e provata\n(merge su main: Issue #11)" {class: fatto}
+  l1: "Fatto · su main\nPR approvata, provata\ne unita su main" {class: fatto}
   l2: "Fatto, in revisione\nPR aperta, manca\nl'Approve" {class: revisione}
   l3: "Da fare · Sprint 1\n23 nov → 4 dic" {class: sprint1}
   l4: "Previsto · Sprint 2\n4 → 14 dic" {class: sprint2}
@@ -303,12 +302,12 @@ mappa: "Architettura · chi parla con chi" {
       grid-columns: 3
       grid-gap: 20
 
-      wire: "Wireframe delle 8 viste\ndati finti in mockData.js\nPR #5 (modifiche\nrichieste) + #7" {
+      wire: "Wireframe 8 viste + restyling\nPR #5 (d5c537e) e login JWT\nPR #23 (in revisione)\n#4 e #7 chiuse" {
         class: revisione
         link: layers.frontend
         tooltip: "Le forme dei dati finti ricalcano docs/api.md: quando arrivano le API vere i componenti non cambiano."
       }
-      s1: "Sprint 1 · Mirko\nunire #5 e #7 (#12)\nlogin JWT reale (#13)\ndashboard socio (#15)\nsegnalazioni (#17)" {
+      s1: "Sprint 1 · Mirko\nreview #5 (#12) e #23 (#13)\ndashboard socio (#15)\nsegnalazioni (#17)" {
         class: sprint1
         link: layers.frontend
       }
@@ -325,7 +324,7 @@ mappa: "Architettura · chi parla con chi" {
       grid-columns: 3
       grid-gap: 20
 
-      fatto: "PR #9 approvata · 7 test verdi\nlogin JWT HS256\nruoli controllati dal server\n/api/salute · /api/auth/*\n/api/impianti" {
+      fatto: "PR #9 unita su main · 7 test\nlogin JWT HS256\nruoli controllati dal server\n/api/salute · /api/auth/*\n/api/impianti" {
         class: fatto
         link: layers.backend
         tooltip: "creaApp({ db, config }): i test passano un database finto, così npm test gira senza Postgres."
@@ -346,7 +345,7 @@ mappa: "Architettura · chi parla con chi" {
       link: layers.database
       direction: right
 
-      schema: "14 tabelle con vincoli\nore in UTC · migrate + seed\n13 CSV in una transazione\nPR #6 approvata" {
+      schema: "14 tabelle con vincoli\nore in UTC · migrate + seed\n13 CSV in una transazione\nPR #6 unita su main" {
         class: fatto
         shape: cylinder
         link: layers.database
@@ -379,7 +378,7 @@ mappa: "Architettura · chi parla con chi" {
       class: esterno
       shape: cloud
     }
-    campione: "genera.py + controlli.py (123 su 123 ok)\ncampione giugno 2026: 3 impianti, 20 soci\nPR #8 approvata" {
+    campione: "genera.py + controlli.py (123 su 123 ok)\ncampione giugno 2026: 3 impianti, 20 soci\nPR #8 unita su main" {
       class: fatto
       link: layers.dati
       tooltip: "Seed fisso 42: due rilanci producono file identici bit per bit."
@@ -402,20 +401,30 @@ mappa: "Architettura · chi parla con chi" {
     campione -> nlp: "stesse anomalie" {class: f-sprint1}
   }
 
-  ci: "GitHub · CI e processo di lavoro" {
+  ci: "GitHub · CI, storico e processo di lavoro" {
     class: sottoarea
     link: layers.devops
-    grid-rows: 1
+    grid-rows: 2
     grid-columns: 2
-    grid-gap: 20
+    grid-gap: 16
 
-    actions: "GitHub Actions · 3 job\ntest backend · build frontend\nCompose + seed + /api/salute\nPR #10 · 3/3 verdi\nmanca l'Approve" {
+    actions: "GitHub Actions · 3 job\ntest backend · build frontend\nCompose + seed + /api/salute\nPR #10 · 3/3 verdi · manca Approve" {
       class: revisione
       link: layers.devops
     }
-    s1: "Sprint 1\nmerge #6 → #8 → #9 → #10\ncheck obbligatori (#11)\nfrontend in Compose e\ngiro di prova (#20)" {
+    s1: "Sprint 1\n#6, #8, #9 su main · resta #10\ncheck obbligatori (#11)\nfrontend in Compose (#20)" {
       class: sprint1
       link: layers.devops
+    }
+    storico: "Storico GitHub · PR e review\n8 PR unite · 3 aperte · 2 chiuse\n10 Issue Sprint 1 (#11–#20)" {
+      class: fatto
+      link: layers.storico
+      tooltip: "Clicca per lo storico completo del repository con i link a tutte le PR e alle review."
+    }
+    s1_link: "Piano Sprint 1 · dipendenze\nle 10 Issue in ordine (#11–#20)" {
+      class: sprint1
+      link: layers.sprint1
+      tooltip: "Clicca per il piano dettagliato dello Sprint 1."
     }
   }
 
@@ -535,7 +544,7 @@ layers: {
 
     titolo: |||md
       # Database · PostgreSQL 17 + dbmate
-      **Stato:** fatto nello Sprint 0 (PR #6 di Luca, approvata e provata da Stefano su Docker Desktop/Windows e da Luca su Podman/Fedora). Lo schema è\
+      **Stato:** **unita su `main`** (PR #6 di Luca, provata da Stefano su Docker Desktop/Windows e da Luca su Podman/Fedora). Lo schema è\
       **congelato al SAL 1**: da qui ogni modifica è una migrazione nuova.\
       **Sprint 1:** caricare il dataset completo di 2 anni con `CARTELLA_CSV=output` (Issue #18).
     |||
@@ -946,7 +955,7 @@ layers: {
 
     titolo: |||md
       # Backend · Node 22 + Express 5 + pg
-      **Stato:** scheletro fatto nello Sprint 0 (PR #9 di Stefano, approvata; provata su Fedora con Podman e chiamate HTTP reali). 4 endpoint e 7 test.\
+      **Stato:** scheletro **unito su `main`** (PR #9 di Stefano, approvata e provata su Windows e Fedora con chiamate HTTP reali). 4 endpoint e 7 test.\
       **Sprint 1 (Stefano):** area socio `/api/me/riepilogo` e `/api/me/consumi` (#14), segnalazioni con LLM e fallback (#16).
     |||
 
@@ -979,7 +988,7 @@ layers: {
       grid-columns: 3
       grid-gap: 20
 
-      fatto: "Fatti · PR #9\nGET /api/salute · pubblico, usato dal healthcheck\nPOST /api/auth/login · { email, password } → { token, utente }\nGET /api/auth/me · utente riletto dal DB\nGET /api/impianti · solo operatore e admin" {class: fatto}
+      fatto: "Su main · PR #9\nGET /api/salute · pubblico, usato dal healthcheck\nPOST /api/auth/login · { email, password } → { token, utente }\nGET /api/auth/me · utente riletto dal DB\nGET /api/impianti · solo operatore e admin" {class: fatto}
       s1: "Sprint 1 · Stefano\nGET /api/me/riepilogo?anno= · totali e mesi (#14)\nGET /api/me/consumi?da=&a=&granularita= (#14)\nGET /api/me/segnalazioni · solo le proprie (#16)\nPOST /api/me/segnalazioni · LLM + fallback 201 (#16)" {class: sprint1}
       s2: "Sprint 2\nPOST /api/me/simulazione · calcolo al volo\nGET /api/impianti/:id/produzione · PATCH /api/anomalie/:id\nGET/PATCH /api/segnalazioni · coda per urgenza\nGET /api/comunita/* · /api/soci · /api/verbali" {class: sprint2}
     }
@@ -1347,18 +1356,18 @@ layers: {
       grid-rows: 1
       grid-gap: 16
       torna: "← Vista generale" {class: torna; link: _}
-      pr5: "PR #5 · wireframe" {class: vai; link: https://github.com/lufo-336/under-the-sun/pull/5}
-      pr7: "PR #7 · restyling" {class: vai; link: https://github.com/lufo-336/under-the-sun/pull/7}
-      i12: "Issue #12 · unire #5 e #7" {class: vai; link: https://github.com/lufo-336/under-the-sun/issues/12}
+      pr5: "PR #5 · wireframe + restyling" {class: vai; link: https://github.com/lufo-336/under-the-sun/pull/5}
+      pr23: "PR #23 · login JWT (US-01)" {class: vai; link: https://github.com/lufo-336/under-the-sun/pull/23}
+      i12: "Issue #12 · review #5" {class: vai; link: https://github.com/lufo-336/under-the-sun/issues/12}
       i13: "Issue #13 · login reale" {class: vai; link: https://github.com/lufo-336/under-the-sun/issues/13}
       i15: "Issue #15 · dashboard socio" {class: vai; link: https://github.com/lufo-336/under-the-sun/issues/15}
     }
 
     titolo: |||md
       # Frontend · React 19 + Vite 8 + Tailwind 4 + Recharts 3
-      **Stato:** wireframe delle 8 viste con dati finti, restyling della #7 già portato nel branch della #5 (commit `d5c537e`); sulla PR #5 la review del\
-      15 nov è ancora su **modifiche richieste**: va rifatta sull'ultimo commit (`package-lock.json` e allineamento al contratto, Issue #12).\
-      **Sprint 1 (Mirko):** chiudere #5/#4/#7 (#12), login JWT reale (#13), dashboard socio con dati veri (#15), segnalazioni (#17).
+      **Stato:** wireframe delle 8 viste con restyling già integrato nella **PR #5** (commit `d5c537e`); PR #4 e #7 chiuse perché già dentro #5.\
+      Mirko ha anche aperto la **PR #23** (`frontend/login-jwt`, US-01) sopra la #5: entrambe aspettano la review (`package-lock.json`, contratto e login).\
+      **Sprint 1 (Mirko):** approvare e unire #5 (#12) e #23 (#13), dashboard socio con dati veri (#15), segnalazioni (#17).
     |||
 
     struttura: "Struttura dell'app · da dove arrivano i dati" {
@@ -1380,14 +1389,14 @@ layers: {
       comp: "Componenti condivisi\nKpiCard · Panel · SidebarNav\nStatusBadge · UrgencyBadge · DemoRoleSwitcher" {class: revisione}
 
       mock: "Oggi · mocks/mockData.js\ndati finti con la forma di docs/api.md" {class: revisione}
-      client: "Sprint 1 · services/apiClient.js\n+ proxy /api in vite.config.js (#13)\nlegge { errore: { codice, messaggio } }" {class: sprint1}
+      client: "In revisione · PR #23 (#13)\nservices/apiClient.js + proxy /api\nlegge { errore: { codice, messaggio } }" {class: revisione}
 
       api: "Backend /api\n(vedi pagina backend)" {
         class: fatto
         link: _.layers.backend
       }
 
-      protezione: "Sprint 1 (#13)\nrotte protette per ruolo\nsenza token → /login" {class: sprint1}
+      protezione: "In revisione · PR #23 (#13)\nrotte protette per ruolo\nsenza token → /login" {class: revisione}
 
       main -> viste: {class: f-revisione}
       viste -> comp: {class: f-revisione}
@@ -1568,8 +1577,8 @@ layers: {
 
     titolo: |||md
       # Pipeline dati · Python (pandas, numpy)
-      **Stato:** generatore e controlli fatti nello Sprint 0 (PR #8 di Francesco con Giuseppe e Cecilia, approvata): campione di giugno 2026, 123 controlli\
-      su 123 ok.\
+      **Stato:** generatore e controlli **uniti su `main`** (PR #8 di Francesco con Giuseppe e Cecilia, approvata da Mirko e Luca): campione di giugno 2026,\
+      123 controlli su 123 ok.\
       **Sprint 1 (team dati):** dataset completo di 2 anni (#18); 200-300 segnalazioni etichettate, prompt LLM, primi modelli, formule CER e simulatore\
       (#19).
     |||
@@ -1817,6 +1826,7 @@ layers: {
       grid-gap: 16
       torna: "← Vista generale" {class: torna; link: _}
       s1: "Piano Sprint 1 →" {class: vai; link: _.layers.sprint1}
+      hist: "Storico GitHub →" {class: vai; link: _.layers.storico}
       pr10: "PR #10 · CI" {class: vai; link: https://github.com/lufo-336/under-the-sun/pull/10}
       i11: "Issue #11 · merge e check" {class: vai; link: https://github.com/lufo-336/under-the-sun/issues/11}
       i20: "Issue #20 · Compose e giro di prova" {class: vai; link: https://github.com/lufo-336/under-the-sun/issues/20}
@@ -1824,10 +1834,10 @@ layers: {
 
     titolo: |||md
       # CI, DevOps e processo di lavoro
-      **Stato:** CI di base scritta (PR #10 di Luca, 3 job su 3 verdi, review chiesta a Geoffrey, Stefano e Mirko). Ruleset `protezione-main` attivo: PR\
-      obbligatoria con 1 approvazione, niente force-push.\
-      **Sprint 1:** merge nell'ordine #6 → #8 → #9 → #10 e check CI obbligatori su `main` (#11, Luca); servizio `frontend` in Compose e giro di prova a mano\
-      su ogni PR (#20, Geoffrey).
+      **Stato:** #6, #8 e #9 già **unite su `main`**; CI di base scritta (PR #10 di Luca, 3 job su 3 verdi, review chiesta a Geoffrey, Stefano e Mirko).\
+      Ruleset `protezione-main` attivo: PR obbligatoria con 1 approvazione, niente force-push.\
+      **Sprint 1:** unire #10 e attivare i check CI obbligatori su `main` (#11, Luca); servizio `frontend` in Compose e giro di prova a mano su ogni PR\
+      (#20, Geoffrey).
     |||
 
     flusso: "Il giro di una modifica" {
@@ -1854,19 +1864,19 @@ layers: {
       j3: "Database, seed e Compose\ncp .env.example .env · up --build --wait backend\nseed 13 CSV · crea-utenti · curl /api/salute\nlog se fallisce · down -v alla fine" {class: revisione}
     }
 
-    merge: "Ordine di merge · primo compito dello Sprint 1 (#11)" {
+    merge: "Ordine di merge su main (#11) · #6, #8, #9 già unite" {
       class: area
       direction: right
 
-      pr6: "PR #6\ndatabase in Docker\napprovata" {
+      pr6: "PR #6\ndatabase in Docker\nunita su main" {
         class: fatto
         link: https://github.com/lufo-336/under-the-sun/pull/6
       }
-      pr8: "PR #8\ncampione dati\napprovata" {
+      pr8: "PR #8\ncampione dati\nunita su main" {
         class: fatto
         link: https://github.com/lufo-336/under-the-sun/pull/8
       }
-      pr9: "PR #9\nscheletro backend\napprovata (base: #6)" {
+      pr9: "PR #9\nscheletro backend\nunita su main" {
         class: fatto
         link: https://github.com/lufo-336/under-the-sun/pull/9
       }
@@ -1876,7 +1886,9 @@ layers: {
       }
       check: "Check CI\nobbligatori\nsu main" {class: sprint1}
 
-      pr6 -> pr8 -> pr9 -> pr10 -> check: {class: f-sprint1}
+      pr6 -> pr8 -> pr9: {class: f-fatto}
+      pr9 -> pr10: {class: f-revisione}
+      pr10 -> check: {class: f-sprint1}
     }
 
     compose: "Servizi di compose.yaml" {
@@ -2009,37 +2021,38 @@ layers: {
       torna: "← Vista generale" {class: torna; link: _}
       ms: "Milestone Sprint 1 su GitHub" {class: vai; link: https://github.com/lufo-336/under-the-sun/milestone/1}
       ci: "Pagina CI e processo →" {class: vai; link: _.layers.devops}
+      hist: "Storico GitHub →" {class: vai; link: _.layers.storico}
     }
 
     titolo: |||md
       # Sprint 1 · primo percorso completo (23 nov → ven 4 dic)
       **Obiettivo per il SAL 2:** un socio entra con il suo account, vede la sua dashboard con **dati veri dal database** e manda una segnalazione che l'LLM\
       classifica (US-01, US-02, US-05); intanto il team dati prepara il dataset di 2 anni e i primi modelli.\
-      Le frecce dicono **cosa aspetta cosa**: si parte dall'alto. Tutte le 10 Issue sono aperte; ogni riquadro apre la sua Issue su GitHub.
+      Le frecce dicono **cosa aspetta cosa**: si parte dall'alto. #6, #8 e #9 sono già su `main`; ogni riquadro apre la sua PR o Issue su GitHub.
     |||
 
     piano: "Issue dello Sprint 1 e dipendenze" {
       class: area
       direction: down
 
-      base: "Già fatto nello Sprint 0" {
+      base: "Già su main / in revisione" {
         class: sottoarea
         direction: right
-        pr6: "PR #6 · database" {class: fatto; link: https://github.com/lufo-336/under-the-sun/pull/6}
-        pr8: "PR #8 · campione dati" {class: fatto; link: https://github.com/lufo-336/under-the-sun/pull/8}
-        pr9: "PR #9 · backend" {class: fatto; link: https://github.com/lufo-336/under-the-sun/pull/9}
+        pr6: "PR #6 · database\n(su main)" {class: fatto; link: https://github.com/lufo-336/under-the-sun/pull/6}
+        pr8: "PR #8 · campione dati\n(su main)" {class: fatto; link: https://github.com/lufo-336/under-the-sun/pull/8}
+        pr9: "PR #9 · backend\n(su main)" {class: fatto; link: https://github.com/lufo-336/under-the-sun/pull/9}
         pr10: "PR #10 · CI" {class: revisione; link: https://github.com/lufo-336/under-the-sun/pull/10}
-        pr5: "PR #5 + #7 · frontend" {class: revisione; link: https://github.com/lufo-336/under-the-sun/pull/5}
+        pr5: "PR #5 · frontend\n(+ #23 login)" {class: revisione; link: https://github.com/lufo-336/under-the-sun/pull/5}
       }
 
       chiusura: "Chiusura dello Sprint 0 · entro mer 25 nov" {
         class: sottoarea
         direction: right
-        i11: "#11 · Luca\nmerge #6 → #8 → #9 → #10\ncheck CI obbligatori su main" {
+        i11: "#11 · Luca\n#6, #8, #9 già su main · resta #10\ncheck CI obbligatori su main" {
           class: sprint1
           link: https://github.com/lufo-336/under-the-sun/issues/11
         }
-        i12: "#12 · Mirko\nunire #5 e #7, sistemare package-lock\nchiudere #4 e #7" {
+        i12: "#12 · Mirko\n#4 e #7 chiuse · #7 dentro #5\nreview #5 e merge su main" {
           class: sprint1
           link: https://github.com/lufo-336/under-the-sun/issues/12
         }
@@ -2061,9 +2074,9 @@ layers: {
       fe: "Frontend · Mirko" {
         class: sottoarea
         direction: down
-        i13: "#13 · US-01\nlogin JWT reale · proxy /api\nrotte protette per ruolo" {
-          class: sprint1
-          link: https://github.com/lufo-336/under-the-sun/issues/13
+        i13: "#13 · US-01 · PR #23 aperta\nlogin JWT reale · proxy /api\nrotte protette per ruolo" {
+          class: revisione
+          link: https://github.com/lufo-336/under-the-sun/pull/23
         }
         i15: "#15 · US-02\ndashboard socio con dati veri\nUTC → ora italiana" {
           class: sprint1
@@ -2158,6 +2171,179 @@ layers: {
           bloccato. Da lì il team leader scrive lo stato settimanale\
           per il cliente.
         |||
+      }
+    }
+  }
+
+  # ----------------------------------------------------------------------------
+  # STORICO GITHUB (PR, REVIEW E MILESTONE)
+  # ----------------------------------------------------------------------------
+  storico: {
+    grid-columns: 1
+    grid-gap: 40
+
+    nav: "" {
+      class: griglia
+      grid-rows: 1
+      grid-gap: 16
+      torna: "← Vista generale" {class: torna; link: _}
+      ci: "CI e processo →" {class: vai; link: _.layers.devops}
+      s1: "Piano Sprint 1 →" {class: vai; link: _.layers.sprint1}
+      prs: "Tutte le PR su GitHub" {class: vai; link: https://github.com/lufo-336/under-the-sun/pulls?q=is%3Apr}
+      issues: "Issue #11–#20 su GitHub" {class: vai; link: https://github.com/lufo-336/under-the-sun/milestone/1}
+    }
+
+    titolo: |||md
+      # Storico del repository GitHub (`lufo-336/under-the-sun`)
+      Cronologia completa delle **Pull Request** e delle **review** dal 6 al 23 novembre 2026: **8 PR unite su `main`**, **3 PR aperte in revisione**,\
+      **2 PR chiuse perché inglobate**, più le **10 Issue dello Sprint 1** (#11–#20). Ogni riquadro apre direttamente la PR o la review su GitHub.
+    |||
+
+    unite: "Unite su main · fondamenta e documentazione (8 PR)" {
+      class: area
+      grid-rows: 2
+      grid-columns: 4
+      grid-gap: 20
+
+      pr1: "PR #1 · 9 nov · Luca\nGuida rapida a Git\nunita su main" {
+        class: fatto
+        link: https://github.com/lufo-336/under-the-sun/pull/1
+      }
+      pr2: "PR #2 · 13 nov · Luca\nModello dati + piano v0.1\nunita su main" {
+        class: fatto
+        link: https://github.com/lufo-336/under-the-sun/pull/2
+      }
+      pr3: "PR #3 · 13 nov · Luca\nRuoli nel README e brief\nunita su main" {
+        class: fatto
+        link: https://github.com/lufo-336/under-the-sun/pull/3
+      }
+      pr21: "PR #21 · 23 nov · Luca\nMappa architettura D2\nunita su main" {
+        class: fatto
+        link: https://github.com/lufo-336/under-the-sun/pull/21
+      }
+      pr6: "PR #6 · 23 nov · Luca\nDatabase in Docker (US-10, 13)\nprovata Win+Fedora · unita" {
+        class: fatto
+        link: https://github.com/lufo-336/under-the-sun/pull/6
+      }
+      pr8: "PR #8 · 23 nov · Francesco\nCampione giugno 2026 (15 CSV)\n123 controlli · unita" {
+        class: fatto
+        link: https://github.com/lufo-336/under-the-sun/pull/8
+      }
+      pr9: "PR #9 · 23 nov · Stefano\nBackend JWT + /api/impianti\n7 test verdi · unita" {
+        class: fatto
+        link: https://github.com/lufo-336/under-the-sun/pull/9
+      }
+      pr22: "PR #22 · 23 nov · Luca\nDocs post-SAL 1 + piano v0.2\n+ mappa e storico" {
+        class: fatto
+        link: https://github.com/lufo-336/under-the-sun/pull/22
+      }
+    }
+
+    aperte: "Aperte in revisione · prossimi merge (3 PR)" {
+      class: area
+      grid-rows: 1
+      grid-columns: 3
+      grid-gap: 20
+
+      pr10: "PR #10 · 23 nov · Luca\nCI di base GitHub Actions (3/3 verdi)\nin attesa di 1 Approve (#11)" {
+        class: revisione
+        link: https://github.com/lufo-336/under-the-sun/pull/10
+      }
+      pr5: "PR #5 · 15–23 nov · Mirko\nWireframe 8 viste + restyling (d5c537e)\nreview da rifare (#12)" {
+        class: revisione
+        link: https://github.com/lufo-336/under-the-sun/pull/5
+      }
+      pr23: "PR #23 · 23 nov · Mirko\nFrontend login JWT e ruoli (US-01)\nin attesa di review (#13)" {
+        class: revisione
+        link: https://github.com/lufo-336/under-the-sun/pull/23
+      }
+    }
+
+    chiuse: "Chiuse senza merge · già inglobate (2 PR)" {
+      class: area
+      grid-rows: 1
+      grid-columns: 2
+      grid-gap: 20
+
+      pr4: "PR #4 · Mirko · Setup React + Vite\nchiusa il 23 nov (commit 6710a4c già dentro #5 e #23)" {
+        class: sprint2
+        link: https://github.com/lufo-336/under-the-sun/pull/4
+      }
+      pr7: "PR #7 · Mirko · Restyling Tailwind da Lovable\nchiusa il 23 nov (commit 3cbe968 integrato in #5 con d5c537e)" {
+        class: sprint2
+        link: https://github.com/lufo-336/under-the-sun/pull/7
+      }
+    }
+
+    review: "Review e verifiche principali · link diretti su GitHub" {
+      class: area
+      grid-rows: 2
+      grid-columns: 2
+      grid-gap: 20
+
+      r5: "Review PR #5 · 15 nov e 23 nov (Luca → Mirko)" {
+        class: scheda
+        grid-columns: 1
+        grid-gap: 12
+        m: |||md
+          **15 nov (Request changes, 17 commenti in linea):** allineare\
+          i mock a `docs/api.md`, incentivo in €, stato `in_corso`,\
+          gestione `null` se l'LLM non risponde, togliere la select\
+          impianto dal socio.\
+          **23 nov:** verifica dei fix, comando per `package-lock.json`\
+          e proposta (accolta) di portare #7 dentro #5.
+        |||
+        apri: "Apri review 15 nov su GitHub →" {
+          class: vai
+          link: "https://github.com/lufo-336/under-the-sun/pull/5#pullrequestreview-5911935891"
+        }
+      }
+      r6: "Verifica PR #6 + #8 · 23 nov (Stefano e Luca)" {
+        class: scheda
+        grid-columns: 1
+        grid-gap: 12
+        m: |||md
+          Dopo l'allineamento dello schema (`5f1ec52`), **Stefano**\
+          prova Compose su Docker Desktop Windows 11 (WSL 2) con i 13\
+          CSV della #8: tutte le tabelle, UTC e `setval` ok.\
+          **Luca** ripete la prova su Podman Compose Fedora (SELinux):\
+          esito identico, nota su `seed` + `down -v` nel `README`.
+        |||
+        apri: "Apri prova Windows di Stefano su GitHub →" {
+          class: vai
+          link: "https://github.com/lufo-336/under-the-sun/pull/6#issuecomment-7088663855"
+        }
+      }
+      r8: "Approve PR #8 · 20 e 23 nov (Mirko e Luca → Francesco)" {
+        class: scheda
+        grid-columns: 1
+        grid-gap: 12
+        m: |||md
+          **Mirko (20 nov):** approvata lato frontend, segnalate le 3\
+          modifiche di schema richieste dal data dictionary.\
+          **Luca (23 nov):** verificate tutte le 13 tabelle contro lo\
+          schema aggiornato (`impianto_id_llm` e `CHECK`), approvata e\
+          unita su `main` subito dopo #6.
+        |||
+        apri: "Apri PR #8 e review su GitHub →" {
+          class: vai
+          link: https://github.com/lufo-336/under-the-sun/pull/8
+        }
+      }
+      r9: "Approve PR #9 · 23 nov (Luca → Stefano)" {
+        class: scheda
+        grid-columns: 1
+        grid-gap: 12
+        m: |||md
+          Controllo completo contro `docs/api.md` (formato errori,\
+          ruoli, bcrypt, JWT `HS256`, `NUMERIC` → number) + prova su\
+          Fedora con Podman (`npm test` 7/7, `crea-utenti` idempotente,\
+          `/api/impianti` 200 operatore e 403 socio). Unita su `main`.
+        |||
+        apri: "Apri PR #9 e review su GitHub →" {
+          class: vai
+          link: https://github.com/lufo-336/under-the-sun/pull/9
+        }
       }
     }
   }

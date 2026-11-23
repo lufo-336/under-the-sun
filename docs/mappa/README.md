@@ -21,6 +21,7 @@ Mappa cliccabile dell'architettura di **UnderTheSun**, scritta in [D2](https://d
 | `dati.svg` | pipeline Python, le due configurazioni, formula della ripartizione |
 | `devops.svg` | giro di una modifica, i 3 job della CI, ordine di merge |
 | `sprint1.svg` | le 10 Issue dello Sprint 1, chi le fa e cosa aspetta cosa |
+| `storico.svg` | storico del repository GitHub: PR unite, aperte, chiuse e review principali |
 
 ### Come navigarla
 - **Clic** su un riquadro con l'icona del link: apre la pagina di dettaglio o la PR/Issue su GitHub.

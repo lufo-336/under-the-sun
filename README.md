@@ -2,7 +2,7 @@
 
 Portale della Comunità Energetica Rinnovabile (CER) di **Buby Green** — progetto del Laboratorio Integrato ITS (Data Analyst / AI Specialist + Web Solutions Architect), team **PlusUltra**.
 
-> Stato: **bozza pre-SAL 1**. Schema dati e contratto API si congelano al SAL 1 (ven 20 nov 2026).
+> Stato: **Sprint 1** (23 nov → 4 dic 2026). Schema dati e contratto API sono quelli del SAL 1 (lun 23 nov); cosa è fatto e cosa manca è nella [mappa dell'architettura](docs/mappa/README.md).
 
 ## Cosa fa
 
@@ -37,9 +37,10 @@ compose.yaml servizi Docker
 
 - [Piano di progetto](docs/piano-di-progetto.md) ([PDF](docs/piano-di-progetto.pdf)): storie, ruoli, sprint ← **tutti: partite da qui**
 - [Architettura e modello dati](docs/architettura.md)
-- [Bozza contratto API](docs/api.md)
+- [Contratto API](docs/api.md)
 - [Brief per il team dati](docs/team-dati.md) ← **data analyst: partite da qui**
 - [Guida rapida a Git](docs/git.md) ← **mai usato Git? leggi qui**
+- [Mappa interattiva dell'architettura](docs/mappa/README.md): schema cliccabile con lo stato fino allo Sprint 1; dopo il clone apri `docs/mappa/out/index/index.html`
 
 ## Stack (proposta)
 
@@ -49,10 +50,12 @@ React · Node + Express · PostgreSQL · Python (pandas, scikit-learn) · LLM vi
 
 | Periodo | Obiettivo |
 |---|---|
-| 12–20 nov · sprint 0 | Docker e DB per tutti, wireframe, schema + data dictionary + contratto API, CSV di esempio. **SAL 1 ven 20 nov** |
-| 23 nov – 4 dic · sprint 1 | Primo percorso completo (login, dashboard socio, segnalazioni); dataset completo. **SAL 2 ven 4 dic** |
+| 12–23 nov · sprint 0 | Docker e DB per tutti, wireframe, schema + data dictionary + contratto API, campione di dati. **SAL 1 lun 23 nov** |
+| 23 nov – 4 dic · sprint 1 | Primo percorso completo (login, dashboard socio, segnalazioni); dataset completo. **Mini SAL col cliente ven 27 nov**, **SAL 2 ven 4 dic** |
 | 4–14 dic · sprint 2 | Tutte le pagine, batch e classificazione collegati al portale |
-| 14–21 dic · sprint 3 | Solo correzioni, prova generale ven 18 dic. **Consegna finale lun 21 dic** |
+| 14 dic → gennaio · sprint 3 | Solo correzioni. **SAL finale col cliente ven 18 dic**; a gennaio rifiniture e **presentazione finale** nell'ultima lezione |
+
+Ogni SAL segue la stessa scaletta: come siamo organizzati, chi ha fatto cosa, cosa si farà poi, scelte operate sull'architettura.
 
 Dettagli, ruoli e chi fa cosa: [docs/piano-di-progetto.md](docs/piano-di-progetto.md) ([PDF](docs/piano-di-progetto.pdf)).
 
@@ -70,7 +73,7 @@ docker compose down -v           # ripartire da zero (cancella i dati)
 
 Account di prova ed endpoint pronti: [backend/README.md](backend/README.md).
 
-Lo schema sta in `db/migrations/`, il caricamento in `db/seed/carica.sql`. I CSV devono avere le intestazioni uguali alle colonne della tabella, nello stesso ordine: se no il caricamento si ferma e non carica niente.
+Lo schema sta in `db/migrations/`, il caricamento in `db/seed/carica.sql`. I CSV devono avere le intestazioni uguali alle colonne della tabella, nello stesso ordine: se no il caricamento si ferma e non carica niente. Su un database già popolato `seed` si ferma senza scrivere nulla (chiavi duplicate): per ricaricare i CSV da zero lancia prima `docker compose down -v`.
 
 ## Regole di lavoro
 
