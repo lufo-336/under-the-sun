@@ -145,9 +145,9 @@
 |---|---|---|
 | GET | `/api/segnalazioni?stato=&categoria=&urgenza=&pagina=` | coda, ordinata per urgenza poi data |
 | GET | `/api/segnalazioni/:id` | dettaglio |
-| PATCH | `/api/segnalazioni/:id` | `{ stato?, categoria?, urgenza? }` — l'operatore può correggere l'LLM |
+| PATCH | `/api/segnalazioni/:id` | `{ stato?, categoria?, urgenza?, impianto_id? }` — l'operatore può correggere l'LLM |
 
-> Le correzioni dell'operatore sono preziose per il team dati: misurano quanto sbaglia la classificazione. Per questo il PATCH modifica solo `categoria`/`urgenza`; `categoria_llm`/`urgenza_llm` restano quelle originali e si vedono nelle risposte di operatore e admin (non in quelle del socio).
+> Le correzioni dell'operatore sono preziose per il team dati: misurano quanto sbaglia la classificazione. Per questo il PATCH modifica solo `categoria`/`urgenza`/`impianto_id`; `categoria_llm`/`urgenza_llm`/`impianto_id_llm` restano quelle originali e si vedono nelle risposte di operatore e admin (non in quelle del socio).
 
 ### Comunità e soci
 
