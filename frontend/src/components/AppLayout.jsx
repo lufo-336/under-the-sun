@@ -1,6 +1,6 @@
 import { Sun } from 'lucide-react'
-import DemoRoleSwitcher from './DemoRoleSwitcher'
 import SidebarNav from './SidebarNav'
+import UserBar from './UserBar'
 
 function Logo() {
   return (
@@ -20,7 +20,7 @@ export default function AppLayout({ role, navItems, title, subtitle, children })
   const showSidebar = role !== 'login'
   return (
     <div className="min-h-screen bg-page">
-      <DemoRoleSwitcher currentRole={role} />
+      <UserBar role={role} />
 
       <div className="mx-auto flex max-w-7xl gap-6 px-4 pb-28 pt-6 lg:pb-10">
         {showSidebar && (

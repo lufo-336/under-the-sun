@@ -16,16 +16,16 @@ const roleHomes = {
 }
 
 const demoCredentials = {
-  socio: { email: 'socio1@example.com', password: 'demo123' },
-  operatore: { email: 'operatore@example.com', password: 'demo123' },
-  admin: { email: 'admin@example.com', password: 'demo123' }
+  socio: { email: 'socio1@example.com', password: 'prova1234' },
+  operatore: { email: 'operatore@example.com', password: 'prova1234' },
+  admin: { email: 'admin@example.com', password: 'prova1234' }
 }
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { login, isAuthenticated, user } = useAuth()
-  const [formData, setFormData] = useState({ email: 'socio1@example.com', password: 'demo123' })
+  const [formData, setFormData] = useState({ email: 'socio1@example.com', password: 'prova1234' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -53,9 +53,8 @@ export default function LoginPage() {
       const destination = returnTo?.startsWith(rolePrefix) ? returnTo : roleHomes[authenticatedUser.ruolo]
       navigate(destination || '/login', { replace: true })
     } catch (requestError) {
-      setError(requestError.status === 401
-        ? 'Credenziali non valide.'
-        : requestError.message || 'Impossibile accedere al backend.')
+      setError(requestError.message
+        || (requestError.status === 401 ? 'Email o password non corrette.' : 'Impossibile accedere al backend.'))
     } finally {
       setLoading(false)
     }

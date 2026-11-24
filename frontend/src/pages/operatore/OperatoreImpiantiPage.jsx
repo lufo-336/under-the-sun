@@ -40,7 +40,7 @@ export default function OperatoreImpiantiPage() {
 
   const handleCloseAnomalia = (id) => {
     setAnomalieState((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, stato: 'chiusa', fine: new Date().toISOString() } : item))
+      prev.map((item) => (item.id === id ? { ...item, stato: 'chiusa' } : item))
     )
   }
 

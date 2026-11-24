@@ -67,15 +67,15 @@ export const simulatore = {
 }
 
 export const impianti = [
-  { id: 1, nome: 'Tetto Scuola Pinerolo', comune: 'Pinerolo', lat: 44.886, lon: 7.332, kwp: 180, data_attivazione: '2024-04-05T00:00:00Z', anomalie_aperte: 2 },
-  { id: 2, nome: 'Pensilina Municipio', comune: 'Bobbio Pellice', lat: 44.802, lon: 7.196, kwp: 120, data_attivazione: '2023-09-12T00:00:00Z', anomalie_aperte: 1 },
-  { id: 3, nome: 'Capannone Zona Industriale', comune: 'Pinerolo', lat: 44.879, lon: 7.355, kwp: 260, data_attivazione: '2025-01-18T00:00:00Z', anomalie_aperte: 3 }
+  { id: 1, nome: 'Tetto Scuola Pinerolo', comune: 'Pinerolo', lat: 44.886, lon: 7.332, kwp: 180, data_attivazione: '2024-04-05', anomalie_aperte: 2 },
+  { id: 2, nome: 'Pensilina Municipio', comune: 'Bobbio Pellice', lat: 44.802, lon: 7.196, kwp: 120, data_attivazione: '2023-09-12', anomalie_aperte: 1 },
+  { id: 3, nome: 'Capannone Zona Industriale', comune: 'Pinerolo', lat: 44.879, lon: 7.355, kwp: 260, data_attivazione: '2025-01-18', anomalie_aperte: 3 }
 ]
 
 export const anomalie = [
   { id: 101, impianto_id: 1, inizio: '2026-10-15T08:00:00Z', fine: null, tipo: 'guasto', score: 0.77, stato: 'aperta' },
   { id: 102, impianto_id: 1, inizio: '2026-10-18T10:00:00Z', fine: '2026-10-20T12:00:00Z', tipo: 'stringa', score: 0.58, stato: 'chiusa' },
-  { id: 201, impianto_id: 2, inizio: '2026-10-17T09:15:00Z', fine: null, tipo: null, score: 0.63, stato: 'in_corso' },
+  { id: 201, impianto_id: 2, inizio: '2026-10-17T09:15:00Z', fine: null, tipo: null, score: 0.63, stato: 'aperta' },
   { id: 301, impianto_id: 3, inizio: '2026-10-16T11:30:00Z', fine: null, tipo: 'guasto', score: 0.81, stato: 'aperta' },
   { id: 302, impianto_id: 3, inizio: '2026-10-14T14:00:00Z', fine: '2026-10-15T09:00:00Z', tipo: 'neve', score: 0.65, stato: 'chiusa' }
 ]
@@ -116,10 +116,21 @@ export const communityEnergySeries = [
 ]
 
 export const verbali = [
-  { id: 1, data_assemblea: '2026-10-15', sintesi: 'La comunità ha approvato il piano di riequilibrio tra produzione e prelievo nei mesi estivi, con riduzione delle anomalie del 18%.', testo_completo: 'Durante l’assemblea straordinaria del 15 ottobre, i soci hanno approvato la nuova configurazione del sistema di allocazione dei kWh condivisi. È stato confermato l’aumento di efficienza dell’impianto del tetto scolastico e il piano di manutenzione preventiva dei sensori, con priorità alle zone a maggior carico nel mese di ottobre.' },
-  { id: 2, data_assemblea: '2026-09-12', sintesi: 'Rinnovato il programma di incentivazione per le utenze domestiche e introdotto il supporto ai soci con consumo elevato durante le ore diurne.', testo_completo: 'L’assemblea di settembre ha dedicato ampio spazio alla revisione dei criteri per la partecipazione ai bonus energetici e all’allocazione più equa delle quote di scambio. Sono stati presentati i primi risultati del monitoraggio delle utenze ad alto consumo e si è deciso di allargare il piano d’assistenza a 18 famiglie.' },
-  { id: 3, data_assemblea: '2026-08-20', sintesi: 'Consolidato il nuovo modello di gestione delle segnalazioni e definita la road map del semestre successivo.', testo_completo: 'Con il verbale del 20 agosto si è definita la governance delle segnalazioni e delle anomalie. I membri del comitato hanno approvato la roadmap per le prossime 6 settimane, con azioni prioritarie su manutenzione impianti, supporto agli utenti e digitalizzazione delle comunicazioni tra soci e operatori.' }
+  { id: 1, data_assemblea: '2026-10-15', sintesi: 'La comunità ha approvato il piano di riequilibrio tra produzione e prelievo nei mesi estivi, con riduzione delle anomalie del 18%.' },
+  { id: 2, data_assemblea: '2026-09-12', sintesi: 'Rinnovato il programma di incentivazione per le utenze domestiche e introdotto il supporto ai soci con consumo elevato durante le ore diurne.' },
+  { id: 3, data_assemblea: '2026-08-20', sintesi: 'Consolidato il nuovo modello di gestione delle segnalazioni e definita la road map del semestre successivo.' }
 ]
+
+// GET /api/verbali/:id — il testo completo arriva solo dal dettaglio, non dall'elenco
+const testiVerbali = {
+  1: 'Durante l’assemblea straordinaria del 15 ottobre, i soci hanno approvato la nuova configurazione del sistema di allocazione dei kWh condivisi. È stato confermato l’aumento di efficienza dell’impianto del tetto scolastico e il piano di manutenzione preventiva dei sensori, con priorità alle zone a maggior carico nel mese di ottobre.',
+  2: 'L’assemblea di settembre ha dedicato ampio spazio alla revisione dei criteri per la partecipazione ai bonus energetici e all’allocazione più equa delle quote di scambio. Sono stati presentati i primi risultati del monitoraggio delle utenze ad alto consumo e si è deciso di allargare il piano d’assistenza a 18 famiglie.',
+  3: 'Con il verbale del 20 agosto si è definita la governance delle segnalazioni e delle anomalie. I membri del comitato hanno approvato la roadmap per le prossime 6 settimane, con azioni prioritarie su manutenzione impianti, supporto agli utenti e digitalizzazione delle comunicazioni tra soci e operatori.'
+}
+
+export const verbaliDettaglio = Object.fromEntries(
+  verbali.map((verbale) => [verbale.id, { ...verbale, testo: testiVerbali[verbale.id] ?? null }])
+)
 
 export const impiantoProductionSeries = {
   1: [
@@ -167,7 +178,7 @@ export const impiantoProductionSeries = {
 }
 
 export const demoUsers = {
-  socio: { nome: 'Socio prova', email: 'socio1@example.com', password: 'demo123', home: '/socio/dashboard' },
-  operatore: { nome: 'Operatore prova', email: 'operatore@example.com', password: 'demo123', home: '/operatore/impianti' },
-  admin: { nome: 'Admin prova', email: 'admin@example.com', password: 'demo123', home: '/admin/kpi' }
+  socio: { nome: 'Socio prova', email: 'socio1@example.com', password: 'prova1234', home: '/socio/dashboard' },
+  operatore: { nome: 'Operatore prova', email: 'operatore@example.com', password: 'prova1234', home: '/operatore/impianti' },
+  admin: { nome: 'Admin prova', email: 'admin@example.com', password: 'prova1234', home: '/admin/kpi' }
 }
