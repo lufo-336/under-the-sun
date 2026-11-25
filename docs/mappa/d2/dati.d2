@@ -1,0 +1,45 @@
+# Pipeline dati Python: generazione, 123 controlli, campione e dataset 2 anni
+...@tema
+
+direction: down
+
+fonti: "Fonti reali (scaricate una volta e in cache)\nOpen-Meteo · PVGIS · ARERA · ISPRA · GSE" {
+  class: esterno
+  shape: cloud
+}
+
+passi: "genera.py · i 6 passi nell'ordine esatto (seed fisso 42)" {
+  class: area
+  grid-rows: 1
+  grid-columns: 6
+  grid-gap: 24
+  p1: "1 · anagrafiche\nsoci e impianti" {class: fatto}
+  p2: "2 · meteo\nOpen-Meteo" {class: fatto}
+  p3: "3 · PVGIS\nk_impianto" {class: fatto}
+  p4: "4 · produzione\noraria" {class: fatto}
+  p5: "5 · consumi\nper socio" {class: fatto}
+  p6: "6 · derivate\nbollette, CER" {class: fatto}
+  p1 -> p2 -> p3 -> p4 -> p5 -> p6: {class: f-fatto}
+}
+
+controlli: "scrivi_csv() + controlli.py · 123 su 123 ok\nUTF-8 LF · colonne identiche a Postgres · hash riproducibili" {class: fatto}
+
+uscite: "Output" {
+  class: area
+  direction: right
+
+  esempi: "data/esempi/ (nel repo · PR #8 su main)\ncampione giugno 2026: 13 CSV DB + 2 file di lavoro" {class: fatto}
+  output: "data/output/ (esclusa da Git · #18)\ndataset completo 2 anni: 8 impianti, 240 soci" {class: sprint1}
+  nlp: "Segnalazioni e modelli (#19)\n200-300 etichettate · prompt LLM · primi modelli" {class: sprint1}
+}
+
+batch: "Sprint 2 · batch offline (US-11)\nscrive previsioni, anomalie e ripartizione in PostgreSQL" {
+  class: sprint2
+  link: "#database"
+}
+
+fonti -> passi -> controlli: {class: f-fatto}
+controlli -> uscite.esempi: "--config piccola" {class: f-fatto}
+controlli -> uscite.output: "--config completa" {class: f-sprint1}
+uscite.output -> uscite.nlp: "anomalie coerenti" {class: f-sprint1}
+uscite.nlp -> batch: "modelli pronti" {class: f-sprint2}

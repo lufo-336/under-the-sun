@@ -1,0 +1,37 @@
+# Frontend: struttura React 19 + Vite 8 + Auth JWT
+...@tema
+
+direction: down
+
+main: "main.jsx → App.jsx\nBrowserRouter + AuthProvider" {class: revisione}
+
+protezione: "ProtectedRoute (PR #23 · #13)\nverifica token e ruolo · senza token → /login" {class: revisione}
+
+viste: "Le 8 viste per ruolo (Tailwind 4 + Recharts 3)" {
+  class: area
+  grid-rows: 1
+  grid-columns: 4
+  grid-gap: 16
+  login: "Pubblica\n/login" {class: revisione}
+  socio: "Socio (3)\n/socio/dashboard\n/socio/simulatore\n/socio/segnalazioni" {class: revisione}
+  op: "Operatore (2)\n/operatore/impianti\n/operatore/segnalazioni" {class: revisione}
+  admin: "Admin (2)\n/admin/kpi\n/admin/assemblee" {class: revisione}
+}
+
+sorgenti: "Sorgenti dati" {
+  class: area
+  direction: right
+
+  mock: "PR #23 · mocks/mockData.js\ndati finti (non ancora su main)" {class: revisione}
+  client: "PR #23 + Sprint 1 (#13, #15, #17)\napiClient.js · authService.js · proxy /api" {class: sprint1}
+}
+
+api: "Backend /api (PR #9 su main)\nClicca per aprire Backend →" {
+  class: fatto
+  link: "#backend"
+}
+
+main -> protezione -> viste: {class: f-revisione}
+viste -> sorgenti.mock: "oggi (wireframe)" {class: f-revisione}
+viste -> sorgenti.client: "login (#13), dashboard (#15), segnalazioni (#17)" {class: f-sprint1}
+sorgenti.client -> api: "fetch + Authorization: Bearer <JWT>" {class: f-sprint1}

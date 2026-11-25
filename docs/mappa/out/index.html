@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UnderTheSun · Architettura interattiva</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-group">
+        <button type="button" class="brand" id="btn-home" title="Torna alla vista generale">
+          <span class="brand-dot" aria-hidden="true"></span>
+          <span>UnderTheSun</span>
+        </button>
+        <span class="crumb-sep" id="crumb-sep" hidden>›</span>
+        <span class="crumb-current" id="crumb-current" hidden></span>
+      </div>
+
+      <nav class="topnav" id="topnav" aria-label="Pagine dell'architettura"></nav>
+
+      <a class="gh-link" href="https://github.com/lufo-336/under-the-sun" target="_blank" rel="noopener">
+        GitHub ↗
+      </a>
+    </div>
+  </header>
+
+  <main id="stage" class="stage" aria-live="polite"></main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>UnderTheSun · CER Buby Green · Team PlusUltra</span>
+      <span>Diagrammi generati con D2 (ELK 90°) · Navigazione: clicca un blocco per esplorarlo, <kbd>Esc</kbd> per tornare su</span>
+    </div>
+  </footer>
+
+  <!-- Modale schermo intero per diagrammi grandi (es. 14 tabelle ER) -->
+  <div id="lightbox" class="lightbox" hidden role="dialog" aria-modal="true" aria-label="Diagramma ingrandito">
+    <div class="lightbox-bar">
+      <span id="lightbox-title" class="lightbox-title"></span>
+      <div class="zoom-controls">
+        <button type="button" id="lb-out" title="Rimpicciolisci">−</button>
+        <span id="lb-pct" class="zoom-pct">100%</span>
+        <button type="button" id="lb-in" title="Ingrandisci">+</button>
+        <button type="button" id="lb-fit" title="Adatta">Adatta</button>
+        <button type="button" id="lb-close" class="btn-close">Chiudi (Esc)</button>
+      </div>
+    </div>
+    <div id="lightbox-body" class="lightbox-body"></div>
+  </div>
+
+  <!-- Portale di animazione "esplosione" al clic su un riquadro -->
+  <div id="zoom-portal" class="zoom-portal" hidden aria-hidden="true"></div>
+
+  <script src="svg-bundle.js"></script>
+  <script src="contenuti.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

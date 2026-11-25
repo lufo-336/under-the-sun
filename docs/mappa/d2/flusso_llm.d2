@@ -1,0 +1,29 @@
+# Sequenza di una segnalazione: chiamata LLM + fallback 201
+...@tema
+
+shape: sequence_diagram
+
+socio: "Socio" {style.fill: "#1E293B"; style.stroke: "#94A3B8"}
+fe: "Frontend (#17)\nsegnalazioni" {style.fill: "#0C2538"; style.stroke: "#38BDF8"}
+be: "Backend (#16)\n/api/me/segnalazioni" {style.fill: "#2A1F0A"; style.stroke: "#FBBF24"}
+llm: "LLM\n(piano gratuito)" {style.fill: "#2A160B"; style.stroke: "#FB923C"}
+pg: "PostgreSQL\nsegnalazione (su main)" {style.fill: "#0E2A1E"; style.stroke: "#34D399"}
+op: "Operatore" {style.fill: "#1E293B"; style.stroke: "#94A3B8"}
+td: "Team dati" {style.fill: "#1E293B"; style.stroke: "#94A3B8"}
+
+socio -> fe: "scrive solo il testo" {class: f-sprint1}
+fe -> be: "POST { testo } + JWT" {class: f-sprint1}
+be -> llm: "testo, categorie, urgenze, impianti" {class: f-sprint1}
+
+risponde: "Caso 1 · l'LLM risponde" {
+  llm -> be: "categoria, urgenza, impianto" {class: f-sprint1}
+  be -> pg: "INSERT *_llm + valori in uso" {class: f-sprint1}
+}
+giu: "Caso 2 · timeout, errore o quota finita" {
+  be -> pg: "INSERT con valori NULL" {class: f-sprint1}
+}
+
+be -> fe: "201 Created (sempre)" {class: f-sprint1}
+fe -> socio: "storico · 'Da classificare'" {class: f-sprint1}
+op -> pg: "Sprint 2 · PATCH corregge" {class: f-sprint2}
+td -> pg: "Sprint 2 · accuratezza (US-12)" {class: f-sprint2}
