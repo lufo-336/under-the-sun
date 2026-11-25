@@ -60,6 +60,7 @@ curl http://localhost:3000/api/impianti -H "Authorization: Bearer <token>"
 | POST | `/api/auth/login` | pubblico | `{ email, password }` → `{ token, utente }`; 401 `CREDENZIALI_ERRATE` |
 | GET | `/api/auth/me` | tutti i loggati | utente corrente |
 | GET | `/api/impianti` | operatore, admin | elenco con `anomalie_aperte`; il socio riceve 403 |
+| GET | `/api/me/riepilogo?anno=` | socio | totali e mesi dell'anno; `null` dove il batch non ha ancora calcolato la ripartizione |
 
 ## Struttura
 

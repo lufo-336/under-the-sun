@@ -65,6 +65,7 @@
 }
 ```
 > I valori numerici sono di forma, non realistici (CO2 a 0 finché il team dati non fissa il fattore ISPRA).
+> `anno` è facoltativo (default: l'anno in corso) e deve essere tra 2000 e 2100, altrimenti 400. Mesi in UTC. Un mese compare se ha consumi o ripartizione; `kwh_condivisi`, `incentivo_eur` e `co2_evitata_kg` sono `null` nei mesi che il batch non ha ancora calcolato (e nei totali, se nessun mese è calcolato).
 
 ```jsonc
 // GET /api/me/consumi?da=2026-03-01&a=2026-03-02&granularita=ora → 200
