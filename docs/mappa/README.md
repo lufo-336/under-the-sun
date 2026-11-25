@@ -1,69 +1,47 @@
-# Mappa interattiva dell'architettura (D2)
+# Mappa web interattiva dell'architettura (D2 + pagina statica)
 
-Mappa cliccabile dell'architettura di **UnderTheSun**, scritta in [D2](https://d2lang.com/) (`architettura.d2`) ed esportata in SVG navigabili (`out/index/`). Mostra lo stato fino allo **Sprint 1**: cosa è fatto, cosa è in revisione, cosa manca.
+Mappa cliccabile e animata di **UnderTheSun**: architettura, stato di ogni pezzo (fatto, in revisione, Sprint 1, Sprint 2) e **storico** di quello che è stato fatto, con date, persone, PR e commit. I diagrammi sono scritti in [D2](https://d2lang.com/); la pagina è statica, senza server e senza dipendenze esterne.
 
-## 1. Aprire la mappa (senza installare nulla)
+## 1. Aprirla
 
-### Online (GitHub Pages)
-Apri direttamente nel browser: **<https://lufo-336.github.io/under-the-sun/>** (si aggiorna automaticamente a ogni modifica su `main`).
-
-### In locale (dopo `git clone` o `git pull`)
-1. Apri la cartella `out/index/`.
-2. Doppio clic su **`index.html`**: si apre nel browser e porta subito alla mappa (`index.svg`).
-
-> Evita il doppio clic diretto su `index.svg`: su Fedora (e a volte su Windows) apre il visualizzatore di immagini, dove i riquadri non sono cliccabili. In alternativa trascina `index.svg` in una scheda del browser.
+- **Online (GitHub Pages):** <https://lufo-336.github.io/under-the-sun/>. Si aggiorna da sola a ogni modifica di `docs/mappa/out/` su `main`.
+- **In locale:** dopo `git clone` o `git pull` fai doppio clic su `docs/mappa/out/index.html`.
 
 ### Pagine
 
-| File | Contenuto |
+| Pagina | Contenuto |
 |---|---|
-| `index.svg` | vista generale: calendario, legenda, architettura, le 6 scelte di fondo |
-| `database.svg` | le 14 tabelle (colorate per chi le scrive), avvio in Compose, SQL reale |
-| `backend.svg` | percorso di una richiesta in Express, endpoint fatti e da fare, codice |
-| `flusso_llm.svg` | sequenza di una segnalazione con il caso "LLM non risponde" |
-| `frontend.svg` | struttura React, mock di oggi e API dello Sprint 1, codice |
-| `dati.svg` | pipeline Python, le due configurazioni, formula della ripartizione |
-| `devops.svg` | giro di una modifica, i 3 job della CI, ordine di merge |
-| `sprint1.svg` | le 11 Issue dello Sprint 1 (#11–#20 e #25), chi le fa e cosa aspetta cosa |
-| `storico.svg` | storico del repository GitHub: PR unite, aperte, chiuse e review principali |
+| Vista generale | architettura, calendario dal kickoff al SAL finale, le 6 scelte di fondo |
+| Database | le 14 tabelle, avvio in Compose, SQL reale, cosa è stato fatto |
+| Backend | percorso di una richiesta in Express, i 21 endpoint del contratto e il loro stato, codice |
+| Flusso LLM | sequenza di una segnalazione e cosa è già deciso o ancora da fare |
+| Frontend | struttura React e stato delle PR |
+| Pipeline dati | generatore Python, controlli, campione SAL 1 |
+| CI & DevOps | giro di una modifica, job della CI, Pages |
+| Sprint 1 | le 11 Issue (#11–#20 e #25), chi le fa, tabella di stato |
+| Storico GitHub | tutte le PR dal 6 novembre, con file toccati e commit |
 
-### Come navigarla
-- **Clic** su un riquadro con l'icona del link: apre la pagina di dettaglio o la PR/Issue su GitHub.
-- **Mouse sopra** i riquadri con la "i": nota veloce.
-- **← Vista generale** (o il tasto Indietro) per tornare.
-- Le pagine sono fatte per entrare in larghezza in uno schermo 1600×900 e si scorrono in verticale; **Ctrl +** e **Ctrl −** funzionano come su un sito normale.
-
-Il tema è scuro in qualunque browser: lo sfondo è scritto dentro gli SVG, non dipende dalle impostazioni del browser.
+### Come usarla
+- **Clic** su un riquadro con link: zoom verso la pagina di dettaglio, oppure apre PR/Issue su GitHub.
+- **Flusso**: attiva o disattiva l'animazione lungo le frecce.
+- **− / + / Adatta / Espandi** (o `Ctrl` + rotella e trascinamento): zoom e spostamento del singolo diagramma.
+- **Esc**: chiude l'ingrandimento o torna alla vista generale.
 
 ## 2. Modificare e ricompilare
 
-### Installare D2
-- **Linux / macOS:** `curl -fsSL https://d2lang.com/install.sh | sh -s --`
-- **Windows:** `winget install Terrastruct.D2`
+- Diagrammi: `d2/*.d2` (tema condiviso in `d2/tema.d2`, icone locali in `d2/icons/`).
+- Testi, tabelle, codice, calendario, storico e blocchi «Già fatto»: `out/contenuti.js`.
+- Stile e animazioni: `out/style.css` e `out/app.js`.
 
-Verifica: `d2 --version` (la mappa è fatta con la v0.9.0).
-
-### Ricompilare dopo una modifica
+Serve D2 v0.9.0 (`brew install d2`, oppure `curl -fsSL https://d2lang.com/install.sh | sh -s --`, oppure `winget install Terrastruct.D2`). Dopo ogni modifica ai `.d2`:
 
 ```bash
+cd docs/mappa
 ./compila.sh
 ```
 
-Lo script (serve `bash`: su Windows va bene Git Bash):
-1. lancia `d2 --scale 0.85 architettura.d2 out/index.svg`: una scala fissa (non "adatta alla finestra"), così lo zoom del browser funziona. Con uno schermo largo 1920 si può usare `SCALA=1 ./compila.sh`;
-2. mette lo sfondo scuro anche sull'`<svg>` principale, altrimenti Firefox mostra il bianco fuori dal disegno;
-3. ricrea `out/index/index.html`, perché D2 svuota `out/index/` a ogni compilazione.
-
-Per la compilazione serve la rete: le icone (React, PostgreSQL, Python, Docker) vengono scaricate e incluse negli SVG.
-
-### Anteprima live mentre scrivi
-
-```bash
-d2 --watch architettura.d2 out/index.svg
-```
-
-L'anteprima del browser non ha lo sfondo scuro fuori dal disegno: alla fine lancia comunque `./compila.sh`.
+Lo script (serve `bash`: su Windows va bene Git Bash) genera gli SVG in `out/svg/` e il file `out/svg-bundle.js`, che la pagina carica. Funziona anche offline.
 
 ### Regole
-- Dopo ogni modifica a `architettura.d2` ricompila con `./compila.sh` prima del commit, così sorgente e SVG restano allineati.
-- Le convenzioni (classi di stato, colori) e le trappole di D2 già incontrate sono in testa ad `architettura.d2`.
+- Dopo ogni modifica ai `.d2` ricompila prima del commit, così sorgenti e SVG restano allineati.
+- Nello storico scrivi le persone come `Nome (@handle)` e solo fatti verificabili su GitHub (titolo, date, stato, approvazioni, commit).

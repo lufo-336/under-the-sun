@@ -1,0 +1,116 @@
+# Grafo dipendenze Sprint 1 (11 Issue: #11-#20 e #25) verso il SAL 2 (4 dic)
+...@tema
+
+direction: down
+
+base: "Fondamenta Sprint 0 · stato attuale" {
+  class: area
+  label.near: top-left
+  pr6: "PR #6 · DB\n(su main)" {class: fatto}
+  pr8: "PR #8 · Dati\n(su main)" {class: fatto}
+  pr9: "PR #9 · Backend\n(su main)" {class: fatto}
+  pr10: "PR #10 · CI\n(in revisione)" {class: revisione}
+  pr23: "PR #23 · Frontend\n(in revisione)" {class: revisione}
+}
+
+chiusura: "Chiusura Sprint 0 · stato al 25 nov" {
+  class: area
+  label.near: top-left
+  i11: "#11 · Luca\nmerge #10 + check CI\nobbligatori su main" {
+    class: sprint1
+    link: "https://github.com/lufo-336/under-the-sun/issues/11"
+  }
+  i12: "#12 + #13 · Mirko\nPR #23 (in revisione)\nlogin JWT · #5 chiusa" {
+    class: revisione
+    link: "https://github.com/lufo-336/under-the-sun/pull/23"
+  }
+}
+
+lavoro: "Sviluppo Sprint 1 · in parallelo" {
+  class: area
+  label.near: top-left
+
+  be: "Backend · Stefano" {
+    class: sottoarea
+    label.near: top-left
+    i14: "#14 · US-02\n/api/me/riepilogo\n/api/me/consumi" {
+      class: sprint1
+      link: "https://github.com/lufo-336/under-the-sun/issues/14"
+    }
+    i16: "#16 · US-05\n/api/me/segnalazioni\nLLM + fallback 201" {
+      class: sprint1
+      link: "https://github.com/lufo-336/under-the-sun/issues/16"
+    }
+  }
+
+  fe: "Frontend · Mirko" {
+    class: sottoarea
+    label.near: top-left
+    i15: "#15 · US-02\ndashboard socio\ncon dati veri DB" {
+      class: sprint1
+      link: "https://github.com/lufo-336/under-the-sun/issues/15"
+    }
+    i17: "#17 · US-05\ninvio e storico\nsegnalazioni" {
+      class: sprint1
+      link: "https://github.com/lufo-336/under-the-sun/issues/17"
+    }
+  }
+
+  qa: "QA & Backend · Geoffrey" {
+    class: sottoarea
+    label.near: top-left
+    i20: "#20 · QA e Compose\nreview #10 · prova #23\nfrontend in Compose" {
+      class: sprint1
+      link: "https://github.com/lufo-336/under-the-sun/issues/20"
+    }
+    i25: "#25 · US-14 · verbali\nGET /api/verbali e /:id\nsolo admin + test" {
+      class: sprint1
+      link: "https://github.com/lufo-336/under-the-sun/issues/25"
+    }
+    pr28: "PR #28 · Verbali\n(in revisione · 25 nov)" {
+      class: revisione
+      link: "https://github.com/lufo-336/under-the-sun/pull/28"
+    }
+  }
+
+  td: "Team Dati · Francesco, Giuseppe, Cecilia" {
+    class: sottoarea
+    label.near: top-left
+    i18: "#18 · Dataset 2 anni\n8 impianti · 240 soci\nCARTELLA_CSV=output" {
+      class: sprint1
+      link: "https://github.com/lufo-336/under-the-sun/issues/18"
+    }
+    i19: "#19 · Testi & Modelli\n200-300 segnalazioni\nprompt LLM · formule" {
+      class: sprint1
+      link: "https://github.com/lufo-336/under-the-sun/issues/19"
+    }
+  }
+}
+
+sal2: "SAL 2 · ven 4 dic\nlogin → dashboard con dati veri → segnalazione classificata + dataset 2 anni e primi modelli" {
+  class: sprint2
+  style.bold: true
+}
+
+base.pr10 -> chiusura.i11: {class: f-revisione}
+base.pr23 -> chiusura.i12: {class: f-revisione}
+base.pr9 -> lavoro.qa.i25: {class: f-fatto}
+base.pr8 -> lavoro.td.i18: {class: f-fatto}
+
+chiusura.i11 -> lavoro.be.i14: {class: f-sprint1}
+chiusura.i11 -> lavoro.be.i16: {class: f-sprint1}
+chiusura.i12 -> lavoro.fe.i15: {class: f-sprint1}
+chiusura.i12 -> lavoro.fe.i17: {class: f-sprint1}
+chiusura.i12 -> lavoro.qa.i20: {class: f-sprint1}
+
+lavoro.be.i14 -> lavoro.fe.i15: {class: f-sprint1}
+lavoro.be.i16 -> lavoro.fe.i17: {class: f-sprint1}
+lavoro.td.i19 -> lavoro.be.i16: {class: f-sprint1}
+
+lavoro.fe.i15 -> sal2: {class: f-sprint1}
+lavoro.fe.i17 -> sal2: {class: f-sprint1}
+lavoro.qa.i20 -> sal2: {class: f-sprint1}
+lavoro.qa.i25 -> lavoro.qa.pr28: {class: f-revisione}
+lavoro.qa.pr28 -> sal2: {class: f-revisione}
+lavoro.td.i18 -> sal2: {class: f-sprint1}
+lavoro.td.i19 -> sal2: {class: f-sprint1}

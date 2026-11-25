@@ -106,7 +106,7 @@ Le due regole che reggono tutto:
 
 ![Container: i pezzi che girano e chi parla con chi](img/02-container.png)
 
-**Mappa interattiva**: in `docs/mappa/` c'è una mappa cliccabile dell'architettura (dopo il clone si apre `docs/mappa/out/index/index.html`). Mostra chi parla con chi, lo stato di ogni pezzo (fatto, in revisione, Sprint 1, Sprint 2), le scelte architetturali con il perché e il codice reale; ha una pagina per database, backend, segnalazioni, frontend, dati, CI, piano dello Sprint 1 e storico GitHub.
+**Mappa interattiva**: in `docs/mappa/` c'è una mappa cliccabile dell'architettura (dopo il clone si apre `docs/mappa/out/index.html`). Mostra chi parla con chi, lo stato di ogni pezzo (fatto, in revisione, Sprint 1, Sprint 2), le scelte architetturali con il perché e il codice reale; ha una pagina per database, backend, segnalazioni, frontend, dati, CI, piano dello Sprint 1 e storico GitHub.
 
 ## 7. La versione commerciale (teoria)
 

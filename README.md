@@ -40,7 +40,7 @@ compose.yaml servizi Docker
 - [Contratto API](docs/api.md)
 - [Brief per il team dati](docs/team-dati.md) ← **data analyst: partite da qui**
 - [Guida rapida a Git](docs/git.md) ← **mai usato Git? leggi qui**
-- [Mappa interattiva dell'architettura](https://lufo-336.github.io/under-the-sun/) ([guida](docs/mappa/README.md)): schema cliccabile online con lo stato fino allo Sprint 1 e lo storico GitHub (in locale: `docs/mappa/out/index/index.html`)
+- [Mappa interattiva dell'architettura](https://lufo-336.github.io/under-the-sun/) ([guida](docs/mappa/README.md)): schema cliccabile e animato online, con lo stato di ogni pezzo e lo storico di quello che è stato fatto (in locale: `docs/mappa/out/index.html`)
 
 ## Stack (proposta)
 
