@@ -1,6 +1,6 @@
 # Guida al dataset UnderTheSun (team dati)
 
-Versione 1.8 del 19 novembre 2026, a cura di Francesco (riferimento del team dati).
+Versione 1.9 del 25 novembre 2026, a cura di Francesco (riferimento del team dati).
 
 La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa le scelte che lì erano aperte. Le voci segnate **[DA CONFERMARE]** vanno discusse alla prossima riunione; tutto il resto è deciso. Se cambia una decisione, si aggiorna prima questa guida e poi il codice.
 
@@ -17,7 +17,7 @@ La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa l
   - **fattore CO2** da ISPRA e **tariffa** dal DM CER.
 - **Il generatore:** un solo programma Python con due configurazioni e seed fisso `42`.
   - **PICCOLA:** il campione per il SAL 1, con giugno 2026, 3 impianti e 20 soci.
-  - **COMPLETA:** il dataset per il SAL 2.
+  - **COMPLETA:** il dataset per il SAL 2, condiviso come zip sul Drive del gruppo (§5).
 - **Allineamento con `docs/api.md`:** le dimensioni coincidono con i suoi esempi: 240 soci, 8 impianti, 950 kWp e l'impianto 3 "Tetto scuola Pinerolo" da 180 kWp, con un guasto il 1 giugno 2026 dalle 11 alle 15 UTC.
 
 ---
@@ -203,7 +203,7 @@ Ogni anomalia "vera" si scrive in `anomalie_vere.csv`, con le colonne `id`, `imp
 2. **Varietà tra soci.** Ogni socio ha un moltiplicatore fisso `scala`, estratto da una distribuzione lognormale con media 1. La deviazione standard è circa 0,35 per le famiglie e 0,5 per imprese ed enti. Così ci sono famiglie piccole e grandi.
 3. **Forma oraria.** Un profilo di 24 valori per tipo di socio e tipo di giorno: feriale, sabato, domenica o festivo. I festivi italiani si ricavano con la libreria `holidays`.
    - **Famiglia:** picco la mattina (7–8) e la sera (19–22), consumi bassi di notte, un po' più alti a metà giornata nel weekend.
-   - **Imprese ed enti:** consumi alti negli orari di apertura del profilo, bassi fuori orario (resta il consumo di base). Per esempio la scuola è aperta lunedì–venerdì 8–16 nei giorni di lezione del calendario scolastico della Regione Piemonte (nel 2025/26 dal 10 settembre al 10 giugno, con il ponte del 1° giugno; il 2026/27 inizia lunedì 14 settembre) ed è chiusa nelle vacanze, a luglio e ad agosto; per la versione completa serve ancora il calendario 2024/25; il ristorante lavora 11–15 e 19–23, il bar soprattutto dalla mattina al pomeriggio; l'officina lunedì–venerdì 8–18.
+   - **Imprese ed enti:** consumi alti negli orari di apertura del profilo, bassi fuori orario (resta il consumo di base). Per esempio la scuola è aperta lunedì–venerdì 8–16 nei giorni di lezione del calendario scolastico della Regione Piemonte (nel 2025/26 dal 10 settembre al 10 giugno, con il ponte del 1° giugno; il 2026/27 inizia lunedì 14 settembre) ed è chiusa nelle vacanze, a luglio e ad agosto; nel 2024/25 (DGR 4-8323 del 20 marzo 2024) le lezioni vanno dall'11 settembre 2024 al 7 giugno 2025, con vacanze di Natale dal 23 dicembre al 6 gennaio, Carnevale dal 1° al 4 marzo, Pasqua dal 17 al 22 aprile e scuola chiusa anche il 1° novembre, il 25 aprile, dal 1° al 3 maggio e il 2 giugno; il ristorante lavora 11–15 e 19–23, il bar soprattutto dalla mattina al pomeriggio; l'officina lunedì–venerdì 8–18.
    - **Primo compito sul file ARERA delle famiglie:** controllare come è fatto il "prelievo medio orario".
      - Se contiene un valore per ogni ora del giorno, si usa direttamente quella forma.
      - Altrimenti si usa il profilo descritto sopra, riscalato in modo da rispettare le percentuali F1/F2/F3 di ARERA.
@@ -273,9 +273,9 @@ co2_evitata_kg = kwh_condivisi × fattore_co2_kg_kwh
 - **Stato:** le segnalazioni più vecchie di 30 giorni sono tutte `chiusa`. Tra le più recenti, quelle già risolte sono `chiusa` e le altre `aperta` o `in_corso`.
 - **Classificazione:** con LLM (domanda aperta 4). Per il report si può aggiungere un confronto con un classificatore classico (TF-IDF + regressione logistica).
 
-#### Chi indica l'impianto **[DA CONFERMARE]**
+#### Chi indica l'impianto
 
-**Scelta attuale, ibrida:**
+**Scelta ibrida, accolta da Luca nello schema e in `api.md` il 23 novembre (commit 5f1ec52):**
 
 - Il socio **può** indicare l'impianto nel modulo, ma non è obbligato.
 - L'LLM legge il testo e restituisce anche l'impianto, se lo riconosce. Per farlo, il prompt riceve l'elenco degli impianti (id, nome, comune).
@@ -360,7 +360,7 @@ Le colonne marcate con **(nuova)** non erano nella bozza di Luca.
 | id | int | Identificativo |
 | socio_id | int | Socio; vuoto se il canale è `interno` |
 | impianto_id | int | Impianto in uso (socio, altrimenti LLM; l'operatore può correggerlo) |
-| impianto_id_llm **(nuova, [DA CONFERMARE])** | int | Impianto estratto dall'LLM, mai modificato |
+| impianto_id_llm **(nuova)** | int | Impianto estratto dall'LLM, mai modificato |
 | ts | timestamp | Momento dell'invio (UTC) |
 | canale | text | `email`, `portale`, `interno` |
 | testo | text | Testo della segnalazione |
@@ -383,11 +383,11 @@ Le colonne marcate con **(nuova)** non erano nella bozza di Luca.
 - **`segnalazione_etichette.csv`:** le etichette vere delle segnalazioni, per misurare l'LLM (§3.7).
 - **`socio_profilo.csv`:** `socio_id`, `profilo`, `ateco` e `scala` di ogni socio (§1.3 e §3.4).
 
-### Modifiche rispetto alla bozza di Luca (da approvare al SAL 1)
+### Modifiche rispetto alla bozza di Luca (accolte nello schema il 23 novembre, commit 5f1ec52)
 
 1. **`impianto`:** si aggiungono `inclinazione_gradi` e `azimut_gradi`, necessarie per PVGIS e Open-Meteo.
 2. **`meteo_orario`:** le unità entrano nei nomi (`irraggiamento_wm2`, `temperatura_c`, `nuvolosita_pct`) e si aggiungono `irraggiamento_pannelli_wm2` e `neve_cm`. Nessuna API espone questa tabella, quindi per i WSA non cambia nulla.
-3. **`segnalazione`:** si aggiunge `impianto_id_llm` **[DA CONFERMARE]**, `socio_id` può essere vuoto e il canale `interno` serve per le comunicazioni guasti.
+3. **`segnalazione`:** si aggiunge `impianto_id_llm`, `socio_id` può essere vuoto e il canale `interno` serve per le comunicazioni guasti.
 4. **Risposte alle 6 domande aperte di `team-dati.md` §11:**
    1. una sola cabina primaria;
    2. tariffa costante di 0,130 €/kWh;
@@ -415,6 +415,16 @@ Le colonne marcate con **(nuova)** non erano nella bozza di Luca.
 
 `consumo_orario.csv` pesa circa 130 MB: resta in `data/output/` e non va mai su GitHub, che rifiuta i file oltre 100 MB.
 
+**Come si condivide il dataset completo.** Su GitHub va solo il codice. I CSV vanno in uno zip sul Drive condiviso del gruppo.
+
+- **Nome dello zip:** versione e data, per esempio `underthesun-dataset-completo-v1_2026-11-27.zip`. Ogni nuova versione è un nuovo zip con numero più alto; quelli vecchi non si sovrascrivono.
+- **Dentro lo zip:** i CSV, senza la cartella `cache/`, e un `LEGGIMI.txt` con versione della guida, data, elenco dei file con il numero di righe e le istruzioni d'uso.
+- **Chi lo usa:**
+  - scompatta lo zip in `data/output/`, con i CSV direttamente lì e senza sottocartelle;
+  - carica il database con `CARTELLA_CSV=output docker compose run --rm seed` (Issue #18);
+  - non apre e risalva i CSV con Excel o Google Fogli, che cambiano punti decimali e date.
+- **Fonte di verità:** resta il codice. Con lo stesso codice e il seed 42 lo zip si rigenera identico.
+
 ---
 
 ## 6. Controlli di qualità (`controlli.py`)
@@ -432,7 +442,7 @@ Si lanciano dopo ogni generazione. Se un controllo fallisce, il dataset non si c
 
 ---
 
-## 7. Versione PICCOLA per il SAL 1 (ven 20 nov)
+## 7. Versione PICCOLA (campione per il SAL 1, su `main` dalla PR #8)
 
 **Contenuto:**
 
@@ -508,9 +518,10 @@ Valutato nella chat Dataset del progetto: è costruito sul dataset Zenodo del Po
 
 ## 10. Da portare alla prossima riunione
 
-1. **Chi indica l'impianto nelle segnalazioni** (§3.7): ibrido, solo socio o solo LLM.
-2. **Modifiche allo schema** (§4): servono l'ok di Luca e dei WSA prima del congelamento al SAL 1.
-3. **Valori da aggiornare:** valorizzazione ARERA e prezzi per imprese ed enti (§3.5).
+1. **Valori da aggiornare:** valorizzazione ARERA e prezzi per imprese ed enti (§3.5).
+2. **Design del database:** Giuseppe prepara una prima stesura solo relazionale (PR #24), non ancora definitiva. Il dataset non dipende da quella proposta: è il database che si costruisce sul dataset (§4).
+
+Chiusi il 23 novembre: chi indica l'impianto (§3.7) e le modifiche allo schema (§4), accolti da Luca nel commit 5f1ec52.
 
 ---
 
