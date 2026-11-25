@@ -30,7 +30,7 @@ window.UTS_DATA = {
       title: 'UnderTheSun — Architettura della piattaforma',
       subtitle: 'Portale della <strong>Comunità Energetica Rinnovabile Buby Green</strong> · team <strong>PlusUltra</strong> · stato al <strong>25 novembre 2026</strong>. Clicca qualunque blocco nel diagramma qui sotto per aprirne i dettagli con zoom-in.',
       badges: [
-        { cls: 'fatto', text: '10 PR unite su main (#1–#3, #6, #8, #9, #21, #22, #26, #27)' },
+        { cls: 'fatto', text: '11 PR unite su main (#1–#3, #6, #8, #9, #21, #22, #26, #27, #29)' },
         { cls: 'revisione', text: 'PR aperte: #10 CI, #23 frontend, #28 verbali · proposta DB #24' },
         { cls: 'sprint1', text: 'Sprint 1 · 11 Issue (#11–#20, #25)' },
         { cls: 'sprint2', text: 'Sprint 2 · 4 → 14 dic' }
@@ -576,6 +576,7 @@ def rng_socio(socio_id: int) -> np.random.Generator:
           { date: '23 nov', who: 'Stefano (@stefanospadaccini-888)', what: 'Servizio <code>backend</code> in <code>compose.yaml</code> con <code>Dockerfile</code> <code>node:22-alpine</code> e healthcheck <code>/api/salute</code>', ref: 'PR #9', href: 'https://github.com/lufo-336/under-the-sun/pull/9', stato: 'fatto' },
           { date: '23 nov', who: 'Luca (@lufo-336)', what: 'Mappa interattiva D2 (<code>docs/mappa/</code>, script <code>compila.sh</code>) pubblicata e aggiornata con storico GitHub e barra rapida', ref: 'PR #21 · #22 · #26', href: 'https://github.com/lufo-336/under-the-sun/pull/26', stato: 'fatto' },
           { date: '23 nov', who: 'Luca (@lufo-336)', what: 'Workflow <code>.github/workflows/pages.yml</code> unito su <code>main</code> (<code>ac7e13b</code>) per pubblicare la mappa D2 su GitHub Pages', ref: 'PR #27', href: 'https://github.com/lufo-336/under-the-sun/pull/27', stato: 'fatto' },
+          { date: '25 nov', who: 'Luca (@lufo-336)', what: 'Mappa web animata (questa pagina) al posto degli SVG statici: <code>pages.yml</code> pubblica <code>docs/mappa/out/</code>', ref: 'PR #29', href: 'https://github.com/lufo-336/under-the-sun/pull/29', stato: 'fatto' },
           { date: '23 nov', who: 'Luca (@lufo-336)', what: 'Workflow <code>.github/workflows/ci.yml</code> (3 job: backend, frontend, Compose + seed, +126 righe) in <strong>PR aperta, non ancora su <code>main</code></strong>', ref: 'PR #10', href: 'https://github.com/lufo-336/under-the-sun/pull/10', stato: 'revisione' },
           { date: 'Sprint 1', who: 'Luca (@lufo-336)', what: 'Chiusura dei merge di base e attivazione dei check CI obbligatori su <code>main</code>', ref: 'Issue #11', href: 'https://github.com/lufo-336/under-the-sun/issues/11', stato: 'sprint1' },
           { date: 'Sprint 1', who: 'Geoffrey (@geoffreyagwasim)', what: 'Review PR #10 (CI), prova pratica PR #23 e aggiunta del servizio <code>frontend</code> in <code>compose.yaml</code>', ref: 'Issue #20', href: 'https://github.com/lufo-336/under-the-sun/issues/20', stato: 'sprint1' }
@@ -685,9 +686,9 @@ def rng_socio(socio_id: int) -> np.random.Generator:
 
     storico: {
       title: 'Storico del repository GitHub',
-      subtitle: 'Linea temporale verticale di tutte le <strong>Pull Request</strong> di <code>lufo-336/under-the-sun</code> dal 6 al 25 novembre 2026: <strong>10 PR unite su main</strong>, <strong>4 aperte</strong>, <strong>3 chiuse senza merge</strong>.',
+      subtitle: 'Linea temporale verticale di tutte le <strong>Pull Request</strong> di <code>lufo-336/under-the-sun</code> dal 6 al 25 novembre 2026: <strong>11 PR unite su main</strong>, <strong>4 aperte</strong>, <strong>3 chiuse senza merge</strong>.',
       badges: [
-        { cls: 'fatto', text: '10 PR unite su main' },
+        { cls: 'fatto', text: '11 PR unite su main' },
         { cls: 'revisione', text: '3 PR in revisione (#10, #23, #28)' },
         { cls: 'sprint2', text: '1 proposta team dati (#24) · 3 chiuse (#4, #5, #7)' }
       ],
@@ -697,6 +698,33 @@ def rng_socio(socio_id: int) -> np.random.Generator:
       ],
       isTimeline: true,
       timeline: [
+        {
+          id: 'pr29',
+          order: 19,
+          date: '25 nov',
+          pr: 'PR #29',
+          status: 'fatto',
+          statusLabel: 'Unita su main',
+          category: 'unita',
+          author: 'Luca (@lufo-336)',
+          title: 'Mappa web animata al posto della mappa D2 statica (questa pagina)',
+          desc: 'docs/mappa/ diventa una pagina web animata: 9 sorgenti D2 modulari, storico di tutte le PR con file e commit, blocchi «Già fatto» per area, tabella di stato dello Sprint 1; pages.yml pubblica docs/mappa/out/ (branch docs/mappa-web-animata).',
+          files: [
+            'docs/mappa/d2/generale.d2',
+            'docs/mappa/out/contenuti.js',
+            'docs/mappa/out/app.js',
+            'docs/mappa/compila.sh',
+            '.github/workflows/pages.yml',
+            'docs/piano-di-progetto.md'
+          ],
+          commits: [
+            { hash: '60b21e2', date: '25 nov', who: 'Luca (@lufo-336)', what: 'Sostituisce la mappa D2 statica con la mappa web animata e aggiorna storico e stato al 25 nov' },
+            { hash: '5e0c209', date: '25 nov', who: 'Luca (@lufo-336)', what: 'Rigenera il PDF del piano di progetto col nuovo percorso della mappa' }
+          ],
+          links: [
+            { label: 'Apri PR #29 ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/29' }
+          ]
+        },
         {
           id: 'pr28',
           order: 18,
