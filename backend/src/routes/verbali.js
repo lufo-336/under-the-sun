@@ -19,7 +19,7 @@ export function rotteVerbali({ db, config }) {
 
   router.get('/:id', async (req, res) => {
     const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id < 1) {
+if (!Number.isInteger(id) || id < 1 || id > 2147483647) {
       throw datiNonValidi('Id del verbale non valido');
     }
     const { rows } = await db.query(
