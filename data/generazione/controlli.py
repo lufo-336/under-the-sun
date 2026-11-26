@@ -1,8 +1,12 @@
-"""Controlli di qualità (guida §6), adattati al campione SAL 1.
+"""Controlli di qualità (guida §6), per il campione SAL 1 e per il dataset completo.
 
 Uso, dalla cartella data/:
     python generazione/controlli.py --config piccola
     python generazione/controlli.py --config piccola --senza-rigenerare   (salta i due rilanci)
+    python generazione/controlli.py --config completa                     (per ora la parte 1)
+
+Dataset completo, parte 1 (impianti, soci, meteo, produzione, anomalie): vedi
+main_completa più sotto. I controlli di consumi e bollette arrivano con la parte 2.
 
 Ogni controllo stampa [ok] o [FALLITO]. Se anche uno solo fallisce, il programma
 esce con codice 1: il dataset non si consegna (§6).
@@ -40,6 +44,7 @@ import pandas as pd  # noqa: E402
 import anagrafiche  # noqa: E402
 import config  # noqa: E402
 import consumi  # noqa: E402
+import meteo  # noqa: E402
 import produzione  # noqa: E402
 import pvgis  # noqa: E402
 
@@ -146,17 +151,17 @@ def hash_esempi(cartella: Path) -> dict[str, str]:
     return {f.name: hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(cartella.glob("*.csv"))}
 
 
-def riproducibilita(nome_config: str, cartella: Path) -> None:
+def riproducibilita(nome_config: str, cartella: Path, altri_argomenti: tuple[str, ...] = ()) -> None:
     sezione("Riproducibilità: due rilanci di genera.py")
     prima = hash_esempi(cartella)
     rilanci = []
     for _ in range(2):
-        subprocess.run([sys.executable, str(Path(__file__).with_name("genera.py")), "--config", nome_config],
+        subprocess.run([sys.executable, str(Path(__file__).with_name("genera.py")), "--config", nome_config, *altri_argomenti],
                        cwd=config.CARTELLA_DATA, check=True, capture_output=True)
         rilanci.append(hash_esempi(cartella))
     controlla("i due rilanci producono file identici", rilanci[0] == rilanci[1], f"{len(rilanci[1])} file confrontati")
     cambiati = sorted(n for n in rilanci[0] if prima.get(n) != rilanci[0][n])
-    controlla("i file di esempi/ erano già uguali a quelli rigenerati", not cambiati, ", ".join(cambiati))
+    controlla(f"i file di {cartella.name}/ erano già uguali a quelli rigenerati", not cambiati, ", ".join(cambiati))
 
 
 def dizionario_e_righe(T: dict[str, pd.DataFrame]) -> None:
@@ -493,11 +498,443 @@ def grafici(T: dict[str, pd.DataFrame]) -> list[Path]:
     return salvati
 
 
+def grafico_pvgis_anno(impianti: pd.DataFrame) -> Path:
+    """Giorno medio del 2023 per impianto: PVGIS seriescalc contro il modello tarato
+    sul meteo Open-Meteo dello stesso anno. I picchi devono coincidere (§3.2)."""
+    NOTEBOOK.mkdir(exist_ok=True)
+    fig, assi = plt.subplots(2, 4, figsize=(15, 6.5), sharex=True)
+    for ax, impianto in zip(assi.flat, impianti.itertuples()):
+        c = pvgis.confronto_anno(impianto)
+        k = pvgis._k(c)
+        ora = c.index.hour
+        ax.plot(range(24), c["kwh_pvgis"].groupby(ora).mean(), lw=1.5, label="PVGIS seriescalc")
+        ax.plot(range(24), c["kwh_modello"].mul(k).clip(upper=impianto.kwp).groupby(ora).mean(), lw=1.2, ls="--",
+                label=f"modello (k = {k})")
+        ax.set_title(f"{impianto.id}. {impianto.nome}", fontsize=9)
+        ax.set_xticks(range(0, 24, 3))
+        ax.grid(alpha=0.3)
+        ax.legend(fontsize=7, loc="upper left")
+    for ax in assi[1]:
+        ax.set_xlabel("ora UTC (inizio dell'ora)")
+    for ax in assi[:, 0]:
+        ax.set_ylabel("kWh medi nell'ora")
+    fig.suptitle(f"Giorno medio del {pvgis.ANNO}: PVGIS e modello sul meteo Open-Meteo", fontsize=11)
+    fig.tight_layout()
+    percorso = NOTEBOOK / f"completa_pvgis_{pvgis.ANNO}_giorno_medio.png"
+    fig.savefig(percorso, dpi=100, metadata={"Software": None})
+    plt.close(fig)
+    return percorso
+
+
 def elenco_file(cartella: Path, T: dict[str, pd.DataFrame]) -> None:
-    sezione("File di esempi/")
+    sezione(f"File di {cartella.name}/")
     for nome in sorted(T):
         dimensione = (cartella / f"{nome}.csv").stat().st_size
         print(f"  {nome + '.csv':28} {italiano(len(T[nome])):>7} righe {italiano(dimensione / 1024, 1):>9} KB")
+
+
+# =============================================================================
+# Dataset completo, parte 1: impianti, soci, meteo, produzione e anomalie
+# =============================================================================
+
+PASSO_PARTE_1 = "produzione"  # genera.py --fino-a produzione
+RIGHE_COMPLETA = {  # §5
+    "impianto": 8, "socio": 240, "socio_profilo": 240, "parametro": 8,
+    "meteo_orario": 140_160, "produzione_oraria": 140_160,
+}
+FILE_PARTE_1 = sorted([*RIGHE_COMPLETA, "anomalie_vere"])
+ANOMALIE_CONTATE = {"guasto": 10, "stringa": 4, "sporcizia": 5}  # §3.3; i guasti comprendono quello fisso
+ANNI = {"nov 2024-ott 2025": ("2024-11-01", "2025-11-01"), "nov 2025-ott 2026": ("2025-11-01", "2026-11-01")}
+SETTIMANE = {"estiva": "2025-07-14", "invernale": "2026-02-02"}  # lunedì, ora italiana
+IMPIANTI_VALLE, IMPIANTI_PIANURA = [5, 6, 8], [1, 2, 3, 7]  # §1.1
+ENTI_CON_IMPIANTO = [("scuola", "Pinerolo"), ("uffici_comunali", "San Secondo di Pinerolo"),
+                     ("impianto_sportivo", "Bricherasio"), ("biblioteca", "Torre Pellice"), ("rsa", "Villar Perosa")]
+TOLLERANZA = 0.0015  # kWh: valori a 3 decimali
+TOLLERANZA_CAMPIONE = 0.001  # kWh: completa e campione arrotondati entrambi a 3 decimali
+COLORI_ANOMALIE = {"guasto": "tab:red", "stringa": "tab:orange", "sporcizia": "tab:brown", "neve": "tab:blue"}
+
+
+def utc(testo: str) -> pd.Timestamp:
+    return pd.Timestamp(testo, tz="UTC")
+
+
+def file_e_righe_completa(T: dict[str, pd.DataFrame]) -> None:
+    sezione("File, intestazioni (data dictionary) e righe (§5)")
+    presenti = sorted(T)
+    controlla("in output/ ci sono i file della parte 1", presenti == FILE_PARTE_1,
+              ", ".join(presenti) if presenti == FILE_PARTE_1
+              else f"mancano {sorted(set(FILE_PARTE_1) - set(presenti))}, in più {sorted(set(presenti) - set(FILE_PARTE_1))}")
+    voci = leggi_dizionario(DIZIONARIO)
+    for nome in presenti:
+        df, problemi = T[nome], []
+        if list(df.columns) != (voci.get(nome) or {}).get("colonne"):
+            problemi.append(f"colonne {list(df.columns)}, nel data dictionary {(voci.get(nome) or {}).get('colonne')}")
+        if nome in RIGHE_COMPLETA and len(df) != RIGHE_COMPLETA[nome]:
+            problemi.append(f"{len(df)} righe, attese {RIGHE_COMPLETA[nome]}")
+        controlla(f"{nome}.csv: intestazioni e righe", not problemi, "; ".join(problemi) or f"{italiano(len(df))} righe")
+
+
+def serie_complete_completa(T: dict[str, pd.DataFrame], conf: dict) -> None:
+    sezione("Serie orarie complete (§6)")
+    attese = list(pd.date_range(conf["primo_ts"], conf["ultimo_ts"], freq="h").strftime("%Y-%m-%dT%H:%M:%SZ"))
+    impianti = sorted(T["impianto"]["id"])
+    for nome in ["meteo_orario", "produzione_oraria"]:
+        df = T[nome]
+        ok = sorted(df["impianto_id"].unique()) == impianti and all(sorted(g["ts"]) == attese for _, g in df.groupby("impianto_id"))
+        controlla(f"{nome}: {italiano(len(attese))} ore per ognuno degli {len(impianti)} impianti, senza buchi né duplicati", ok)
+
+
+def integrita_completa(T: dict[str, pd.DataFrame]) -> None:
+    sezione("ID: unici e coerenti tra i file (§2, §6)")
+    for nome in ["impianto", "socio", "anomalie_vere"]:
+        ids = T[nome]["id"].astype(int).tolist()
+        controlla(f"{nome}.id: 1, 2, 3, ... senza buchi né doppioni", sorted(ids) == list(range(1, len(ids) + 1)))
+    soci, impianti = set(T["socio"]["id"]), set(T["impianto"]["id"])
+    for nome, colonna, insieme, tabella in [
+        ("socio_profilo", "socio_id", soci, "socio"), ("meteo_orario", "impianto_id", impianti, "impianto"),
+        ("produzione_oraria", "impianto_id", impianti, "impianto"), ("anomalie_vere", "impianto_id", impianti, "impianto"),
+    ]:
+        mancanti = set(T[nome][colonna]) - insieme
+        controlla(f"{nome}.{colonna} esiste in {tabella}", not mancanti, f"non trovati: {sorted(mancanti)}" if mancanti else "")
+    controlla("socio_profilo ha una riga per ogni socio", sorted(T["socio_profilo"]["socio_id"]) == sorted(soci))
+
+
+def anagrafiche_completa(T: dict[str, pd.DataFrame], conf: dict) -> None:
+    sezione("Anagrafiche (§1.2, §1.3, §3.5)")
+    imp = T["impianto"]
+    controlla("impianto: gli 8 impianti della tabella del §1.2", imp.equals(anagrafiche.tabella_impianti().astype(str)))
+    kwp = num(imp, "kwp")
+    controlla("impianto: 950 kWp in totale, tutti ≤ 200 kWp", kwp.sum() == 950 and (kwp <= 200).all(), f"{kwp.sum():.0f} kWp")
+    controlla("impianto: tutti attivi prima dell'inizio del periodo", (imp["data_attivazione"] < conf["primo_ts"][:10]).all())
+    controlla("parametro: le 8 righe del §3.5", T["parametro"].equals(anagrafiche.tabella_parametri().astype(str)))
+
+    s = T["socio"].merge(T["socio_profilo"], left_on="id", right_on="socio_id")
+    tipi = s["tipo"].value_counts().to_dict()
+    controlla("socio: 200 famiglie, 30 imprese e 10 enti", tipi == {"famiglia": 200, "impresa": 30, "ente": 10},
+              ", ".join(f"{t} {n}" for t, n in tipi.items()))
+    profili_attesi = {"famiglia": 200}
+    ateco = {"famiglia": ""}
+    for profilo, codice, quante, _ in anagrafiche.IMPRESE:
+        profili_attesi[profilo], ateco[profilo] = quante, codice
+    for profilo, codice, *_ in anagrafiche.ENTI:
+        profili_attesi[profilo], ateco[profilo] = profili_attesi.get(profilo, 0) + 1, codice
+    controlla("socio_profilo: profili e codici ATECO come nella tabella del §1.3",
+              s["profilo"].value_counts().to_dict() == profili_attesi and (s["ateco"] == s["profilo"].map(ateco)).all())
+    controlla("socio.comune e impianto.comune: uno degli 8 comuni", set(s["comune"]) <= COMUNI and set(imp["comune"]) <= COMUNI)
+    fondatori = s["data_adesione"].between("2024-06-01", "2024-10-31").sum()
+    altri = s["data_adesione"].between("2024-11-01", "2026-06-30").sum()
+    controlla("socio: 120 fondatori (giugno-ottobre 2024) e 120 adesioni da novembre 2024 a giugno 2026",
+              fondatori == 120 and altri == 120, f"{fondatori} e {altri}")
+    controlla("socio: ID in ordine di data di adesione", T["socio"]["data_adesione"].is_monotonic_increasing)
+    controlla("socio: nomi tutti diversi", T["socio"]["nome"].is_unique)
+    enti = s[s["tipo"] == "ente"]
+    controlla("socio: gli enti sono fondatori e quelli che ospitano un impianto stanno nel suo comune",
+              (enti["data_adesione"] <= "2024-10-31").all()
+              and all(((enti["profilo"] == p) & (enti["comune"] == c)).any() for p, c in ENTI_CON_IMPIANTO))
+    scala = num(s, "scala")
+    medie = scala.groupby(s["tipo"]).mean()
+    controlla("socio_profilo.scala: positiva, con media vicina a 1 per ogni tipo (0,8-1,2)",
+              (scala > 0).all() and medie.between(0.8, 1.2).all(), ", ".join(f"{t} {m:.3f}" for t, m in medie.items()))
+
+
+def meteo_completa(T: dict[str, pd.DataFrame]) -> None:
+    sezione("Meteo (§1.1, §3.1)")
+    m = T["meteo_orario"]
+    controlla("meteo: irraggiamenti e neve non negativi, nuvolosità tra 0 e 100",
+              (num(m, "irraggiamento_wm2") >= 0).all() and (num(m, "irraggiamento_pannelli_wm2") >= 0).all()
+              and (num(m, "neve_cm") >= 0).all() and num(m, "nuvolosita_pct").between(0, 100).all())
+    celle = meteo.celle(anagrafiche.tabella_impianti()).set_index("impianto_id")["cella"]
+    pianura = set(celle[IMPIANTI_PIANURA])
+    controlla("§1.1: gli impianti di valle (5, 6, 8) sono in celle meteo diverse da quelle di pianura (1, 2, 3, 7)",
+              not set(celle[IMPIANTI_VALLE]) & pianura, ", ".join(f"impianto {i}: cella {c}" for i, c in celle.items()))
+    neve = num(m, "neve_cm").groupby(m["impianto_id"].astype(int)).sum()
+    print("  neve caduta in 2 anni (cm): " + ", ".join(f"impianto {i}: {italiano(v, 1)}" for i, v in neve.items()))
+
+
+def produzione_completa(T: dict[str, pd.DataFrame], conf: dict) -> pd.DataFrame:
+    """Controlli della produzione; restituisce la tabella ora per ora con la
+    produzione attesa (formula del §3.2 rifatta qui), che serve alle anomalie."""
+    sezione("Produzione (§3.2, §6)")
+    imp = anagrafiche.tabella_impianti()
+    k = pvgis.k_impianti(conf, imp)
+    d = (T["produzione_oraria"].merge(T["meteo_orario"], on=["impianto_id", "ts"])
+         .assign(impianto_id=lambda x: x["impianto_id"].astype(int)).merge(imp[["id", "kwp"]], left_on="impianto_id", right_on="id"))
+    kwh, gti, kwp = num(d, "kwh"), num(d, "irraggiamento_pannelli_wm2"), d["kwp"]
+    controlla("produzione mai negativa", (kwh >= 0).all())
+    controlla("produzione 0 quando irraggiamento_pannelli_wm2 è 0", (kwh[gti == 0] == 0).all(), f"{italiano(int((gti == 0).sum()))} ore senza sole")
+    controlla("produzione mai sopra kwp", (kwh <= kwp).all(), f"massimo {(kwh / kwp).max():.2f} kWh per kWp")
+
+    t_modulo = num(d, "temperatura_c") + 0.03 * gti
+    d["attesa"] = (kwp * gti / 1000 * 0.86 * (1 - 0.004 * (t_modulo - 25)) * d["impianto_id"].map(k)).clip(0, kwp)
+    d["kwh_num"] = kwh
+    d["t"] = pd.to_datetime(d["ts"], utc=True)
+
+    controlla("k_impianto vicino a 1 (tra 0,85 e 1,05)", all(0.85 <= v <= 1.05 for v in k.values()),
+              ", ".join(f"{i}: {v}" for i, v in k.items()))
+    val = pvgis.validazione(imp)
+    controlla(f"PVGIS {pvgis.ANNO}: orari non sfasati (correlazione massima senza spostamenti)",
+              ((val["r"] >= val["r_-1h"]) & (val["r"] >= val["r_+1h"])).all())
+    print(f"  Validazione {pvgis.ANNO}, modello tarato contro PVGIS seriescalc (§3.2, passo 4):")
+    print("  " + val.to_string(index=False).replace("\n", "\n  "))
+
+    righe, scarti = [], []
+    for impianto in imp.itertuples():
+        e_y = pvgis.pvcalc(impianto)["outputs"]["totals"]["fixed"]["E_y"] / impianto.kwp
+        sel = d["impianto_id"] == impianto.id
+        per_anno = []
+        for dal, al in ANNI.values():
+            anno = sel & (d["ts"] >= f"{dal}T00:00:00Z") & (d["ts"] < f"{al}T00:00:00Z")
+            per_anno.append((d.loc[anno, "kwh_num"].sum() / impianto.kwp / e_y - 1) * 100)
+        scarti += per_anno
+        righe.append(f"{impianto.id}: " + "/".join(f"{s:+.1f}%" for s in per_anno))
+    controlla("produzione annua per kWp entro ±10% di PVGIS PVcalc, in ognuno dei due anni (§6)",
+              all(abs(s) <= 10 for s in scarti), ", ".join(righe))
+    return d
+
+
+def anomalie_completa(T: dict[str, pd.DataFrame], d: pd.DataFrame) -> None:
+    sezione("Anomalie (§3.3)")
+    a = T["anomalie_vere"].assign(
+        impianto_id=lambda x: x["impianto_id"].astype(int), perdita=lambda x: num(x, "perdita_pct"),
+        i=lambda x: pd.to_datetime(x["inizio"], utc=True), f=lambda x: pd.to_datetime(x["fine"], utc=True))
+    a["ore"] = (a["f"] - a["i"]) / produzione.ORA
+    conteggi = a["tipo"].value_counts().to_dict()
+    controlla("10 guasti (compreso quello fisso), 4 stringhe e 5 sporcizie, più gli episodi di neve",
+              all(conteggi.get(t, 0) == n for t, n in ANOMALIE_CONTATE.items()),
+              ", ".join(f"{t} {conteggi.get(t, 0)}" for t in ["guasto", "stringa", "sporcizia", "neve"]))
+    prima = a.iloc[0]
+    controlla("id 1 è il guasto fisso dell'impianto 3 del 1 giugno 2026, come nel campione",
+              (prima["impianto_id"], prima["inizio"], prima["fine"], prima["tipo"], prima["perdita"])
+              == (3, "2026-06-01T11:00:00Z", "2026-06-01T15:00:00Z", "guasto", 100.0))
+
+    g, s, p, n = (a[a["tipo"] == t] for t in ["guasto", "stringa", "sporcizia", "neve"])
+    controlla("guasti: da 2 ore a 5 giorni, produzione a 0", g["ore"].between(2, 120).all() and (g["perdita"] == 100).all(),
+              f"durate da {g['ore'].min():.0f} a {g['ore'].max():.0f} ore")
+    controlla("stringhe: calo fisso del 20-35% per 1-4 settimane",
+              s["perdita"].between(20, 35).all() and s["ore"].between(7 * 24, 28 * 24).all(),
+              f"perdite {s['perdita'].min()}-{s['perdita'].max()}%, durate {s['ore'].min() / 24:.1f}-{s['ore'].max() / 24:.1f} giorni")
+    ritmo = p["perdita"] / (p["ore"] / 168)
+    controlla("sporcizia: arriva al 10-15% a circa l'1% a settimana, inizia a mezzanotte tra aprile e luglio",
+              p["perdita"].between(10, 15).all() and ritmo.between(0.78, 1.22).all()
+              and p["i"].dt.month.isin([4, 5, 6, 7]).all() and (p["i"].dt.hour == 0).all(),
+              f"perdite {p['perdita'].min()}-{p['perdita'].max()}%, da {ritmo.min():.2f} a {ritmo.max():.2f}% a settimana")
+    controlla("neve: produzione al 5% (perdita 95%)", (n["perdita"] == 95).all(), f"{len(n)} episodi")
+
+    attesa = d.set_index(["impianto_id", "ts"])["attesa"]
+    kwp = d.groupby("impianto_id")["kwp"].first()
+    casuali_brevi = a[a["tipo"].isin(["guasto", "stringa"]) & (a["id"] != "1")]
+    controlla("guasti e stringhe casuali iniziano in un'ora di sole (produzione attesa ≥ 10% di kwp)",
+              all(attesa[(r.impianto_id, r.inizio)] >= 0.1 * kwp[r.impianto_id] for r in casuali_brevi.itertuples()))
+
+    # Neve: la regola del §3.3 rifatta qui sulle ore, poi confrontata con produzione.episodi_neve
+    m = T["meteo_orario"].assign(impianto_id=lambda x: x["impianto_id"].astype(int), neve_cm=lambda x: num(x, "neve_cm"),
+                                 temperatura_c=lambda x: num(x, "temperatura_c"))
+    coperte = iniziano_bene = uguali = True
+    for imp_id, mi in m.groupby("impianto_id"):
+        mi = mi.sort_values("ts")
+        neve_24h = mi["neve_cm"].rolling(24, min_periods=1).sum().shift(1).round(1)
+        ore_neve = pd.to_datetime(mi.loc[neve_24h >= 2.0, "ts"], utc=True)
+        ep = n[n["impianto_id"] == imp_id]
+        coperte &= all(((ep["i"] <= t) & (ep["f"] > t)).any() for t in ore_neve)
+        iniziano_bene &= set(ep["i"]) <= set(ore_neve)
+        uguali &= list(zip(ep["i"], ep["f"])) == produzione.episodi_neve(mi)
+    controlla("neve: ogni ora con almeno 2 cm nelle 24 ore precedenti è dentro un episodio, e ogni episodio inizia in una di queste ore",
+              coperte and iniziano_bene, f"{len(n)} episodi su {n['impianto_id'].nunique()} impianti")
+    controlla("neve: gli episodi finiscono dopo 2 giorni con temperatura massima sopra 3 °C (produzione.episodi_neve)", uguali)
+
+    sovrapposte, vicine = [], []
+    for _, gi in a.sort_values("i").groupby("impianto_id"):
+        righe = list(gi.itertuples())
+        for prec, succ in zip(righe, righe[1:]):
+            if succ.i < prec.f:
+                sovrapposte.append((prec.id, succ.id))
+            elif not (prec.tipo == succ.tipo == "neve") and succ.i - prec.f < produzione.DISTACCO:
+                vicine.append((prec.id, succ.id))
+    controlla("anomalie dello stesso impianto che non si sovrappongono", not sovrapposte, f"sovrapposte: {sovrapposte}" if sovrapposte else "")
+    controlla("tra un'anomalia casuale e le altre dello stesso impianto passano almeno 24 ore", not vicine, f"troppo vicine: {vicine}" if vicine else "")
+    giugno = a[a["impianto_id"].isin([1, 2, 3]) & (a["i"] < utc("2026-07-01")) & (a["f"] > utc("2026-06-01"))]
+    controlla("campione stabile: a giugno 2026 sugli impianti 1-3 c'è solo il guasto fisso (§3.3)",
+              giugno["id"].tolist() == ["1"], f"anomalie che toccano giugno: {giugno['id'].tolist()}")
+
+    # Ogni anomalia si vede: produzione sotto l'atteso, con l'effetto previsto ora per ora
+    esiti = {tipo: [] for tipo in ["guasto", "stringa", "sporcizia", "neve"]}
+    dentro_qualcuna = pd.Series(False, index=d.index)
+    for r in a.itertuples():
+        sel = (d["impianto_id"] == r.impianto_id) & (d["ts"] >= r.inizio) & (d["ts"] < r.fine)
+        dentro_qualcuna |= sel
+        att, kwh, t = d.loc[sel, "attesa"], d.loc[sel, "kwh_num"], d.loc[sel, "t"]
+        if r.tipo == "sporcizia":  # cresce in modo lineare e arriva a perdita_pct nell'ultima ora
+            fattore = 1 - r.perdita / 100 * ((t - r.i) / produzione.ORA + 1) / r.ore
+        else:
+            fattore = pd.Series(1 - r.perdita / 100, index=att.index)
+        forma = (kwh - (att * fattore).round(3)).abs().max() <= TOLLERANZA
+        sotto = kwh.sum() < att.sum() and (kwh <= att.round(3) + 1e-9).all()
+        esiti[r.tipo].append((r.id, forma and sotto, (1 - kwh.sum() / att.sum()) * 100))
+    for tipo, lista in esiti.items():
+        non_visibili = [i for i, ok, _ in lista if not ok]
+        perse = [x for *_, x in lista]
+        controlla(f"{tipo}: tutte le {len(lista)} anomalie si vedono (produzione sotto l'atteso, con l'effetto previsto)",
+                  lista and not non_visibili,
+                  f"energia persa nella finestra da {min(perse):.0f}% a {max(perse):.0f}%" + (f"; non visibili: {non_visibili}" if non_visibili else ""))
+    fuori = ~dentro_qualcuna
+    controlla("fuori dalle anomalie la produzione è uguale alla formula",
+              (d.loc[fuori, "kwh_num"] - d.loc[fuori, "attesa"].round(3)).abs().max() < TOLLERANZA)
+
+
+def confronto_campione(T: dict[str, pd.DataFrame]) -> None:
+    piccola = config.CONFIGURAZIONI["piccola"]
+    sezione("Giugno 2026, impianti 1-3: confronto con il campione (data/esempi/)")
+    E = {nome: pd.read_csv(config.CARTELLA_ESEMPI / f"{nome}.csv", dtype=str, keep_default_na=False)
+         for nome in ["impianto", "socio", "socio_profilo", "parametro", "meteo_orario", "produzione_oraria", "anomalie_vere"]}
+    for nome, chiave in [("impianto", "id"), ("socio", "id"), ("socio_profilo", "socio_id"), ("parametro", "chiave")]:
+        c, f = E[nome], T[nome]
+        controlla(f"{nome}: le {len(c)} righe del campione sono uguali a quelle della completa con lo stesso {chiave}",
+                  f[f[chiave].isin(c[chiave])].reset_index(drop=True).equals(c))
+
+    def giugno(df: pd.DataFrame) -> pd.DataFrame:
+        sel = df["impianto_id"].isin([str(i) for i in piccola["impianti"]]) & df["ts"].between(piccola["primo_ts"], piccola["ultimo_ts"])
+        return df[sel].reset_index(drop=True)
+
+    controlla("meteo_orario: identico al campione (stesso testo nei CSV)", giugno(T["meteo_orario"]).equals(E["meteo_orario"]),
+              f"{italiano(len(E['meteo_orario']))} righe")
+
+    k = pvgis.k_impianti(config.CONFIGURAZIONI["completa"], anagrafiche.tabella_impianti())
+    kwp = anagrafiche.tabella_impianti().set_index("id")["kwp"]
+    pc, pe = giugno(T["produzione_oraria"]), E["produzione_oraria"]
+    allineate = pc[["impianto_id", "ts"]].equals(pe[["impianto_id", "ts"]])
+    imp = pe["impianto_id"].astype(int)
+    completa, campione = num(pc, "kwh"), num(pe, "kwh")
+    limite = campione == imp.map(kwp)  # nel campione la formula ha toccato kwp: lì × k non vale
+    scarto = (completa - campione * imp.map(k)).abs()
+    controlla("produzione_oraria = campione × k_impianto, tranne le ore al limite kwp (scarto ≤ 0,001 kWh, arrotondamenti)",
+              allineate and scarto[~limite].max() <= TOLLERANZA_CAMPIONE + 1e-9,
+              f"scarto massimo {scarto[~limite].max():.4f} kWh su {italiano(int((~limite).sum()))} ore; "
+              f"k: " + ", ".join(f"{i} = {k[i]}" for i in piccola["impianti"]))
+    if limite.any():
+        tra = (completa[limite] >= (campione * imp.map(k))[limite] - TOLLERANZA_CAMPIONE) & (completa[limite] <= imp.map(kwp)[limite])
+        controlla("ore al limite kwp: la completa sta tra campione × k e kwp", tra.all(), f"{int(limite.sum())} ore")
+    else:
+        print("  nessuna ora al limite kwp nel campione")
+    guasto_c = giugno(T["produzione_oraria"]).query("impianto_id == '3' and ts >= '2026-06-01T11:00:00Z' and ts < '2026-06-01T15:00:00Z'")
+    guasto_e = pe.query("impianto_id == '3' and ts >= '2026-06-01T11:00:00Z' and ts < '2026-06-01T15:00:00Z'")
+    controlla("guasto dell'impianto 3 del 1/6: stessa riga di anomalie_vere e le stesse 4 ore a zero",
+              T["anomalie_vere"].iloc[[0]].reset_index(drop=True).equals(E["anomalie_vere"])
+              and len(guasto_c) == len(guasto_e) == 4 and (num(guasto_c, "kwh") == 0).all() and (num(guasto_e, "kwh") == 0).all())
+
+
+def grafici_completa(T: dict[str, pd.DataFrame], d: pd.DataFrame) -> list[Path]:
+    """Grafici di controllo del dataset completo in data/notebook/ (§6)."""
+    NOTEBOOK.mkdir(exist_ok=True)
+    salvati = [grafico_pvgis_anno(anagrafiche.tabella_impianti())]
+    d = d.assign(t_it=d["t"].dt.tz_convert(FUSO))
+    nomi = T["impianto"].assign(id=lambda x: x["id"].astype(int)).set_index("id")["nome"]
+    a = T["anomalie_vere"].assign(impianto_id=lambda x: x["impianto_id"].astype(int),
+                                  i=lambda x: pd.to_datetime(x["inizio"], utc=True), f=lambda x: pd.to_datetime(x["fine"], utc=True))
+
+    # 1. Una settimana estiva e una invernale per ogni impianto
+    fig, assi = plt.subplots(8, 2, figsize=(15, 22), sharey="row")
+    for colonna, (nome, lunedi) in enumerate(SETTIMANE.items()):
+        dal = pd.Timestamp(lunedi, tz=FUSO)
+        settimana = d[(d["t_it"] >= dal) & (d["t_it"] < dal + pd.Timedelta(days=7))]
+        for riga, (imp, g) in enumerate(settimana.groupby("impianto_id")):
+            ax = assi[riga, colonna]
+            ax.plot(g["t_it"], g["attesa"], lw=1, ls="--", color="grey", label="attesa senza anomalie")
+            ax.plot(g["t_it"], g["kwh_num"], lw=1.2, label="produzione")
+            for r in a[(a["impianto_id"] == imp) & (a["i"] < settimana["t"].max()) & (a["f"] > settimana["t"].min())].itertuples():
+                ax.axvspan(max(r.i, settimana["t"].min()), min(r.f, settimana["t"].max()), color=COLORI_ANOMALIE[r.tipo], alpha=0.15,
+                           label=f"anomalia {r.id}: {r.tipo}")
+            ax.set_title(f"{imp}. {nomi[imp]}: settimana {nome} dal {dal:%d/%m/%Y}", fontsize=9)
+            ax.grid(alpha=0.3)
+            ax.legend(fontsize=7, loc="upper right")
+            ax.tick_params(labelsize=7)
+            if colonna == 0:
+                ax.set_ylabel("kWh")
+    fig.tight_layout()
+    percorso = NOTEBOOK / "completa_produzione_settimane.png"
+    fig.savefig(percorso, dpi=80, metadata={"Software": None})
+    plt.close(fig)
+    salvati.append(percorso)
+
+    # 2. Calendario delle anomalie
+    fig, ax = plt.subplots(figsize=(15, 4.5))
+    for r in a.itertuples():
+        ax.barh(r.impianto_id, (r.f - r.i) / pd.Timedelta(days=1), left=r.i.tz_localize(None), height=0.6,
+                color=COLORI_ANOMALIE[r.tipo], edgecolor="black", linewidth=0.3)
+    for tipo, colore in COLORI_ANOMALIE.items():
+        ax.barh(0, 0, color=colore, label=tipo)
+    ax.axvspan(pd.Timestamp("2026-06-01"), pd.Timestamp("2026-07-01"), color="green", alpha=0.08, label="giugno 2026 (campione)")
+    ax.set_yticks(range(1, 9), [f"{i}. {nomi[i]}" for i in range(1, 9)], fontsize=8)
+    ax.set_ylim(0.4, 8.6)
+    ax.invert_yaxis()
+    ax.set_xlim(pd.Timestamp("2024-11-01"), pd.Timestamp("2026-11-01"))
+    ax.grid(alpha=0.3, axis="x")
+    ax.legend(fontsize=8, ncol=5, loc="lower center", bbox_to_anchor=(0.5, 1.0))
+    ax.set_title("anomalie_vere: calendario per impianto", fontsize=10, pad=28)
+    fig.tight_layout()
+    percorso = NOTEBOOK / "completa_anomalie_calendario.png"
+    fig.savefig(percorso, dpi=90, metadata={"Software": None})
+    plt.close(fig)
+    salvati.append(percorso)
+
+    # 3. Un esempio per tipo: ore per guasto e neve, giorni per stringa e sporcizia
+    esempi = {
+        "guasto": a[(a["tipo"] == "guasto") & (a["f"] - a["i"] >= pd.Timedelta(days=1))].iloc[0],
+        "neve": a[a["tipo"] == "neve"].iloc[0],
+        "stringa": a[a["tipo"] == "stringa"].iloc[0],
+        "sporcizia": a[a["tipo"] == "sporcizia"].iloc[0],
+    }
+    fig, assi = plt.subplots(2, 2, figsize=(15, 8))
+    for ax, (tipo, r) in zip(assi.flat, esempi.items()):
+        orario = tipo in ("guasto", "neve")
+        margine = pd.Timedelta(days=2 if orario else 14)
+        g = d[(d["impianto_id"] == r.impianto_id) & (d["t"] >= r.i - margine) & (d["t"] < r.f + margine)]
+        if not orario:  # kWh al giorno (ora italiana), senza il primo e l'ultimo giorno, incompleti
+            g = g.groupby(g["t_it"].dt.floor("D"))[["attesa", "kwh_num"]].sum().reset_index().iloc[1:-1]
+        x = g["t_it"]
+        ax.plot(x, g["attesa"], lw=1, ls="--", color="grey", label="attesa senza anomalie")
+        ax.plot(x, g["kwh_num"], lw=1.2, label="produzione")
+        ax.axvspan(r.i.tz_convert(FUSO), r.f.tz_convert(FUSO), color=COLORI_ANOMALIE[tipo], alpha=0.15, label=f"{tipo} ({r.perdita_pct}%)")
+        ax.set_title(f"anomalia {r.id}: {tipo}, impianto {r.impianto_id} ({'kWh orari' if orario else 'kWh al giorno'})", fontsize=9)
+        ax.grid(alpha=0.3)
+        ax.legend(fontsize=7, loc="upper right")
+        ax.tick_params(labelsize=7)
+    fig.tight_layout()
+    percorso = NOTEBOOK / "completa_anomalie_esempi.png"
+    fig.savefig(percorso, dpi=90, metadata={"Software": None})
+    plt.close(fig)
+    salvati.append(percorso)
+    return salvati
+
+
+def main_completa(args: argparse.Namespace) -> None:
+    conf = config.CONFIGURAZIONI["completa"]
+    cartella = conf["cartella"]
+    print(f"Controlli del dataset completo, parte 1 (impianti, soci, meteo, produzione, anomalie), in {cartella}")
+    if not args.senza_rigenerare:
+        riproducibilita("completa", cartella, ("--fino-a", PASSO_PARTE_1))
+    T = {f.stem: pd.read_csv(f, dtype=str, keep_default_na=False) for f in sorted(cartella.glob("*.csv"))}
+
+    stato = {}
+    for passo in [lambda: file_e_righe_completa(T), lambda: formato(cartella), lambda: serie_complete_completa(T, conf),
+                  lambda: integrita_completa(T), lambda: anagrafiche_completa(T, conf), lambda: meteo_completa(T),
+                  lambda: stato.update(d=produzione_completa(T, conf)), lambda: anomalie_completa(T, stato["d"]),
+                  lambda: confronto_campione(T)]:
+        try:
+            passo()
+        except Exception as errore:  # un errore in una sezione non deve nascondere le altre
+            controlla("sezione interrotta da un errore", False, f"{type(errore).__name__}: {errore}")
+
+    if "d" in stato:
+        sezione("Grafici di controllo")
+        for percorso in grafici_completa(T, stato["d"]):
+            print(f"  {percorso.relative_to(config.CARTELLA_DATA)}")
+    elenco_file(cartella, T)
+
+    falliti = [nome for nome, ok in ESITI if not ok]
+    print(f"\nESITO: {len(ESITI) - len(falliti)} controlli ok su {len(ESITI)}" + (f", FALLITI: {len(falliti)}" if falliti else ""))
+    for nome in falliti:
+        print(f"  - {nome}")
+    sys.exit(1 if falliti else 0)
 
 
 def main() -> None:
@@ -505,8 +942,9 @@ def main() -> None:
     parser.add_argument("--config", choices=list(config.CONFIGURAZIONI), required=True)
     parser.add_argument("--senza-rigenerare", action="store_true", help="salta i due rilanci di genera.py")
     args = parser.parse_args()
-    if args.config != "piccola":
-        raise SystemExit("I controlli per la versione completa sono da adattare: PVGIS annuo ±10%, ARERA, settimana invernale (§6).")
+    if args.config == "completa":
+        main_completa(args)
+        return
     conf = config.CONFIGURAZIONI[args.config]
     cartella = conf["cartella"]
     print(f"Controlli del campione in {cartella}")

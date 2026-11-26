@@ -4,6 +4,7 @@ Uso, dalla cartella data/ con l'ambiente virtuale attivo:
     python generazione/genera.py --config piccola                      -> data/esempi/
     python generazione/genera.py --config completa                     -> data/output/
     python generazione/genera.py --config piccola --solo-intestazioni  -> CSV vuoti
+    python generazione/genera.py --config completa --fino-a produzione -> solo i passi 1-4
 
 I moduli (anagrafiche, meteo, pvgis, produzione, consumi, derivate) si aggiungono
 uno alla volta, nell'ordine di CLAUDE.md. Per ora ci sono i passi 1-6:
@@ -66,6 +67,9 @@ def scrivi_intestazioni(cartella: Path) -> None:
         print(f"  {percorso.name}")
 
 
+PASSI = ["anagrafiche", "meteo", "pvgis", "produzione", "consumi", "derivate"]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generatore del dataset UnderTheSun")
     parser.add_argument("--config", choices=list(config.CONFIGURAZIONI), required=True)
@@ -74,7 +78,20 @@ def main() -> None:
         action="store_true",
         help="scrive solo le intestazioni dei CSV delle tabelle del database",
     )
+    parser.add_argument(
+        "--fino-a",
+        choices=PASSI,
+        default=PASSI[-1],
+        help="si ferma dopo questo passo (di norma li fa tutti)",
+    )
     args = parser.parse_args()
+
+    def fine(passo: str) -> bool:
+        """True se ci si ferma dopo questo passo (opzione --fino-a)."""
+        if args.fino_a == passo:
+            print(f"\nFermo dopo il passo '{passo}' (--fino-a {passo}).")
+            return True
+        return False
 
     conf = config.CONFIGURAZIONI[args.config]
     cartella = conf["cartella"]
@@ -97,26 +114,41 @@ def main() -> None:
         print(controllo.to_string(index=False))
     except requests.RequestException as errore:
         print(f"  controllo saltato, Open-Meteo non raggiungibile: {errore}")
+    if fine("anagrafiche"):
+        return
 
     impianti = tabelle_anagrafiche["impianto"]
 
     print("\n2. Meteo (Open-Meteo)")
     tabelle_meteo = meteo.genera(conf, impianti)
     scrivi_tutte(tabelle_meteo, cartella)
+    print("\n  Celle della griglia meteo (§1.1):")
+    print(meteo.celle(impianti).to_string(index=False))
+    if fine("meteo"):
+        return
 
     print("\n3. PVGIS (riferimento per la produzione)")
     k = pvgis.k_impianti(conf, impianti)
     print(f"  k_impianto: {k}")
+    if conf["taratura_pvgis"]:
+        print(f"  Confronto {pvgis.ANNO} tra modello tarato e PVGIS seriescalc (MAE e correlazione orari):")
+        print(pvgis.validazione(impianti).to_string(index=False))
     print("  PVcalc, medie 2005-2023:")
     print(pvgis.riepilogo_pvcalc(impianti).to_string(index=False))
+    if fine("pvgis"):
+        return
 
     print("\n4. Produzione")
     tabelle_produzione = produzione.genera(conf, impianti, tabelle_meteo["meteo_orario"], k)
     scrivi_tutte(tabelle_produzione, cartella)
+    if fine("produzione"):
+        return
 
     print("\n5. Consumi")
     tabelle_consumi = consumi.genera(conf, tabelle_anagrafiche["socio"], tabelle_anagrafiche["socio_profilo"])
     scrivi_tutte(tabelle_consumi, cartella)
+    if fine("consumi"):
+        return
 
     print("\n6. Derivate (bolletta e tabelle provvisorie del campione)")
     tutte = {**tabelle_anagrafiche, **tabelle_meteo, **tabelle_produzione, **tabelle_consumi}

@@ -28,7 +28,11 @@ SEED = 42
 
 
 def rng_impianto(impianto_id: int) -> np.random.Generator:
-    """Generatore casuale proprio di un impianto: default_rng([42, 0, id])."""
+    """Generatore casuale proprio di un impianto: default_rng([42, 0, id]).
+
+    Lo usa solo produzione.py, per le anomalie casuali del dataset completo, in
+    quest'ordine: sporcizia, stringa, guasto (vedi produzione.anomalie_casuali).
+    """
     return np.random.default_rng([SEED, 0, impianto_id])
 
 
