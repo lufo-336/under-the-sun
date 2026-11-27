@@ -19,6 +19,10 @@ const impianti = [
   { id: 1, nome: 'Tetto municipio', comune: 'Alba', lat: 44.7, lon: 8.03, kwp: 45.6,
     data_attivazione: '2023-04-01', anomalie_aperte: 0 },
 ];
+const verbali = [
+  { id: 1, data_assemblea: '2026-04-18', testo: 'Testo completo...', sintesi: 'Approvato il bilancio.' },
+  { id: 2, data_assemblea: '2026-07-09', testo: 'Altro testo...', sintesi: null },
+];
 
 function dbFinto({ giu = false } = {}) {
   return {
@@ -29,6 +33,12 @@ function dbFinto({ giu = false } = {}) {
       }
       if (sql.includes('FROM utente WHERE id')) {
         return { rows: utenti.filter((u) => u.id === params[0]) };
+      }
+      if (sql.includes('FROM verbale WHERE id')) {
+        return { rows: verbali.filter((v) => v.id === params[0]) };
+      }
+      if (sql.includes('FROM verbale')) {
+        return { rows: verbali.map(({ testo, ...elenco }) => elenco) };
       }
       if (sql.includes('FROM impianto')) return { rows: impianti };
       return { rows: [{ '?column?': 1 }] };
@@ -114,4 +124,30 @@ test('endpoint inesistente: 404 nel formato del contratto', async () => {
   const res = await request(app).get('/api/non-esiste');
   assert.equal(res.status, 404);
   assert.equal(res.body.errore.codice, 'NON_TROVATO');
+});
+
+test("/api/verbali: solo l'admin, con elenco e dettaglio", async () => {
+  for (const email of ['socio1@example.com', 'operatore@example.com']) {
+    const token = await tokenDi(email);
+    const res = await request(app).get('/api/verbali').set('Authorization', `Bearer ${token}`);
+    assert.equal(res.status, 403);
+  }
+  assert.equal((await request(app).get('/api/verbali')).status, 401);
+
+  const admin = await tokenDi('admin@example.com');
+  const elenco = await request(app).get('/api/verbali').set('Authorization', `Bearer ${admin}`);
+  assert.equal(elenco.status, 200);
+  assert.equal(elenco.body.length, 2);
+  assert.equal(elenco.body[0].testo, undefined);
+
+  const dettaglio = await request(app).get('/api/verbali/1').set('Authorization', `Bearer ${admin}`);
+  assert.equal(dettaglio.status, 200);
+  assert.equal(dettaglio.body.testo, 'Testo completo...');
+});
+
+test("/api/verbali/:id: 400 se l'id non è valido, 404 se non esiste", async () => {
+  const admin = await tokenDi('admin@example.com');
+  const h = { Authorization: `Bearer ${admin}` };
+  assert.equal((await request(app).get('/api/verbali/abc').set(h)).status, 400);
+  assert.equal((await request(app).get('/api/verbali/999').set(h)).status, 404);
 });
