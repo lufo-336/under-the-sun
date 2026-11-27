@@ -11,7 +11,7 @@ in: "Richiesta HTTP\nGET /api/impianti\nAuthorization: Bearer eyJ…" {
   }
 }
 json: "express.json({ limit: '100kb' })\nlegge JSON · x-powered-by spento" {class: fatto}
-router: "Router per prefisso\n/api/salute · /api/auth · /api/impianti\nSprint 1: /api/me (#14, #16) · /api/verbali (PR #28)" {class: fatto}
+router: "Router per prefisso\n/api/salute · /api/auth · /api/impianti\n/api/verbali (PR #28, unita 27 nov)\nSprint 1: /api/me (#14: PR #32 in revisione · #16)" {class: fatto}
 autentica: "autentica(config)\nverifica JWT (solo HS256)\nmette { id, ruolo, socio_id } in req.utente" {class: fatto}
 ruolo: "richiediRuolo('operatore', 'admin')\nil socio riceve 403 VIETATO" {class: fatto}
 handler: "Handler della rotta\nquery SQL parametrizzata (\$1) con pg.Pool" {class: fatto}

@@ -3,27 +3,27 @@
 
 direction: down
 
-main: "main.jsx → App.jsx\nBrowserRouter + AuthProvider" {class: revisione}
+main: "main.jsx → App.jsx\nBrowserRouter + AuthProvider" {class: fatto}
 
-protezione: "ProtectedRoute (PR #23 · #13)\nverifica token e ruolo · senza token → /login" {class: revisione}
+protezione: "ProtectedRoute (PR #23 · #13)\nverifica token e ruolo · senza token → /login" {class: fatto}
 
 viste: "Le 8 viste per ruolo (Tailwind 4 + Recharts 3)" {
   class: area
   grid-rows: 1
   grid-columns: 4
   grid-gap: 16
-  login: "Pubblica\n/login" {class: revisione}
-  socio: "Socio (3)\n/socio/dashboard\n/socio/simulatore\n/socio/segnalazioni" {class: revisione}
-  op: "Operatore (2)\n/operatore/impianti\n/operatore/segnalazioni" {class: revisione}
-  admin: "Admin (2)\n/admin/kpi\n/admin/assemblee" {class: revisione}
+  login: "Pubblica\n/login · login JWT" {class: fatto}
+  socio: "Socio (3)\n/socio/dashboard (PR #31)\n/socio/simulatore\n/socio/segnalazioni" {class: revisione}
+  op: "Operatore (2)\n/operatore/impianti (PR #30)\n/operatore/segnalazioni" {class: revisione}
+  admin: "Admin (2)\n/admin/kpi\n/admin/assemblee\nwireframe con mock" {class: fatto}
 }
 
 sorgenti: "Sorgenti dati" {
   class: area
   direction: right
 
-  mock: "PR #23 · mocks/mockData.js\ndati finti (non ancora su main)" {class: revisione}
-  client: "PR #23 + Sprint 1 (#13, #15, #17)\napiClient.js · authService.js · proxy /api" {class: sprint1}
+  mock: "mocks/mockData.js\ndati finti (su main, PR #23)" {class: fatto}
+  client: "apiClient.js · authService.js · proxy /api\nsu main (PR #23) · Sprint 1: #15, #17" {class: fatto}
 }
 
 api: "Backend /api (PR #9 su main)\nClicca per aprire Backend →" {
@@ -31,7 +31,7 @@ api: "Backend /api (PR #9 su main)\nClicca per aprire Backend →" {
   link: "#backend"
 }
 
-main -> protezione -> viste: {class: f-revisione}
-viste -> sorgenti.mock: "oggi (wireframe)" {class: f-revisione}
-viste -> sorgenti.client: "login (#13), dashboard (#15), segnalazioni (#17)" {class: f-sprint1}
+main -> protezione -> viste: {class: f-fatto}
+viste -> sorgenti.mock: "wireframe" {class: f-fatto}
+viste -> sorgenti.client: "login (fatto), dashboard (#31), segnalazioni (#17)" {class: f-sprint1}
 sorgenti.client -> api: "fetch + Authorization: Bearer <JWT>" {class: f-sprint1}

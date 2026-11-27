@@ -9,19 +9,19 @@ base: "Fondamenta Sprint 0 · stato attuale" {
   pr6: "PR #6 · DB\n(su main)" {class: fatto}
   pr8: "PR #8 · Dati\n(su main)" {class: fatto}
   pr9: "PR #9 · Backend\n(su main)" {class: fatto}
-  pr10: "PR #10 · CI\n(in revisione)" {class: revisione}
-  pr23: "PR #23 · Frontend\n(in revisione)" {class: revisione}
+  pr10: "PR #10 · CI\n(su main · 27 nov)" {class: fatto}
+  pr23: "PR #23 · Frontend\n(su main · 25 nov)" {class: fatto}
 }
 
-chiusura: "Chiusura Sprint 0 · stato al 25 nov" {
+chiusura: "Chiusura Sprint 0 · stato al 27 nov" {
   class: area
   label.near: top-left
-  i11: "#11 · Luca\nmerge #10 + check CI\nobbligatori su main" {
+  i11: "#11 · Luca\nmerge #10 fatto\ncheck CI obbligatori" {
     class: sprint1
     link: "https://github.com/lufo-336/under-the-sun/issues/11"
   }
-  i12: "#12 + #13 · Mirko\nPR #23 (in revisione)\nlogin JWT · #5 chiusa" {
-    class: revisione
+  i12: "#12 + #13 · Mirko\nPR #23 unita (25 nov)\nlogin JWT · chiuse" {
+    class: fatto
     link: "https://github.com/lufo-336/under-the-sun/pull/23"
   }
 }
@@ -41,6 +41,10 @@ lavoro: "Sviluppo Sprint 1 · in parallelo" {
       class: sprint1
       link: "https://github.com/lufo-336/under-the-sun/issues/16"
     }
+    pr32: "PR #32 · riepilogo socio\n(in revisione · 25 nov)" {
+      class: revisione
+      link: "https://github.com/lufo-336/under-the-sun/pull/32"
+    }
   }
 
   fe: "Frontend · Mirko" {
@@ -54,6 +58,14 @@ lavoro: "Sviluppo Sprint 1 · in parallelo" {
       class: sprint1
       link: "https://github.com/lufo-336/under-the-sun/issues/17"
     }
+    pr31: "PR #31 · dashboard socio\n(in revisione · 25 nov)" {
+      class: revisione
+      link: "https://github.com/lufo-336/under-the-sun/pull/31"
+    }
+    pr30: "PR #30 · lista impianti\n(in revisione · 25 nov)" {
+      class: revisione
+      link: "https://github.com/lufo-336/under-the-sun/pull/30"
+    }
   }
 
   qa: "QA & Backend · Geoffrey" {
@@ -63,12 +75,12 @@ lavoro: "Sviluppo Sprint 1 · in parallelo" {
       class: sprint1
       link: "https://github.com/lufo-336/under-the-sun/issues/20"
     }
-    i25: "#25 · US-14 · verbali\nGET /api/verbali e /:id\nsolo admin + test" {
-      class: sprint1
+    i25: "#25 · US-14 · verbali\nGET /api/verbali e /:id\nchiusa 27 nov" {
+      class: fatto
       link: "https://github.com/lufo-336/under-the-sun/issues/25"
     }
-    pr28: "PR #28 · Verbali\n(in revisione · 25 nov)" {
-      class: revisione
+    pr28: "PR #28 · Verbali\n(unita · 27 nov)" {
+      class: fatto
       link: "https://github.com/lufo-336/under-the-sun/pull/28"
     }
   }
@@ -92,8 +104,8 @@ sal2: "SAL 2 · ven 4 dic\nlogin → dashboard con dati veri → segnalazione cl
   style.bold: true
 }
 
-base.pr10 -> chiusura.i11: {class: f-revisione}
-base.pr23 -> chiusura.i12: {class: f-revisione}
+base.pr10 -> chiusura.i11: {class: f-fatto}
+base.pr23 -> chiusura.i12: {class: f-fatto}
 base.pr9 -> lavoro.qa.i25: {class: f-fatto}
 base.pr8 -> lavoro.td.i18: {class: f-fatto}
 
@@ -110,7 +122,10 @@ lavoro.td.i19 -> lavoro.be.i16: {class: f-sprint1}
 lavoro.fe.i15 -> sal2: {class: f-sprint1}
 lavoro.fe.i17 -> sal2: {class: f-sprint1}
 lavoro.qa.i20 -> sal2: {class: f-sprint1}
-lavoro.qa.i25 -> lavoro.qa.pr28: {class: f-revisione}
-lavoro.qa.pr28 -> sal2: {class: f-revisione}
+lavoro.qa.i25 -> lavoro.qa.pr28: {class: f-fatto}
+lavoro.be.i14 -> lavoro.be.pr32: {class: f-revisione}
+lavoro.fe.i15 -> lavoro.fe.pr31: {class: f-revisione}
+base.pr23 -> lavoro.fe.pr30: {class: f-revisione}
+lavoro.qa.pr28 -> sal2: {class: f-fatto}
 lavoro.td.i18 -> sal2: {class: f-sprint1}
 lavoro.td.i19 -> sal2: {class: f-sprint1}
