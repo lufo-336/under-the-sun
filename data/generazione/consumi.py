@@ -542,8 +542,14 @@ def calcola(conf: dict, socio: pd.DataFrame, socio_profilo: pd.DataFrame) -> pd.
     return pd.concat(parti, ignore_index=True)
 
 
-def genera(conf: dict, socio: pd.DataFrame, socio_profilo: pd.DataFrame) -> dict[str, pd.DataFrame]:
-    """consumo_orario, con l'energia a 3 decimali (§2)."""
-    consumi = calcola(conf, socio, socio_profilo)
-    consumi["kwh"] = consumi["kwh"].round(3) + 0.0
+def genera(conf: dict, socio: pd.DataFrame, socio_profilo: pd.DataFrame,
+           calcolati: pd.DataFrame | None = None) -> dict[str, pd.DataFrame]:
+    """consumo_orario, con l'energia a 3 decimali (§2).
+
+    calcolati: il risultato di calcola, se c'è già. genera.py lo calcola una volta sola
+    e lo riusa per previsione_consumo (derivate.py).
+    """
+    if calcolati is None:
+        calcolati = calcola(conf, socio, socio_profilo)
+    consumi = calcolati[["socio_id", "ts"]].assign(kwh=calcolati["kwh"].round(3) + 0.0)
     return {"consumo_orario": consumi[config.COLONNE["consumo_orario"]]}

@@ -5,7 +5,8 @@ Uso, dalla cartella data/:
     python generazione/controlli.py --config piccola --senza-rigenerare   (salta i due rilanci)
     python generazione/controlli.py --config completa
 
-Dataset completo (impianti, soci, meteo, produzione, anomalie, consumi e bollette):
+Dataset completo (impianti, soci, meteo, produzione, anomalie, consumi, bollette,
+tabelle calcolate, ripartizione, riepilogo dei trimestri e file del seed):
 vedi main_completa più sotto.
 
 Ogni controllo stampa [ok] o [FALLITO]. Se anche uno solo fallisce, il programma
@@ -44,6 +45,7 @@ import pandas as pd  # noqa: E402
 import anagrafiche  # noqa: E402
 import config  # noqa: E402
 import consumi  # noqa: E402
+import derivate  # noqa: E402  (solo per la tabella dei trimestri)
 import meteo  # noqa: E402
 import produzione  # noqa: E402
 import pvgis  # noqa: E402
@@ -55,10 +57,14 @@ FUSO = "Europe/Rome"
 # --- Regole del §2 ----------------------------------------------------------
 
 ISTANTI = {"ts", "inizio", "fine"}
-DATE = {"data_adesione", "data_attivazione", "mese", "data_assemblea"}
+DATE = {"data_adesione", "data_attivazione", "mese", "data_assemblea", "giorno_max_produzione", "giorno_min_produzione"}
 DECIMALI = {  # numero massimo di decimali (§2)
     **dict.fromkeys(["kwh", "kwh_previsti", "kwh_condivisi", "co2_evitata_kg"], 3),
     **dict.fromkeys(["importo_eur", "incentivo_eur"], 2),
+    # riepilogo_trimestri (solo nel completo)
+    **dict.fromkeys([*[f"produzione_impianto_{i}_kwh" for i in range(1, 9)], "produzione_kwh", "consumi_kwh",
+                     "co2_evitata_condivisa_kg", "kwh_giorno_max", "kwh_giorno_min"], 3),
+    **dict.fromkeys(["incentivo_famiglie_eur", "incentivo_imprese_eur", "incentivo_enti_eur"], 2),
     **dict.fromkeys(["irraggiamento_wm2", "irraggiamento_pannelli_wm2", "temperatura_c", "nuvolosita_pct", "neve_cm"], 1),
 }
 SERIE_ORARIE = {"meteo_orario", "produzione_oraria", "consumo_orario", "previsione_produzione",
@@ -67,6 +73,7 @@ VALORI_VIETATI = {"nan", "none", "null", "-", "n/a"}
 VUOTI_AMMESSI = {  # (file, colonna) in cui una cella vuota ha un significato
     ("segnalazione", "socio_id"), ("segnalazione", "impianto_id"), ("segnalazione", "impianto_id_llm"),
     ("anomalia", "fine"), ("anomalia", "tipo"), ("verbale", "sintesi"), ("socio_profilo", "ateco"),
+    ("riepilogo_trimestri", "anomalie_dettaglio"),  # vuota in un trimestre senza anomalie
 }
 
 # --- Valori ammessi (§1.3, §3.3, §3.5, §3.7, data dictionary) -----------------
@@ -542,16 +549,24 @@ def elenco_file(cartella: Path, T: dict[str, pd.DataFrame]) -> None:
 
 
 # =============================================================================
-# Dataset completo: parte 1 (impianti, soci, meteo, produzione e anomalie) e
-# parte 2 (consumi e bollette)
+# Dataset completo: parte 1 (impianti, soci, meteo, produzione e anomalie),
+# parte 2 (consumi e bollette) e parte 3a (tabelle calcolate, ripartizione,
+# riepilogo dei trimestri e file del seed)
 # =============================================================================
 
-RIGHE_COMPLETA = {  # §5
+RIGHE_COMPLETA = {  # §5 (v1.10)
     "impianto": 8, "socio": 240, "socio_profilo": 240, "parametro": 8,
     "meteo_orario": 140_160, "produzione_oraria": 140_160,
-    "consumo_orario": 4_204_800, "bolletta": 5_760,
+    "consumo_orario": 4_204_800, "bolletta": 5_760, "anomalie_vere": 41,
+    "ripartizione_mensile": 4_579, "previsione_produzione": 140_160, "previsione_consumo": 4_204_800,
+    "anomalia": 1, "riepilogo_trimestri": 8,
 }
-FILE_COMPLETA = sorted([*RIGHE_COMPLETA, "anomalie_vere"])
+TESTI_DA_SCRIVERE = ["segnalazione", "verbale"]  # per ora solo le intestazioni: i testi arrivano nella parte 3b
+FILE_COMPLETA = sorted([*RIGHE_COMPLETA, *TESTI_DA_SCRIVERE])
+FUORI_DIZIONARIO = {"riepilogo_trimestri"}  # file di lavoro che il data dictionary v1 non descrive: colonne da config.py
+CARTELLA_REPO = config.CARTELLA_DATA.parent
+CARICA_SQL = CARTELLA_REPO / "db" / "seed" / "carica.sql"
+MIGRAZIONI = CARTELLA_REPO / "db" / "migrations"
 TOLLERANZA_MESE = 0.4  # kWh: un mese ha al massimo 744 ore, ognuna arrotondata di al massimo 0,0005 kWh
 TOLLERANZA_FAMIGLIE = 0.05  # ±5%: la media di 200 scale lognormali (σ = 0,35) oscilla di circa il 2,5%
 TOLLERANZA_FASCE = 0.03  # 3 punti: spostamenti di ±1 ora e rumore muovono un po' di consumo tra le fasce
@@ -579,31 +594,39 @@ def file_e_righe_completa(T: dict[str, pd.DataFrame]) -> None:
     voci = leggi_dizionario(DIZIONARIO)
     for nome in presenti:
         df, problemi = T[nome], []
-        if list(df.columns) != (voci.get(nome) or {}).get("colonne"):
-            problemi.append(f"colonne {list(df.columns)}, nel data dictionary {(voci.get(nome) or {}).get('colonne')}")
+        if nome in FUORI_DIZIONARIO:
+            attese, fonte = config.COLONNE.get(nome), "in config.py (non è nel data dictionary)"
+        else:
+            attese, fonte = (voci.get(nome) or {}).get("colonne"), "nel data dictionary"
+        if list(df.columns) != attese:
+            problemi.append(f"colonne {list(df.columns)}, {fonte} {attese}")
         if nome in RIGHE_COMPLETA and len(df) != RIGHE_COMPLETA[nome]:
             problemi.append(f"{len(df)} righe, attese {RIGHE_COMPLETA[nome]}")
-        controlla(f"{nome}.csv: intestazioni e righe", not problemi, "; ".join(problemi) or f"{italiano(len(df))} righe")
+        if nome in TESTI_DA_SCRIVERE and len(df):
+            problemi.append(f"{len(df)} righe: per ora deve avere solo le intestazioni (testi nella parte 3b)")
+        dettaglio = "solo intestazioni, i testi arrivano nella parte 3b" if nome in TESTI_DA_SCRIVERE else f"{italiano(len(df))} righe"
+        controlla(f"{nome}.csv: intestazioni e righe", not problemi, "; ".join(problemi) or dettaglio)
 
 
 def serie_complete_completa(T: dict[str, pd.DataFrame], conf: dict) -> None:
     sezione("Serie orarie complete (§6)")
     attese = list(pd.date_range(conf["primo_ts"], conf["ultimo_ts"], freq="h").strftime("%Y-%m-%dT%H:%M:%SZ"))
     impianti = sorted(T["impianto"]["id"])
-    for nome in ["meteo_orario", "produzione_oraria"]:
+    for nome in ["meteo_orario", "produzione_oraria", "previsione_produzione"]:
         df = T[nome]
         ok = sorted(df["impianto_id"].unique()) == impianti and all(sorted(g["ts"]) == attese for _, g in df.groupby("impianto_id"))
         controlla(f"{nome}: {italiano(len(attese))} ore per ognuno degli {len(impianti)} impianti, senza buchi né duplicati", ok)
     soci = sorted(T["socio"]["id"])
-    c = T["consumo_orario"]
-    ok = sorted(c["socio_id"].unique()) == soci and all(sorted(g["ts"]) == attese for _, g in c.groupby("socio_id"))
-    controlla(f"consumo_orario: {italiano(len(attese))} ore per ognuno dei {len(soci)} soci, senza buchi né duplicati "
-              "(anche nei 4 giorni del cambio d'ora)", ok)
+    for nome in ["consumo_orario", "previsione_consumo"]:
+        c = T[nome]
+        ok = sorted(c["socio_id"].unique()) == soci and all(sorted(g["ts"]) == attese for _, g in c.groupby("socio_id"))
+        controlla(f"{nome}: {italiano(len(attese))} ore per ognuno dei {len(soci)} soci, senza buchi né duplicati "
+                  "(anche nei 4 giorni del cambio d'ora)", ok)
 
 
 def integrita_completa(T: dict[str, pd.DataFrame]) -> None:
     sezione("ID: unici e coerenti tra i file (§2, §6)")
-    for nome in ["impianto", "socio", "anomalie_vere", "bolletta"]:
+    for nome in ["impianto", "socio", "anomalie_vere", "bolletta", "anomalia"]:
         ids = T[nome]["id"].astype(int).tolist()
         controlla(f"{nome}.id: 1, 2, 3, ... senza buchi né doppioni", sorted(ids) == list(range(1, len(ids) + 1)))
     soci, impianti = set(T["socio"]["id"]), set(T["impianto"]["id"])
@@ -611,6 +634,8 @@ def integrita_completa(T: dict[str, pd.DataFrame]) -> None:
         ("socio_profilo", "socio_id", soci, "socio"), ("meteo_orario", "impianto_id", impianti, "impianto"),
         ("produzione_oraria", "impianto_id", impianti, "impianto"), ("anomalie_vere", "impianto_id", impianti, "impianto"),
         ("consumo_orario", "socio_id", soci, "socio"), ("bolletta", "socio_id", soci, "socio"),
+        ("previsione_produzione", "impianto_id", impianti, "impianto"), ("previsione_consumo", "socio_id", soci, "socio"),
+        ("anomalia", "impianto_id", impianti, "impianto"), ("ripartizione_mensile", "socio_id", soci, "socio"),
     ]:
         mancanti = set(T[nome][colonna]) - insieme
         controlla(f"{nome}.{colonna} esiste in {tabella}", not mancanti, f"non trovati: {sorted(mancanti)}" if mancanti else "")
@@ -1090,10 +1115,270 @@ def grafici_completa(T: dict[str, pd.DataFrame], d: pd.DataFrame) -> list[Path]:
     return salvati
 
 
+# --- Parte 3a: tabelle calcolate, ripartizione, riepilogo e seed ---------------
+
+
+def tabelle_calcolate_completa(T: dict[str, pd.DataFrame], d: pd.DataFrame) -> None:
+    """Le tabelle provvisorie del §4 (v1.10), con le stesse regole del campione."""
+    sezione("Tabelle calcolate provvisorie (§4): previsioni e anomalia")
+    pp = (T["previsione_produzione"].assign(impianto_id=lambda x: x["impianto_id"].astype(int))
+          .merge(d[["impianto_id", "ts", "kwh", "kwh_num", "attesa"]], on=["impianto_id", "ts"]))
+    previsti = num(pp, "kwh_previsti")
+    controlla("previsioni mai negative (vincolo dello schema)",
+              (previsti >= 0).all() and (num(T["previsione_consumo"], "kwh_previsti") >= 0).all())
+    scarto = (previsti - pp["attesa"].round(3)).abs()
+    controlla("previsione_produzione = formula del §3.2 senza anomalie (rifatta qui), ora per ora",
+              len(pp) == len(T["previsione_produzione"]) and scarto.max() <= TOLLERANZA, f"scarto massimo {scarto.max():.4f} kWh")
+    dentro = pd.Series(False, index=pp.index)
+    for a in T["anomalie_vere"].itertuples():
+        dentro |= (pp["impianto_id"] == int(a.impianto_id)) & (pp["ts"] >= a.inizio) & (pp["ts"] < a.fine)
+    uguali = pp["kwh_previsti"] == pp["kwh"]  # stesso testo nei due CSV
+    controlla("previsione_produzione = produzione_oraria fuori dalle anomalie, e mai sotto nelle ore delle anomalie",
+              uguali[~dentro].all() and (previsti[dentro] >= pp.loc[dentro, "kwh_num"]).all(),
+              f"{italiano(int((~uguali).sum()))} ore diverse, tutte dentro le {len(T['anomalie_vere'])} anomalie")
+
+    pc, b = T["previsione_consumo"], T["bolletta"]
+    somma = num(pc, "kwh_previsti").groupby([pc["socio_id"], pc["ts"].str.slice(0, 7) + "-01"]).sum()
+    dalle_ore = somma.reindex(pd.MultiIndex.from_arrays([b["socio_id"], b["mese"]])).to_numpy()
+    scarto = np.abs(dalle_ore - num(b, "kwh").to_numpy())
+    controlla("previsione_consumo: ogni mese ha il totale della bolletta (stesso volume ARERA × scala, senza rumore)",
+              not np.isnan(dalle_ore).any() and scarto.max() <= 2 * TOLLERANZA_MESE,
+              f"scarto massimo {scarto.max():.3f} kWh (due serie arrotondate ora per ora)")
+    reale = num(T["consumo_orario"], "kwh").to_numpy()
+    prevista = num(pc, "kwh_previsti").to_numpy()
+    stessi = (T["consumo_orario"]["socio_id"].to_numpy() == pc["socio_id"].to_numpy()).all() and (
+        T["consumo_orario"]["ts"].to_numpy() == pc["ts"].to_numpy()).all()
+    if stessi:
+        positivi = prevista > 0
+        print(f"  il consumo si scosta dalla previsione in media del {np.abs(reale[positivi] / prevista[positivi] - 1).mean() * 100:.1f}% "
+              "(rumore orario del §3.4, σ = 15%)")
+
+    campione = pd.read_csv(config.CARTELLA_ESEMPI / "anomalia.csv", dtype=str, keep_default_na=False)
+    colonne = ["impianto_id", "inizio", "fine", "tipo"]
+    controlla("anomalia: solo il guasto dell'impianto 3 del 1/6/2026 (anomalie_vere id 1), identica al campione",
+              T["anomalia"].equals(campione)
+              and T["anomalia"][colonne].equals(T["anomalie_vere"].iloc[[0]][colonne].reset_index(drop=True)),
+              ", ".join(f"{k} {v}" for k, v in T["anomalia"].iloc[0].items()) if len(T["anomalia"]) else "vuota")
+
+
+def ripartizione_completa(T: dict[str, pd.DataFrame]) -> None:
+    """La ripartizione del §3.6 rifatta qui da zero, con una tabella soci × ore (numpy),
+    senza usare derivate.py, e confrontata con ripartizione_mensile.csv."""
+    sezione("Ripartizione CER (§3.6): calcolo rifatto qui ora per ora")
+    p = dict(zip(T["parametro"]["chiave"], num(T["parametro"], "valore")))
+    socio = T["socio"].assign(sid=lambda x: x["id"].astype(int)).sort_values("sid").reset_index(drop=True)
+    prod = T["produzione_oraria"]
+    ore = np.sort(prod["ts"].unique()).astype("U20")
+    n_s, n_h = len(socio), len(ore)
+
+    # Consumi: una riga per socio, una colonna per ora
+    c = T["consumo_orario"].assign(sid=lambda x: x["socio_id"].astype(int)).sort_values(["sid", "ts"])
+    allineati = (len(c) == n_s * n_h and (c["sid"].to_numpy().reshape(n_s, n_h)[:, 0] == socio["sid"].to_numpy()).all()
+                 and (c["ts"].to_numpy().reshape(n_s, n_h) == ore.astype(object)[None, :]).all())
+    consumo = num(c, "kwh").to_numpy().reshape(n_s, n_h)
+    socio_dal = (socio["data_adesione"] + "T00:00:00Z").to_numpy().astype("U20")
+    attivo = ore[None, :] >= socio_dal[:, None]  # un socio conta dalle 00:00 UTC del giorno di adesione
+    consumo_attivo = np.where(attivo, consumo, 0.0)
+
+    prelevati = consumo_attivo.sum(axis=0)
+    immessi = num(prod, "kwh").groupby(prod["ts"]).sum().reindex(ore.astype(object)).to_numpy()
+    condivisi = np.minimum(immessi, prelevati)
+    frazione = np.divide(condivisi, prelevati, out=np.zeros(n_h), where=prelevati > 0)
+    quote = consumo_attivo * frazione[None, :]
+
+    ok = (allineati and (quote.sum(axis=0) <= np.minimum(immessi, prelevati) + 1e-9).all()
+          and (quote >= 0).all() and (quote <= consumo_attivo + 1e-12).all())
+    dalla_produzione = int(((immessi > 0) & (immessi < prelevati)).sum())
+    dai_consumi = int(((prelevati > 0) & (immessi >= prelevati)).sum())
+    controlla("ogni ora: energia condivisa ≤ min(produzione, consumi dei soci attivi), e nessuna quota supera il consumo del socio",
+              ok, f"ore con il sole: {italiano(dalla_produzione)} limitate dalla produzione, {italiano(dai_consumi)} dai consumi")
+
+    # Somme per mese (UTC, §2)
+    mese_ora = np.array([t[:7] + "-01" for t in ore])
+    mesi = sorted(set(mese_ora))
+    nel_mese = [mese_ora == m for m in mesi]
+    quote_mese = np.stack([quote[:, s].sum(axis=1) for s in nel_mese], axis=1)  # soci × mesi
+    consumo_mese = np.stack([consumo_attivo[:, s].sum(axis=1) for s in nel_mese], axis=1)
+    condivisi_mese = np.array([condivisi[s].sum() for s in nel_mese])
+    limite_mese = np.array([min(immessi[s].sum(), prelevati[s].sum()) for s in nel_mese])
+
+    r = T["ripartizione_mensile"]
+    kwh = num(r, "kwh_condivisi").to_numpy()
+    righe_mese = r.groupby("mese").size().reindex(mesi, fill_value=0).to_numpy()
+    soci_mese = pd.Series(kwh).groupby(r["mese"].to_numpy()).sum().reindex(mesi, fill_value=0.0).to_numpy()
+    scarto = np.abs(soci_mese - condivisi_mese)
+    controlla("ogni mese: somma dei soci = energia condivisa della comunità (somma delle ore di min(produzione, consumi))",
+              (scarto <= righe_mese * 0.0005 + 1e-6).all() and (condivisi_mese <= limite_mese + 1e-6).all(),
+              f"scarto massimo {scarto.max():.4f} kWh (arrotondamento a 3 decimali per socio); in 2 anni "
+              f"{italiano(condivisi_mese.sum() / 1000, 1)} MWh condivisi, {condivisi_mese.sum() / immessi.sum() * 100:.1f}% della produzione")
+
+    posizione_socio = {s: i for i, s in enumerate(socio["sid"])}
+    posizione_mese = {m: j for j, m in enumerate(mesi)}
+    i_s = r["socio_id"].astype(int).map(posizione_socio)
+    j_m = r["mese"].map(posizione_mese)
+    if i_s.isna().any() or j_m.isna().any():
+        controlla("ripartizione_mensile: soci e mesi dentro il periodo", False, "righe con socio o mese sconosciuto")
+        return
+    i_s, j_m = i_s.to_numpy(int), j_m.to_numpy(int)
+    scarto = np.abs(kwh - np.round(quote_mese[i_s, j_m], 3))
+    controlla("ogni riga di ripartizione_mensile = quote ricalcolate qui, socio per socio e mese per mese",
+              scarto.max() <= 0.001 + 1e-9, f"{italiano(len(r))} righe, scarto massimo {scarto.max():.4f} kWh")
+
+    # Nessuna quota prima della data_adesione
+    mese_adesione = dict(zip(socio["sid"], socio["data_adesione"].str.slice(0, 7) + "-01"))
+    attese = {(s, m) for s, ma in mese_adesione.items() for m in mesi if m >= ma}
+    presenti = list(zip(r["socio_id"].astype(int), r["mese"]))
+    prima = [(s, m) for s, m in presenti if m < mese_adesione[s]]
+    controlla("nessuna quota prima della data_adesione: una riga per socio e mese, dal mese di adesione in poi",
+              not prima and len(presenti) == len(set(presenti)) and set(presenti) == attese,
+              f"{italiano(len(attese))} righe attese, {italiano(len(presenti))} presenti, {len(prima)} prima dell'adesione")
+    a_meta = socio[(socio["data_adesione"] >= config.CONFIGURAZIONI["completa"]["primo_ts"][:10])
+                   & (socio["data_adesione"].str.slice(8, 10) != "01")]
+    righe_r = dict(zip(presenti, kwh))
+    in_piu, ok = 0.0, True
+    for s in a_meta.itertuples():
+        i, j = posizione_socio[s.sid], posizione_mese[mese_adesione[s.sid]]
+        tutto_il_mese = (consumo[i, nel_mese[j]] * frazione[nel_mese[j]]).sum()  # se contasse dal 1° del mese
+        valore = righe_r.get((s.sid, mese_adesione[s.sid]), np.nan)
+        ok &= bool(valore <= consumo_mese[i, j] + 0.0005 and valore < tutto_il_mese)
+        in_piu += tutto_il_mese - valore
+    controlla("nel mese di adesione la quota conta solo dal giorno di adesione (soci entrati a metà mese)", ok,
+              f"{len(a_meta)} soci; contando tutto il mese avrebbero avuto {italiano(in_piu, 1)} kWh in più")
+    controlla("ogni quota mensile ≤ consumi del socio nello stesso mese, contati dalla sua adesione",
+              (kwh <= consumo_mese[i_s, j_m] + 0.0005).all())
+
+    inc, co2 = num(r, "incentivo_eur").to_numpy(), num(r, "co2_evitata_kg").to_numpy()
+    tariffa = p["tariffa_premio_eur_kwh"] + p["valorizzazione_arera_eur_kwh"]
+    controlla("incentivo_eur = kwh_condivisi × (tariffa premio + valorizzazione ARERA) e co2_evitata_kg = kwh_condivisi × fattore, "
+              "mai negativi (§3.6)",
+              (np.abs(inc - np.round(kwh * tariffa, 2)) < 0.005).all() and (np.abs(co2 - np.round(kwh * p["fattore_co2_kg_kwh"], 3)) < 0.0005).all()
+              and (kwh >= 0).all() and (inc >= 0).all() and (co2 >= 0).all(),
+              f"incentivo in 2 anni {italiano(inc.sum())} € ({tariffa:.3f} €/kWh)")
+
+
+def riepilogo_completa(T: dict[str, pd.DataFrame]) -> None:
+    """riepilogo_trimestri.csv rifatto qui dai CSV di partenza, trimestre per trimestre."""
+    sezione("Riepilogo dei trimestri (file di lavoro per i verbali, §4)")
+    R = T["riepilogo_trimestri"]
+    controlla("8 trimestri, da nov-dic 2024 a lug-set 2026, ognuno con l'id del verbale che lo commenta (1-8)",
+              R["verbale_id"].tolist() == [str(v) for v, *_ in derivate.TRIMESTRI]
+              and R["trimestre"].tolist() == [t for _, t, *_ in derivate.TRIMESTRI])
+    p = dict(zip(T["parametro"]["chiave"], num(T["parametro"], "valore")))
+    socio = T["socio"]
+    prod = T["produzione_oraria"].assign(kwh_n=lambda x: num(x, "kwh"))
+    c = T["consumo_orario"].merge(socio[["id", "data_adesione"]], left_on="socio_id", right_on="id")
+    c = c[c["ts"] >= c["data_adesione"] + "T00:00:00Z"]
+    consumi_mese = num(c, "kwh").groupby(c["ts"].str.slice(0, 7) + "-01").sum()
+    rip = T["ripartizione_mensile"].merge(socio[["id", "tipo"]], left_on="socio_id", right_on="id")
+    pp = T["previsione_produzione"].merge(T["produzione_oraria"], on=["impianto_id", "ts"])
+    pp["perso"] = num(pp, "kwh_previsti") - num(pp, "kwh")
+    anomalie = T["anomalie_vere"]
+    frase = re.compile(r"id (\d+) (\w+) impianto (\d+) \(.*?\) dal (\S+) al (\S+), perdita [\d.]+%, (-?[\d.]+) kWh persi nel trimestre")
+
+    errori = {k: [] for k in ["energia", "ripartizione", "co2", "soci", "anomalie", "giorni"]}
+    for (_, riga), (_, trimestre, inizio, fine) in zip(R.iterrows(), derivate.TRIMESTRI):
+        v = lambda colonna: float(riga[colonna])  # noqa: E731
+        t0, t1 = inizio + "T00:00:00Z", fine + "T00:00:00Z"
+        pt = prod[(prod["ts"] >= t0) & (prod["ts"] < t1)]
+        per_impianto = pt.groupby("impianto_id")["kwh_n"].sum()
+        mesi = [m for m in consumi_mese.index if inizio <= m < fine]
+        if (any(abs(v(f"produzione_impianto_{i}_kwh") - per_impianto[str(i)]) > 0.0005 for i in range(1, 9))
+                or abs(v("produzione_kwh") - pt["kwh_n"].sum()) > 0.0005 or abs(v("consumi_kwh") - consumi_mese[mesi].sum()) > 0.0005):
+            errori["energia"].append(trimestre)
+
+        rt = rip[rip["mese"].isin(mesi)]
+        per_tipo = num(rt, "incentivo_eur").groupby(rt["tipo"]).sum()
+        if (abs(v("kwh_condivisi") - num(rt, "kwh_condivisi").sum()) > 0.0005 or abs(v("incentivo_eur") - num(rt, "incentivo_eur").sum()) > 0.005
+                or any(abs(v(f"incentivo_{col}_eur") - per_tipo.get(tipo, 0.0)) > 0.005
+                       for tipo, col in [("famiglia", "famiglie"), ("impresa", "imprese"), ("ente", "enti")])
+                or abs(v("incentivo_famiglie_eur") + v("incentivo_imprese_eur") + v("incentivo_enti_eur") - v("incentivo_eur")) > 0.015
+                or abs(v("co2_evitata_condivisa_kg") - num(rt, "co2_evitata_kg").sum()) > 0.0005):
+            errori["ripartizione"].append(trimestre)
+        if abs(v("co2_evitata_kg") - v("produzione_kwh") * p["fattore_co2_kg_kwh"]) > 0.001:
+            errori["co2"].append(trimestre)
+
+        attivi = int((socio["data_adesione"] < fine).sum())
+        nuovi = int(((socio["data_adesione"] >= inizio) & (socio["data_adesione"] < fine)).sum())
+        if (int(riga["soci_attivi"]), int(riga["nuovi_soci"])) != (attivi, nuovi):
+            errori["soci"].append(trimestre)
+
+        dentro = anomalie[(anomalie["inizio"] < t1) & (anomalie["fine"] > t0)]
+        trovate = frase.findall(riga["anomalie_dettaglio"])
+        frasi = riga["anomalie_dettaglio"].split("; ") if riga["anomalie_dettaglio"] else []
+        ok = (all(int(riga[f"anomalie_{tipo}"]) == (dentro["tipo"] == tipo).sum() for tipo in derivate.TIPI_ANOMALIA)
+              and sorted(i for i, *_ in trovate) == sorted(dentro["id"]) and len(frasi) == len(trovate))
+        for id_, tipo, imp, dal, al, persi in trovate:
+            a = dentro[dentro["id"] == id_]
+            ore = (pp["impianto_id"] == imp) & (pp["ts"] >= max(dal, t0)) & (pp["ts"] < min(al, t1))
+            ok &= (len(a) == 1 and (a.iloc[0]["tipo"], a.iloc[0]["impianto_id"], a.iloc[0]["inizio"], a.iloc[0]["fine"]) == (tipo, imp, dal, al)
+                   and float(persi) >= 0 and abs(float(persi) - pp.loc[ore, "perso"].sum()) <= 0.0005)
+        if not ok:
+            errori["anomalie"].append(trimestre)
+
+        giorni = pt.groupby(pt["ts"].str.slice(0, 10))["kwh_n"].sum()
+        if (riga["giorno_max_produzione"], riga["giorno_min_produzione"]) != (giorni.idxmax(), giorni.idxmin()) or \
+                abs(v("kwh_giorno_max") - giorni.max()) > 0.0005 or abs(v("kwh_giorno_min") - giorni.min()) > 0.0005:
+            errori["giorni"].append(trimestre)
+
+    controlla("produzione per impianto e totale, consumi dei soci attivi = somme di produzione_oraria e consumo_orario del trimestre",
+              not errori["energia"], ", ".join(errori["energia"]))
+    controlla("energia condivisa, incentivi (totale e per tipo di socio) e CO2 della parte condivisa = somme di ripartizione_mensile",
+              not errori["ripartizione"], ", ".join(errori["ripartizione"]))
+    controlla("co2_evitata_kg = produzione totale × fattore (KPI di comunità, §3.6)", not errori["co2"], ", ".join(errori["co2"]))
+    controlla("soci attivi (aderenti entro fine trimestre) e nuovi soci coerenti con socio.data_adesione",
+              not errori["soci"] and R["soci_attivi"].iloc[-1] == str(len(socio)),
+              f"a fine periodo {R['soci_attivi'].iloc[-1]} soci attivi" + (f"; diversi: {', '.join(errori['soci'])}" if errori["soci"] else ""))
+    controlla("anomalie per tipo = quelle di anomalie_vere che toccano il trimestre; kWh persi = attesa − reale nel trimestre",
+              not errori["anomalie"], ", ".join(errori["anomalie"])
+              or f"{sum(len(frase.findall(t)) for t in R['anomalie_dettaglio'])} anomalie elencate negli 8 trimestri")
+    controlla("giorni di massima e minima produzione della comunità (in UTC)", not errori["giorni"], ", ".join(errori["giorni"]))
+
+
+def leggi_schema(cartella: Path) -> dict[str, list[str]]:
+    """{tabella: [colonne in ordine]} dai CREATE TABLE delle migrazioni (parte "migrate:up").
+
+    Se una migrazione cambia una tabella con ALTER TABLE, questa lettura semplice non
+    basta più: il programma si ferma, così il controllo si aggiorna.
+    """
+    schema = {}
+    for percorso in sorted(cartella.glob("*.sql")):
+        su = percorso.read_text(encoding="utf-8").split("-- migrate:down")[0]
+        if re.search(r"\bALTER\s+TABLE\b", su, flags=re.I):
+            raise ValueError(f"{percorso.name} contiene ALTER TABLE: aggiornare leggi_schema")
+        for nome, corpo in re.findall(r"CREATE TABLE (\w+) \((.*?)\n\);", su, flags=re.S):
+            schema[nome] = [m.group(1) for riga in corpo.splitlines()
+                            if (m := re.match(r"\s*([a-z_][a-z0-9_]*)\s+(?:integer|text|double precision|date|timestamptz|numeric|boolean|bigint)\b", riga))]
+    return schema
+
+
+def seed_completa(cartella: Path) -> None:
+    sezione("Seed del database: db/seed/carica.sql e schema in db/migrations")
+    testo = CARICA_SQL.read_text(encoding="utf-8")
+    copie = re.findall(r"^\\copy\s+(\w+)\s+FROM\s+'/csv/([\w.]+)'", testo, flags=re.M)
+    tabelle = [t for t, _ in copie]
+    controlla("carica.sql carica 13 CSV, ognuno con il nome della sua tabella, cioè le tabelle di config.TABELLE_DB",
+              len(copie) == 13 and all(f == f"{t}.csv" for t, f in copie) and sorted(tabelle) == sorted(config.TABELLE_DB),
+              f"{len(copie)} file: " + ", ".join(tabelle))
+    migrazioni = sorted(MIGRAZIONI.glob("*.sql"))
+    schema = leggi_schema(MIGRAZIONI)
+    print(f"  schema letto da {', '.join(m.name for m in migrazioni)}: {len(schema)} tabelle")
+    for t in tabelle:
+        percorso = cartella / f"{t}.csv"
+        if not percorso.exists():
+            controlla(f"{t}.csv: c'è, con le colonne nell'ordine della tabella (HEADER match)", False, "manca il file")
+            continue
+        with open(percorso, encoding="utf-8", newline="") as f:
+            intestazione = next(csv.reader(f))
+        colonne = schema.get(t)
+        controlla(f"{t}.csv: c'è, con le colonne nell'ordine della tabella (HEADER match)", intestazione == colonne,
+                  f"{len(intestazione)} colonne" if intestazione == colonne else f"CSV {intestazione}, schema {colonne}")
+
+
 def main_completa(args: argparse.Namespace) -> None:
     conf = config.CONFIGURAZIONI["completa"]
     cartella = conf["cartella"]
-    print(f"Controlli del dataset completo (impianti, soci, meteo, produzione, anomalie, consumi, bollette), in {cartella}")
+    print("Controlli del dataset completo (impianti, soci, meteo, produzione, anomalie, consumi, bollette, "
+          f"tabelle calcolate, ripartizione, riepilogo dei trimestri, seed), in {cartella}")
     if not args.senza_rigenerare:
         riproducibilita("completa", cartella)
     T = {f.stem: pd.read_csv(f, dtype=str, keep_default_na=False) for f in sorted(cartella.glob("*.csv"))}
@@ -1102,7 +1387,9 @@ def main_completa(args: argparse.Namespace) -> None:
     for passo in [lambda: file_e_righe_completa(T), lambda: formato(cartella), lambda: serie_complete_completa(T, conf),
                   lambda: integrita_completa(T), lambda: anagrafiche_completa(T, conf), lambda: meteo_completa(T),
                   lambda: stato.update(d=produzione_completa(T, conf)), lambda: anomalie_completa(T, stato["d"]),
-                  lambda: consumi_completa(T), lambda: bollette_completa(T), lambda: confronto_campione(T)]:
+                  lambda: consumi_completa(T), lambda: bollette_completa(T),
+                  lambda: tabelle_calcolate_completa(T, stato["d"]), lambda: ripartizione_completa(T),
+                  lambda: riepilogo_completa(T), lambda: seed_completa(cartella), lambda: confronto_campione(T)]:
         try:
             passo()
         except Exception as errore:  # un errore in una sezione non deve nascondere le altre

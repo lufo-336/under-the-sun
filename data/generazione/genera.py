@@ -9,7 +9,9 @@ Uso, dalla cartella data/ con l'ambiente virtuale attivo:
 I moduli (anagrafiche, meteo, pvgis, produzione, consumi, derivate) si aggiungono
 uno alla volta, nell'ordine di CLAUDE.md. Per ora ci sono i passi 1-6:
 anagrafiche, meteo, pvgis, produzione, consumi e derivate.
-segnalazione.csv e verbale.csv sono scritti a mano e il generatore non li tocca.
+segnalazione.csv e verbale.csv non si generano qui: nel campione li ha scritti a mano
+Francesco; nel completo, finché non arrivano i testi (parte 3b), il generatore ne scrive
+solo le intestazioni, e solo se i file non ci sono. Non li sovrascrive mai.
 """
 
 import argparse
@@ -52,13 +54,16 @@ def scrivi_tutte(tabelle: dict[str, pd.DataFrame], cartella: Path) -> None:
         print(f"  {nome}.csv: {len(tabella)} righe")
 
 
-def scrivi_intestazioni(cartella: Path) -> None:
-    """Scrive i CSV delle tabelle del database con la sola riga di intestazione.
+TESTI = ["segnalazione", "verbale"]  # tabelle di testo: non le scrive il generatore numerico
+
+
+def scrivi_intestazioni(cartella: Path, nomi: list[str] = config.TABELLE_DB) -> None:
+    """Scrive i CSV delle tabelle indicate con la sola riga di intestazione.
 
     I file che esistono già non si toccano: alcuni contengono dati, e
     segnalazione.csv e verbale.csv sono scritti a mano.
     """
-    for nome in config.TABELLE_DB:
+    for nome in nomi:
         if (cartella / f"{nome}.csv").exists():
             print(f"  {nome}.csv: esiste già, non lo tocco")
             continue
@@ -145,14 +150,20 @@ def main() -> None:
         return
 
     print("\n5. Consumi")
-    tabelle_consumi = consumi.genera(conf, tabelle_anagrafiche["socio"], tabelle_anagrafiche["socio_profilo"])
+    # Calcolati una volta sola: servono anche per previsione_consumo al passo 6
+    consumi_calcolati = consumi.calcola(conf, tabelle_anagrafiche["socio"], tabelle_anagrafiche["socio_profilo"])
+    tabelle_consumi = consumi.genera(conf, tabelle_anagrafiche["socio"], tabelle_anagrafiche["socio_profilo"],
+                                     consumi_calcolati)
     scrivi_tutte(tabelle_consumi, cartella)
     if fine("consumi"):
         return
 
-    print("\n6. Derivate (bolletta e tabelle provvisorie del campione)")
+    print("\n6. Derivate (bolletta, tabelle calcolate e riepilogo dei trimestri)")
     tutte = {**tabelle_anagrafiche, **tabelle_meteo, **tabelle_produzione, **tabelle_consumi}
-    scrivi_tutte(derivate.genera(conf, tutte, k), cartella)
+    scrivi_tutte(derivate.genera(conf, tutte, k, consumi_calcolati), cartella)
+
+    print("\n  Testi (segnalazione e verbale):")
+    scrivi_intestazioni(cartella, TESTI)
 
 
 if __name__ == "__main__":
