@@ -6,12 +6,14 @@ Uso, dalla cartella data/ con l'ambiente virtuale attivo:
     python generazione/genera.py --config piccola --solo-intestazioni  -> CSV vuoti
     python generazione/genera.py --config completa --fino-a produzione -> solo i passi 1-4
 
-I moduli (anagrafiche, meteo, pvgis, produzione, consumi, derivate) si aggiungono
-uno alla volta, nell'ordine di CLAUDE.md. Per ora ci sono i passi 1-6:
-anagrafiche, meteo, pvgis, produzione, consumi e derivate.
-segnalazione.csv e verbale.csv non si generano qui: nel campione li ha scritti a mano
-Francesco; nel completo, finché non arrivano i testi (parte 3b), il generatore ne scrive
-solo le intestazioni, e solo se i file non ci sono. Non li sovrascrive mai.
+I moduli si aggiungono uno alla volta, nell'ordine di CLAUDE.md. Ci sono i passi 1-7:
+anagrafiche, meteo, pvgis, produzione, consumi, derivate e testi.
+
+Testi (passo 7):
+- completo: segnalazione, segnalazione_etichette (con _sviluppo) e verbale si
+  rigenerano ogni volta dal sorgente fisso in data/testi/ (testi.py), che non si tocca;
+- campione: segnalazione.csv e verbale.csv li ha scritti a mano Francesco e il
+  generatore non li tocca (ne scriverebbe solo le intestazioni, se mancassero).
 """
 
 import argparse
@@ -27,6 +29,7 @@ import derivate
 import meteo
 import produzione
 import pvgis
+import testi
 
 
 def scrivi_csv(df: pd.DataFrame, nome: str, cartella: Path) -> Path:
@@ -72,7 +75,7 @@ def scrivi_intestazioni(cartella: Path, nomi: list[str] = config.TABELLE_DB) -> 
         print(f"  {percorso.name}")
 
 
-PASSI = ["anagrafiche", "meteo", "pvgis", "produzione", "consumi", "derivate"]
+PASSI = ["anagrafiche", "meteo", "pvgis", "produzione", "consumi", "derivate", "testi"]
 
 
 def main() -> None:
@@ -161,9 +164,16 @@ def main() -> None:
     print("\n6. Derivate (bolletta, tabelle calcolate e riepilogo dei trimestri)")
     tutte = {**tabelle_anagrafiche, **tabelle_meteo, **tabelle_produzione, **tabelle_consumi}
     scrivi_tutte(derivate.genera(conf, tutte, k, consumi_calcolati), cartella)
+    if fine("derivate"):
+        return
 
-    print("\n  Testi (segnalazione e verbale):")
-    scrivi_intestazioni(cartella, TESTI)
+    print("\n7. Testi (segnalazioni e verbali)")
+    if conf["testi_da_sorgente"]:
+        print(f"  sorgente: {testi.SORGENTE_SEGNALAZIONI.relative_to(config.CARTELLA_DATA).as_posix()} "
+              f"e {testi.CARTELLA_VERBALI.relative_to(config.CARTELLA_DATA).as_posix()}/")
+        scrivi_tutte(testi.genera(), cartella)
+    else:
+        scrivi_intestazioni(cartella, TESTI)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # UnderTheSun – Data dictionary
 
-Versione 1 (campione per il SAL 1), 19 novembre 2026. Team dati: Francesco, Giuseppe, Cecilia.
+Versione 1.1, 27 novembre 2026: campione per il SAL 1 e dataset completo (tabelle e file di lavoro allineati alla guida v1.10, §4). Versione 1 del 19 novembre 2026. Team dati: Francesco, Giuseppe, Cecilia.
 
 Le regole complete di generazione sono in `data/GUIDA-DATASET.md`. L'impostazione di questo documento riprende il dizionario preparato da Giuseppe.
 
@@ -26,6 +26,7 @@ Sono **di fantasia** i nomi di soci, imprese ed enti e i testi. Sono **ipotesi p
 - **Unità:** sono nel nome della colonna (`_kwh`, `_eur`, `_wm2`, `_c`, `_pct`, `_cm`, `_gradi`, `_kg`). Le colonne che si chiamano solo `kwh` o `kwp` hanno già l'unità nel nome.
 - **Contenuto del campione:** dal 1 al 30 giugno 2026, cioè 720 ore, con gli impianti 1–3 e 20 soci. Gli ID sono gli stessi del dataset completo (8 impianti, 240 soci).
 - **Per rigenerare il campione:** dalla cartella `data/`, `python generazione/genera.py --config piccola`.
+- **Dataset completo:** dal 1 novembre 2024 al 31 ottobre 2026 (17.520 ore), 8 impianti e 240 soci. Si rigenera con `python generazione/genera.py --config completa` e si condivide come zip sul Drive del gruppo (guida §5). Dove il completo è diverso dal campione, le schede qui sotto lo dicono.
 
 > **File etichetta 🏷:** contengono le risposte corrette per valutare i modelli (rilevamento anomalie, classificazione dei testi). Non vanno nel database, non si usano come input dei modelli e non si mostrano nel portale.
 
@@ -126,7 +127,7 @@ Il campione comprende 14 famiglie, 4 imprese (bar, panificio, officina, parrucch
 | id | intero | Identificativo |
 | socio_id | intero | Socio che scrive; vuoto per le comunicazioni interne |
 | impianto_id | intero | Impianto in uso: quello indicato dal socio, altrimenti quello estratto dall'LLM. L'operatore può correggerlo |
-| impianto_id_llm | intero | Impianto estratto dall'LLM, mai modificato. **Da confermare** alla prossima riunione |
+| impianto_id_llm | intero | Impianto estratto dall'LLM, mai modificato (accolto nello schema il 23 novembre) |
 | ts | data e ora (UTC) | Momento dell'invio |
 | canale | testo | `email`, `portale`, `interno` (comunicazioni guasti dal sistema di monitoraggio, dal gestore o dai tecnici) |
 | testo | testo | Testo libero |
@@ -139,6 +140,14 @@ Il campione comprende 14 famiglie, 4 imprese (bar, panificio, officina, parrucch
 
 ⚠ **Colonne LLM nel campione.** Sono riempite a mano. In alcuni casi `categoria` è diversa da `categoria_llm`, per simulare una correzione dell'operatore.
 
+**Nel dataset completo** (282 righe, da novembre 2024 a ottobre 2026):
+
+- i testi vengono dal file sorgente `data/testi/segnalazioni_sorgente.csv`, scritto dal team dati; le righe sono in ordine di `ts`, con `id` da 1;
+- `impianto_id` è l'impianto indicato nella segnalazione (colonna `impianto_id_indicato` del sorgente): quello scelto dal socio, o quello del sistema di monitoraggio per le comunicazioni `interno`; vuoto se nessuno l'ha indicato;
+- `categoria_llm`, `urgenza_llm`, `impianto_id_llm`, `categoria` e `urgenza` sono **vuote**: le riempie il batch di classificazione al caricamento. Le risposte giuste sono in `segnalazione_etichette.csv` 🏷;
+- `stato` è quello al 31/10/2026: le segnalazioni più vecchie di 30 giorni sono tutte `chiusa`;
+- le 15 segnalazioni del campione ci sono con lo stesso testo, socio, impianto e ora; cambia solo lo `stato`, che nel completo è `chiusa`.
+
 ### verbale.csv (1 riga) – testo non strutturato
 
 | Colonna | Tipo | Descrizione |
@@ -150,18 +159,20 @@ Il campione comprende 14 famiglie, 4 imprese (bar, panificio, officina, parrucch
 
 Nel campione c'è il verbale dell'assemblea del 9 luglio 2026 (id 7), che commenta i dati di giugno degli impianti 1–3, il guasto del 1° giugno e le segnalazioni del mese.
 
+**Nel dataset completo** ci sono 8 verbali, uno a trimestre: id da 1 (gennaio 2025) a 8 (ottobre 2026), in ordine di data. Ognuno commenta il trimestre appena concluso, con i numeri di `riepilogo_trimestri.csv`. I testi vengono dai file `data/testi/verbali/verbale_<data>.md` e la data dell'assemblea dal nome del file. Il verbale del 9 luglio 2026 resta l'id 7, ma è diverso da quello del campione: commenta aprile–giugno su tutti gli 8 impianti.
+
 ---
 
-## Tabelle calcolate (provvisorie nel campione)
+## Tabelle calcolate (provvisorie nel campione e nello zip v1)
 
-Nel progetto queste tabelle le scrivono i batch del team dati. Nel campione contengono valori provvisori, utili ai WSA per costruire le pagine.
+Nel progetto queste tabelle le scrivono i batch del team dati, non il generatore. Il campione e lo zip v1 del dataset completo le contengono comunque, perché `db/seed/carica.sql` carica 13 CSV e si ferma se ne manca uno. Le versioni provvisorie sono utili ai WSA per costruire le pagine e sono anche la baseline dei modelli.
 
-| File | Righe | Colonne | Come sono calcolate nel campione |
-|---|---|---|---|
-| `previsione_produzione.csv` | 2.160 | `impianto_id`, `ts`, `kwh_previsti` | La stessa formula della produzione, senza anomalie |
-| `previsione_consumo.csv` | 14.400 | `socio_id`, `ts`, `kwh_previsti` | Il profilo del socio, senza rumore |
-| `anomalia.csv` | 1 | `id`, `impianto_id`, `inizio`, `fine`, `tipo`, `score`, `stato` | Il guasto dell'impianto 3 del 1 giugno, come se il batch l'avesse trovato |
-| `ripartizione_mensile.csv` | 20 | `socio_id`, `mese`, `kwh_condivisi`, `incentivo_eur`, `co2_evitata_kg` | Formula della guida §3.6 applicata a giugno |
+| File | Righe (campione) | Colonne | Nel campione | Nel dataset completo (zip v1) |
+|---|---|---|---|---|
+| `previsione_produzione.csv` | 2.160 | `impianto_id`, `ts`, `kwh_previsti` | La stessa formula della produzione, senza anomalie | Provvisoria, come nel campione: 140.160 righe |
+| `previsione_consumo.csv` | 14.400 | `socio_id`, `ts`, `kwh_previsti` | Il profilo del socio, senza rumore | Provvisoria, come nel campione: 4.204.800 righe (circa 130 MB) |
+| `anomalia.csv` | 1 | `id`, `impianto_id`, `inizio`, `fine`, `tipo`, `score`, `stato` | Il guasto dell'impianto 3 del 1 giugno, come se il batch l'avesse trovato | Provvisoria: la stessa riga del campione. Il batch vero aggiunge le altre e salta quelle già presenti |
+| `ripartizione_mensile.csv` | 20 | `socio_id`, `mese`, `kwh_condivisi`, `incentivo_eur`, `co2_evitata_kg` | Formula della guida §3.6 applicata a giugno | Calcolo vero del §3.6: 4.579 righe, una per socio e mese dal mese di adesione |
 
 **Valori delle colonne di `anomalia`:**
 
@@ -170,7 +181,7 @@ Nel progetto queste tabelle le scrivono i batch del team dati. Nel campione cont
 - `score`: da 0 a 1;
 - `stato`: `aperta` o `chiusa` (la chiude l'operatore).
 
-⚠ **Ripartizione del campione.** È calcolata su 3 impianti e 20 soci, quindi l'energia condivisa è quasi uguale ai consumi delle ore di sole. Nel dataset completo i valori di giugno cambieranno, perché dipendono da tutti gli 8 impianti e i 240 soci.
+⚠ **Ripartizione del campione.** È calcolata su 3 impianti e 20 soci, quindi l'energia condivisa è quasi uguale ai consumi delle ore di sole. Nel dataset completo i valori di giugno sono diversi, perché dipendono da tutti gli 8 impianti e i 240 soci. Un socio conta dalle 00:00 UTC del giorno di adesione: nel mese di adesione la sua quota è solo dei giorni da socio.
 
 ---
 
@@ -199,15 +210,58 @@ Nel campione c'è una sola riga: il guasto dell'impianto 3 dal `2026-06-01T11:00
 
 ### segnalazione_etichette.csv 🏷 (solo nel dataset completo)
 
-Contiene le colonne `segnalazione_id`, `categoria_vera`, `urgenza_vera` e `impianto_id_vero`. Serve a misurare l'accuratezza dell'LLM.
+Le risposte giuste per ogni segnalazione: servono a misurare l'accuratezza dell'LLM. Una riga per segnalazione (282), con gli stessi `id` di `segnalazione.csv`.
+
+| Colonna | Tipo | Descrizione |
+|---|---|---|
+| segnalazione_id | intero | Segnalazione (`segnalazione.id`) |
+| categoria_vera | testo | Categoria giusta (stessi valori di `categoria`) |
+| urgenza_vera | testo | Urgenza giusta: `alta`, `media`, `bassa` |
+| impianto_id_vero | intero | Impianto di cui parla il testo; vuoto se non parla di un impianto |
+| set | testo | `sviluppo` (circa 30%, per scrivere il prompt) o `test` (circa 70%, per la misura finale) |
+
+La divisione è stratificata per categoria: in ogni categoria il 30% delle righe, arrotondato all'intero più vicino, è di sviluppo. La fa il generatore con `numpy.random.default_rng([42, 3])`, quindi è sempre la stessa. Le righe di test non si guardano mentre si scrive il prompt.
+
+### segnalazione_etichette_sviluppo.csv 🏷 (solo nel dataset completo)
+
+Le sole righe di sviluppo di `segnalazione_etichette.csv` (86), con le stesse colonne: è il file da usare mentre si scrive il prompt, così le etichette di test restano nascoste.
+
+| Colonna | Tipo | Descrizione |
+|---|---|---|
+| segnalazione_id, categoria_vera, urgenza_vera, impianto_id_vero, set | | Come in `segnalazione_etichette.csv`; `set` vale sempre `sviluppo` |
+
+### riepilogo_trimestri.csv (solo nel dataset completo)
+
+Un trimestre per riga (8 righe), da nov-dic 2024 a lug-set 2026: serve per scrivere i verbali e per il report. I mesi sono in UTC, come in tutte le tabelle.
+
+| Colonna | Tipo | Descrizione |
+|---|---|---|
+| verbale_id | intero | Verbale dell'assemblea che commenta il trimestre: da 1 (gennaio 2025) a 8 (ottobre 2026) |
+| trimestre | testo | `nov-dic 2024`, `gen-mar 2025`, …, `lug-set 2026` (il primo ha solo 2 mesi) |
+| produzione_impianto_1_kwh, produzione_impianto_2_kwh, produzione_impianto_3_kwh, produzione_impianto_4_kwh, produzione_impianto_5_kwh, produzione_impianto_6_kwh, produzione_impianto_7_kwh, produzione_impianto_8_kwh | decimale | Produzione di ogni impianto nel trimestre |
+| produzione_kwh | decimale | Produzione totale della comunità |
+| consumi_kwh | decimale | Consumi dei soci attivi, ognuno contato dalla sua adesione |
+| kwh_condivisi | decimale | Energia condivisa (somma di `ripartizione_mensile`) |
+| incentivo_eur | decimale | Incentivo totale (somma di `ripartizione_mensile`) |
+| incentivo_famiglie_eur, incentivo_imprese_eur, incentivo_enti_eur | decimale | Incentivo per tipo di socio |
+| co2_evitata_kg | decimale | CO2 evitata da tutta la produzione: è il KPI di comunità (guida §3.6) |
+| co2_evitata_condivisa_kg | decimale | CO2 evitata dalla sola energia condivisa (somma di `ripartizione_mensile`) |
+| soci_attivi | intero | Soci aderenti entro la fine del trimestre (non ci sono recessi) |
+| nuovi_soci | intero | Soci aderenti durante il trimestre |
+| anomalie_guasto, anomalie_stringa, anomalie_sporcizia, anomalie_neve | intero | Anomalie di `anomalie_vere.csv` che toccano il trimestre, per tipo, anche se iniziate prima o finite dopo |
+| anomalie_dettaglio | testo | Una frase per anomalia, separate da `; `: id, tipo, impianto, inizio e fine (esclusa), perdita e kWh persi stimati nel trimestre (produzione attesa meno reale) |
+| giorno_max_produzione, kwh_giorno_max | data, decimale | Giorno (UTC) di massima produzione della comunità e i suoi kWh |
+| giorno_min_produzione, kwh_giorno_min | data, decimale | Giorno (UTC) di minima produzione della comunità e i suoi kWh |
+
+Il dataset completo ha anche `cache/arera/arera_torino_2025.csv`, con le righe ARERA usate per i consumi (guida §3.4.1). Non fa parte dello zip.
 
 ---
 
-## Differenze rispetto a `docs/architettura.md` (da approvare al SAL 1)
+## Differenze rispetto a `docs/architettura.md` (accolte nello schema il 23 novembre, commit 5f1ec52)
 
 1. **`impianto`:** si aggiungono `inclinazione_gradi` e `azimut_gradi`, necessarie per i calcoli con Open-Meteo e PVGIS.
 2. **`meteo_orario`:** le unità entrano nei nomi delle colonne (`irraggiamento_wm2`, `temperatura_c`, `nuvolosita_pct`) e si aggiungono `irraggiamento_pannelli_wm2` e `neve_cm`. Nessuna API espone questa tabella.
-3. **`segnalazione`:** si aggiunge `impianto_id_llm` (da confermare). `socio_id` può essere vuoto, e il canale `interno` serve per le comunicazioni guasti.
+3. **`segnalazione`:** si aggiunge `impianto_id_llm`. `socio_id` può essere vuoto, e il canale `interno` serve per le comunicazioni guasti.
 
 ## Usi suggeriti
 
@@ -218,7 +272,7 @@ Contiene le colonne `segnalazione_id`, `categoria_vera`, `urgenza_vera` e `impia
 | Rilevamento anomalie | `produzione_oraria` confrontata con l'atteso (`meteo_orario` + `impianto`) → `anomalia`; valutazione con `anomalie_vere` 🏷 |
 | Ripartizione CER, incentivi, CO2 | `produzione_oraria` + `consumo_orario` + `socio.data_adesione` + `parametro` → `ripartizione_mensile` |
 | Portale soci | `socio`, `consumo_orario`, `bolletta`, `ripartizione_mensile` |
-| Classificazione ed estrazione di informazioni | `segnalazione.testo` → `categoria_llm`, `urgenza_llm`, `impianto_id_llm`; valutazione con `segnalazione_etichette` 🏷 |
+| Classificazione ed estrazione di informazioni | `segnalazione.testo` → `categoria_llm`, `urgenza_llm`, `impianto_id_llm`; prompt scritto con `segnalazione_etichette_sviluppo` 🏷, valutazione sulle righe `test` di `segnalazione_etichette` 🏷 |
 | Sintesi | `verbale.testo` → `sintesi` |
 | Simulatore di risparmio | `consumo_orario` + `produzione_oraria` + `parametro` (guida §3.6) |
 

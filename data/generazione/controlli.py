@@ -46,6 +46,7 @@ import anagrafiche  # noqa: E402
 import config  # noqa: E402
 import consumi  # noqa: E402
 import derivate  # noqa: E402  (solo per la tabella dei trimestri)
+import testi  # noqa: E402  (solo per leggere il sorgente dei testi)
 import meteo  # noqa: E402
 import produzione  # noqa: E402
 import pvgis  # noqa: E402
@@ -74,6 +75,9 @@ VUOTI_AMMESSI = {  # (file, colonna) in cui una cella vuota ha un significato
     ("segnalazione", "socio_id"), ("segnalazione", "impianto_id"), ("segnalazione", "impianto_id_llm"),
     ("anomalia", "fine"), ("anomalia", "tipo"), ("verbale", "sintesi"), ("socio_profilo", "ateco"),
     ("riepilogo_trimestri", "anomalie_dettaglio"),  # vuota in un trimestre senza anomalie
+    # Completo: le colonne LLM e quelle in uso le riempie il batch di classificazione (§3.7)
+    ("segnalazione", "categoria_llm"), ("segnalazione", "urgenza_llm"), ("segnalazione", "categoria"), ("segnalazione", "urgenza"),
+    ("segnalazione_etichette", "impianto_id_vero"), ("segnalazione_etichette_sviluppo", "impianto_id_vero"),  # nessun impianto
 }
 
 # --- Valori ammessi (§1.3, §3.3, §3.5, §3.7, data dictionary) -----------------
@@ -550,8 +554,8 @@ def elenco_file(cartella: Path, T: dict[str, pd.DataFrame]) -> None:
 
 # =============================================================================
 # Dataset completo: parte 1 (impianti, soci, meteo, produzione e anomalie),
-# parte 2 (consumi e bollette) e parte 3a (tabelle calcolate, ripartizione,
-# riepilogo dei trimestri e file del seed)
+# parte 2 (consumi e bollette), parte 3a (tabelle calcolate, ripartizione,
+# riepilogo dei trimestri e file del seed) e parte 3b (testi)
 # =============================================================================
 
 RIGHE_COMPLETA = {  # §5 (v1.10)
@@ -559,11 +563,15 @@ RIGHE_COMPLETA = {  # §5 (v1.10)
     "meteo_orario": 140_160, "produzione_oraria": 140_160,
     "consumo_orario": 4_204_800, "bolletta": 5_760, "anomalie_vere": 41,
     "ripartizione_mensile": 4_579, "previsione_produzione": 140_160, "previsione_consumo": 4_204_800,
-    "anomalia": 1, "riepilogo_trimestri": 8,
+    "anomalia": 1, "riepilogo_trimestri": 8, "verbale": 8,
 }
-TESTI_DA_SCRIVERE = ["segnalazione", "verbale"]  # per ora solo le intestazioni: i testi arrivano nella parte 3b
-FILE_COMPLETA = sorted([*RIGHE_COMPLETA, *TESTI_DA_SCRIVERE])
-FUORI_DIZIONARIO = {"riepilogo_trimestri"}  # file di lavoro che il data dictionary v1 non descrive: colonne da config.py
+# segnalazione e segnalazione_etichette: "circa 280" nella guida, una riga per riga del sorgente
+RIGHE_DAL_SORGENTE = ["segnalazione", "segnalazione_etichette"]
+FILE_COMPLETA = sorted([*RIGHE_COMPLETA, *RIGHE_DAL_SORGENTE, "segnalazione_etichette_sviluppo"])
+QUOTA_SVILUPPO = (0.25, 0.35)  # "circa 30/70" per ogni categoria (§3.7)
+FINE_PERIODO = "2026-11-01T00:00:00Z"
+CHIUSE_PRIMA_DI = "2026-10-02T00:00:00Z"  # più vecchie di 30 giorni al 31/10/2026: tutte chiuse (§3.7)
+MESI_ASSEMBLEE = ["2025-01", "2025-04", "2025-07", "2025-10", "2026-01", "2026-04", "2026-07", "2026-10"]  # §3.7
 CARTELLA_REPO = config.CARTELLA_DATA.parent
 CARICA_SQL = CARTELLA_REPO / "db" / "seed" / "carica.sql"
 MIGRAZIONI = CARTELLA_REPO / "db" / "migrations"
@@ -592,20 +600,15 @@ def file_e_righe_completa(T: dict[str, pd.DataFrame]) -> None:
               ", ".join(presenti) if presenti == FILE_COMPLETA
               else f"mancano {sorted(set(FILE_COMPLETA) - set(presenti))}, in più {sorted(set(presenti) - set(FILE_COMPLETA))}")
     voci = leggi_dizionario(DIZIONARIO)
+    righe_attese = {**RIGHE_COMPLETA, **dict.fromkeys(RIGHE_DAL_SORGENTE, len(testi.leggi_sorgente()))}
     for nome in presenti:
         df, problemi = T[nome], []
-        if nome in FUORI_DIZIONARIO:
-            attese, fonte = config.COLONNE.get(nome), "in config.py (non è nel data dictionary)"
-        else:
-            attese, fonte = (voci.get(nome) or {}).get("colonne"), "nel data dictionary"
+        attese = (voci.get(nome) or {}).get("colonne")
         if list(df.columns) != attese:
-            problemi.append(f"colonne {list(df.columns)}, {fonte} {attese}")
-        if nome in RIGHE_COMPLETA and len(df) != RIGHE_COMPLETA[nome]:
-            problemi.append(f"{len(df)} righe, attese {RIGHE_COMPLETA[nome]}")
-        if nome in TESTI_DA_SCRIVERE and len(df):
-            problemi.append(f"{len(df)} righe: per ora deve avere solo le intestazioni (testi nella parte 3b)")
-        dettaglio = "solo intestazioni, i testi arrivano nella parte 3b" if nome in TESTI_DA_SCRIVERE else f"{italiano(len(df))} righe"
-        controlla(f"{nome}.csv: intestazioni e righe", not problemi, "; ".join(problemi) or dettaglio)
+            problemi.append(f"colonne {list(df.columns)}, nel data dictionary {attese}")
+        if nome in righe_attese and len(df) != righe_attese[nome]:
+            problemi.append(f"{len(df)} righe, attese {righe_attese[nome]}")
+        controlla(f"{nome}.csv: intestazioni e righe", not problemi, "; ".join(problemi) or f"{italiano(len(df))} righe")
 
 
 def serie_complete_completa(T: dict[str, pd.DataFrame], conf: dict) -> None:
@@ -626,18 +629,22 @@ def serie_complete_completa(T: dict[str, pd.DataFrame], conf: dict) -> None:
 
 def integrita_completa(T: dict[str, pd.DataFrame]) -> None:
     sezione("ID: unici e coerenti tra i file (§2, §6)")
-    for nome in ["impianto", "socio", "anomalie_vere", "bolletta", "anomalia"]:
+    for nome in ["impianto", "socio", "anomalie_vere", "bolletta", "anomalia", "segnalazione", "verbale"]:
         ids = T[nome]["id"].astype(int).tolist()
         controlla(f"{nome}.id: 1, 2, 3, ... senza buchi né doppioni", sorted(ids) == list(range(1, len(ids) + 1)))
     soci, impianti = set(T["socio"]["id"]), set(T["impianto"]["id"])
+    segnalazioni = set(T["segnalazione"]["id"])
     for nome, colonna, insieme, tabella in [
         ("socio_profilo", "socio_id", soci, "socio"), ("meteo_orario", "impianto_id", impianti, "impianto"),
         ("produzione_oraria", "impianto_id", impianti, "impianto"), ("anomalie_vere", "impianto_id", impianti, "impianto"),
         ("consumo_orario", "socio_id", soci, "socio"), ("bolletta", "socio_id", soci, "socio"),
         ("previsione_produzione", "impianto_id", impianti, "impianto"), ("previsione_consumo", "socio_id", soci, "socio"),
         ("anomalia", "impianto_id", impianti, "impianto"), ("ripartizione_mensile", "socio_id", soci, "socio"),
+        ("segnalazione", "socio_id", soci, "socio"), ("segnalazione", "impianto_id", impianti, "impianto"),
+        ("segnalazione_etichette", "segnalazione_id", segnalazioni, "segnalazione"),
+        ("segnalazione_etichette", "impianto_id_vero", impianti, "impianto"),
     ]:
-        mancanti = set(T[nome][colonna]) - insieme
+        mancanti = {v for v in T[nome][colonna] if v != ""} - insieme  # vuoto = nessun socio o impianto
         controlla(f"{nome}.{colonna} esiste in {tabella}", not mancanti, f"non trovati: {sorted(mancanti)}" if mancanti else "")
     controlla("socio_profilo ha una riga per ogni socio", sorted(T["socio_profilo"]["socio_id"]) == sorted(soci))
 
@@ -1334,6 +1341,109 @@ def riepilogo_completa(T: dict[str, pd.DataFrame]) -> None:
     controlla("giorni di massima e minima produzione della comunità (in UTC)", not errori["giorni"], ", ".join(errori["giorni"]))
 
 
+def testi_completa(T: dict[str, pd.DataFrame]) -> None:
+    """Segnalazioni, etichette e verbali del completo (§3.7), confrontati con il sorgente in data/testi/."""
+    sezione("Testi: segnalazioni, etichette e verbali (§3.7)")
+    sg, et, sv, vb = T["segnalazione"], T["segnalazione_etichette"], T["segnalazione_etichette_sviluppo"], T["verbale"]
+    sorgente = testi.leggi_sorgente().sort_values("ts", kind="stable").reset_index(drop=True)
+
+    # Dal sorgente: stesse righe, in ordine di ts, con le colonne LLM vuote
+    uguali = (len(sg) == len(sorgente)
+              and (sg[["socio_id", "ts", "canale", "testo", "stato"]].to_numpy() == sorgente[["socio_id", "ts", "canale", "testo", "stato"]].to_numpy()).all()
+              and (sg["impianto_id"] == sorgente["impianto_id_indicato"]).all())
+    controlla("segnalazione: le righe del sorgente in ordine di ts, con id da 1 e impianto_id = impianto indicato",
+              uguali and sg["ts"].is_monotonic_increasing and (sg["id"] == [str(i) for i in range(1, len(sg) + 1)]).all(),
+              f"{len(sg)} segnalazioni: " + ", ".join(f"{c} {n}" for c, n in sg["canale"].value_counts().items()))
+    colonne_llm = ["categoria_llm", "urgenza_llm", "impianto_id_llm", "categoria", "urgenza"]
+    controlla("segnalazione: categoria_llm, urgenza_llm, impianto_id_llm, categoria e urgenza vuote (le riempie il batch)",
+              (sg[colonne_llm] == "").all().all())
+
+    # Mittenti: socio solo fuori dal canale interno, e solo dopo l'adesione
+    adesione = T["socio"].set_index("id")["data_adesione"]
+    dei_soci = sg[sg["socio_id"] != ""]
+    prima = dei_soci[dei_soci["ts"] < dei_soci["socio_id"].map(adesione) + "T00:00:00Z"]
+    controlla("ogni segnalazione di un socio è successiva alla sua data_adesione",
+              prima.empty and dei_soci["socio_id"].isin(adesione.index).all(),
+              f"{len(dei_soci)} segnalazioni di {dei_soci['socio_id'].nunique()} soci" + (f"; prima dell'adesione: {prima['id'].tolist()}" if len(prima) else ""))
+    controlla("socio_id vuoto se e solo se il canale è interno", ((sg["socio_id"] == "") == (sg["canale"] == "interno")).all())
+
+    # Valori ammessi
+    problemi = [f"{nome}.{colonna}" for nome, colonna, ammessi in [
+        ("segnalazione", "canale", CANALI), ("segnalazione", "stato", STATI_SEGNALAZIONE),
+        ("segnalazione_etichette", "categoria_vera", CATEGORIE), ("segnalazione_etichette", "urgenza_vera", URGENZE),
+        ("segnalazione_etichette", "set", {"sviluppo", "test"}),
+    ] if not T[nome][colonna].isin(ammessi).all()]
+    controlla("categorie, urgenze, canali, stati e set tra i valori ammessi (§3.7)", not problemi, ", ".join(problemi))
+    vecchie = sg[sg["ts"] < CHIUSE_PRIMA_DI]
+    controlla("stato: le segnalazioni più vecchie di 30 giorni al 31/10/2026 sono tutte chiuse",
+              (vecchie["stato"] == "chiusa").all() and (sg["ts"] < FINE_PERIODO).all(),
+              f"aperte o in corso: {(sg['stato'] != 'chiusa').sum()}, tutte di ottobre 2026")
+
+    # Anomalie raccontate dai testi (colonna anomalia_vera_id del sorgente, solo per i controlli)
+    av = T["anomalie_vere"].set_index("id")
+    collegate = sg.assign(anomalia=sorgente["anomalia_vera_id"].to_numpy(), vero=et["impianto_id_vero"].to_numpy())
+    collegate = collegate[collegate["anomalia"] != ""]
+    sconosciute = sorted(set(collegate["anomalia"]) - set(av.index), key=int)
+    senza = []
+    for a in av[av["tipo"].isin(["guasto", "stringa"])].itertuples():
+        c = collegate[collegate["anomalia"] == a.Index]
+        if not ((c["canale"] == "interno").any() and (c["canale"] != "interno").any()):
+            senza.append(a.Index)
+    fuori_tempo = collegate[collegate["ts"] < collegate["anomalia"].map(av["inizio"])]
+    impianto_sbagliato = collegate[(collegate["vero"] != "") & (collegate["vero"] != collegate["anomalia"].map(av["impianto_id"]))]
+    n_gs = int(av["tipo"].isin(["guasto", "stringa"]).sum())
+    controlla("ogni guasto e stringa di anomalie_vere ha almeno una comunicazione interna e una segnalazione di un socio",
+              not senza and not sconosciute, f"{n_gs - len(senza)} su {n_gs}" + (f"; senza: {senza}" if senza else "")
+              + (f"; anomalie inesistenti: {sconosciute}" if sconosciute else ""))
+    controlla("le segnalazioni su un'anomalia arrivano dopo il suo inizio e, se citano un impianto, è quello dell'anomalia",
+              fuori_tempo.empty and impianto_sbagliato.empty,
+              f"{len(collegate)} segnalazioni collegate a {collegate['anomalia'].nunique()} anomalie")
+    altre = av[av["tipo"].isin(["sporcizia", "neve"])]
+    interne = set(collegate.loc[collegate["canale"] == "interno", "anomalia"])
+    episodi_neve = altre[altre["tipo"] == "neve"].groupby(altre.loc[altre["tipo"] == "neve", "inizio"].str.slice(0, 7)).groups
+    print(f"  sporcizia con comunicazione interna: {len(set(altre[altre['tipo'] == 'sporcizia'].index) & interne)} su "
+          f"{int((altre['tipo'] == 'sporcizia').sum())}; episodi di neve con comunicazione interna: "
+          f"{sum(bool(set(ids) & interne) for ids in episodi_neve.values())} su {len(episodi_neve)}")
+
+    # Le 15 segnalazioni del campione (giugno 2026)
+    campione = pd.read_csv(config.CARTELLA_ESEMPI / "segnalazione.csv", dtype=str, keep_default_na=False)
+    m = campione.merge(sg, on="ts", how="left", suffixes=("_campione", ""))
+    controlla("le 15 segnalazioni di giugno 2026 del campione ci sono con lo stesso testo, socio, impianto e ts (e sono chiuse)",
+              len(campione) == 15 and m["id"].notna().all() and (m["testo_campione"] == m["testo"]).all()
+              and (m["socio_id_campione"] == m["socio_id"]).all() and (m["impianto_id_campione"] == m["impianto_id"]).all()
+              and (m["stato"] == "chiusa").all(),
+              (f"id nel completo da {pd.to_numeric(m['id']).min():.0f} a {pd.to_numeric(m['id']).max():.0f}; " if m["id"].notna().all() else "")
+              + f"nel campione erano aperte o in corso: {(m['stato_campione'] != 'chiusa').sum()}")
+
+    # Etichette
+    controlla("segnalazione_etichette: gli stessi id di segnalazione.csv, nello stesso ordine, con le etichette del sorgente",
+              et["segnalazione_id"].tolist() == sg["id"].tolist()
+              and (et[["categoria_vera", "urgenza_vera", "impianto_id_vero"]].to_numpy()
+                   == sorgente[["categoria_vera", "urgenza_vera", "impianto_id_vero"]].to_numpy()).all())
+    conteggi = pd.crosstab(et["categoria_vera"], et["set"]).reindex(columns=["sviluppo", "test"], fill_value=0)
+    quota = conteggi["sviluppo"] / conteggi.sum(axis=1)
+    controlla("circa 30% sviluppo e 70% test in ogni categoria (stratificato)",
+              quota.between(*QUOTA_SVILUPPO).all() and (abs(conteggi["sviluppo"] - 0.3 * conteggi.sum(axis=1)) <= 1).all(),
+              ", ".join(f"{c} {r.sviluppo}/{r.test}" for c, r in conteggi.iterrows())
+              + f"; in tutto {conteggi['sviluppo'].sum()}/{conteggi['test'].sum()} ({conteggi['sviluppo'].sum() / len(et) * 100:.1f}% sviluppo)")
+    controlla("segnalazione_etichette_sviluppo: esattamente le righe di sviluppo di segnalazione_etichette",
+              sv.equals(et[et["set"] == "sviluppo"].reset_index(drop=True)), f"{len(sv)} righe")
+
+    # Verbali
+    file_verbali = sorted(testi.CARTELLA_VERBALI.glob("verbale_*.md"))
+    date_file = [testi.NOME_VERBALE.fullmatch(f.name).group(1) for f in file_verbali]
+    controlla("8 verbali, uno a trimestre da gennaio 2025 a ottobre 2026, con id da 1 a 8 in ordine di data",
+              vb["id"].tolist() == [str(i) for i in range(1, 9)] and vb["data_assemblea"].str.slice(0, 7).tolist() == MESI_ASSEMBLEE
+              and vb["data_assemblea"].is_monotonic_increasing,
+              ", ".join(f"{r.id}: {r.data_assemblea}" for r in vb.itertuples()))
+    controlla("verbale: data dal nome del file, testo uguale al file (a capo LF), sintesi vuota; il 9/7/2026 resta l'id 7",
+              vb["data_assemblea"].tolist() == date_file
+              and vb["testo"].tolist() == [testi.leggi_verbale(f) for f in file_verbali]
+              and (vb["sintesi"] == "").all() and not vb["testo"].str.contains("\r").any()
+              and vb.loc[vb["id"] == "7", "data_assemblea"].tolist() == ["2026-07-09"],
+              f"da {vb['testo'].str.len().min():,} a {vb['testo'].str.len().max():,} caratteri".replace(",", "."))
+
+
 def leggi_schema(cartella: Path) -> dict[str, list[str]]:
     """{tabella: [colonne in ordine]} dai CREATE TABLE delle migrazioni (parte "migrate:up").
 
@@ -1378,7 +1488,7 @@ def main_completa(args: argparse.Namespace) -> None:
     conf = config.CONFIGURAZIONI["completa"]
     cartella = conf["cartella"]
     print("Controlli del dataset completo (impianti, soci, meteo, produzione, anomalie, consumi, bollette, "
-          f"tabelle calcolate, ripartizione, riepilogo dei trimestri, seed), in {cartella}")
+          f"tabelle calcolate, ripartizione, riepilogo dei trimestri, testi, seed), in {cartella}")
     if not args.senza_rigenerare:
         riproducibilita("completa", cartella)
     T = {f.stem: pd.read_csv(f, dtype=str, keep_default_na=False) for f in sorted(cartella.glob("*.csv"))}
@@ -1389,7 +1499,8 @@ def main_completa(args: argparse.Namespace) -> None:
                   lambda: stato.update(d=produzione_completa(T, conf)), lambda: anomalie_completa(T, stato["d"]),
                   lambda: consumi_completa(T), lambda: bollette_completa(T),
                   lambda: tabelle_calcolate_completa(T, stato["d"]), lambda: ripartizione_completa(T),
-                  lambda: riepilogo_completa(T), lambda: seed_completa(cartella), lambda: confronto_campione(T)]:
+                  lambda: riepilogo_completa(T), lambda: testi_completa(T), lambda: seed_completa(cartella),
+                  lambda: confronto_campione(T)]:
         try:
             passo()
         except Exception as errore:  # un errore in una sezione non deve nascondere le altre

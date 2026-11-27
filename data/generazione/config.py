@@ -97,6 +97,7 @@ CONFIGURAZIONI = {
         "anomalie_casuali": False,  # §3.3: in giugno 2026 sugli impianti 1-3 c'è solo il guasto fisso
         "tabelle_provvisorie": True,  # §7: previsioni, anomalia e ripartizione con valori provvisori
         "riepilogo_trimestri": False,  # il campione è un solo mese: niente trimestri
+        "testi_da_sorgente": False,  # segnalazione e verbale scritti a mano in esempi/: il generatore non li tocca
         "cartella": CARTELLA_ESEMPI,
     },
     "completa": {
@@ -113,6 +114,7 @@ CONFIGURAZIONI = {
         # e anomalia sono provvisorie, come nel campione.
         "tabelle_provvisorie": True,
         "riepilogo_trimestri": True,  # §4: file di lavoro per scrivere i verbali
+        "testi_da_sorgente": True,  # §3.7: segnalazioni e verbali rigenerati ogni volta da data/testi/
         "cartella": CARTELLA_OUTPUT,
     },
 }
@@ -154,7 +156,9 @@ TABELLE_CALCOLATE = {
 # File di lavoro: non vanno nel database
 FILE_DI_LAVORO = {
     "anomalie_vere": ["id", "impianto_id", "inizio", "fine", "tipo", "perdita_pct"],
-    "segnalazione_etichette": ["segnalazione_id", "categoria_vera", "urgenza_vera", "impianto_id_vero"],
+    # §3.7: set = "sviluppo" (circa 30%, per scrivere il prompt) o "test" (circa 70%, per la misura finale)
+    "segnalazione_etichette": ["segnalazione_id", "categoria_vera", "urgenza_vera", "impianto_id_vero", "set"],
+    "segnalazione_etichette_sviluppo": ["segnalazione_id", "categoria_vera", "urgenza_vera", "impianto_id_vero", "set"],
     "socio_profilo": ["socio_id", "profilo", "ateco", "scala"],
     # Un trimestre per riga, per scrivere i verbali (§3.7, §4). Solo nel completo.
     "riepilogo_trimestri": [
