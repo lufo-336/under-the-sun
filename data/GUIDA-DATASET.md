@@ -1,6 +1,8 @@
 # Guida al dataset UnderTheSun (team dati)
 
-Versione 1.8 del 19 novembre 2026, a cura di Francesco (riferimento del team dati).
+Versione 1.10 del 27 novembre 2026, a cura di Francesco (riferimento del team dati).
+
+**Novità della v1.10:** le scelte fatte sui file ARERA 2025 durante la parte 2 (§3.4); i testi scritti dal team dati, con un file sorgente fisso in `data/testi/` (§3.7); le tabelle provvisorie che lo zip v1 deve contenere per il seed (§4); le nuove soglie dei controlli (§6); cosa cambia a giugno 2026 tra campione e completo (§7).
 
 La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa le scelte che lì erano aperte. Le voci segnate **[DA CONFERMARE]** vanno discusse alla prossima riunione; tutto il resto è deciso. Se cambia una decisione, si aggiorna prima questa guida e poi il codice.
 
@@ -17,7 +19,7 @@ La guida parte da `docs/team-dati.md` e `docs/architettura.md` di Luca e fissa l
   - **fattore CO2** da ISPRA e **tariffa** dal DM CER.
 - **Il generatore:** un solo programma Python con due configurazioni e seed fisso `42`.
   - **PICCOLA:** il campione per il SAL 1, con giugno 2026, 3 impianti e 20 soci.
-  - **COMPLETA:** il dataset per il SAL 2.
+  - **COMPLETA:** il dataset per il SAL 2, condiviso come zip sul Drive del gruppo (§5).
 - **Allineamento con `docs/api.md`:** le dimensioni coincidono con i suoi esempi: 240 soci, 8 impianti, 950 kWp e l'impianto 3 "Tetto scuola Pinerolo" da 180 kWp, con un guasto il 1 giugno 2026 dalle 11 alle 15 UTC.
 
 ---
@@ -193,28 +195,73 @@ Ogni anomalia "vera" si scrive in `anomalie_vere.csv`, con le colonne `id`, `imp
 
 **Fonti ARERA** (sezione "Monitoraggio retail", file ZIP):
 
-- **Famiglie:** "Analisi dei consumi dei clienti domestici". Contiene il prelievo medio mensile in kWh per provincia, classe di potenza e residenza, la ripartizione per fasce F1/F2/F3 e il prelievo medio orario dei clienti trattati orari. Si usa **provincia di Torino, residenti, la classe di potenza più comune, anno 2025**.
+- **Famiglie:** "Analisi dei consumi dei clienti domestici". Contiene il prelievo medio mensile in kWh per provincia, classe di potenza e residenza, la ripartizione per fasce F1/F2/F3 e il prelievo medio orario dei clienti trattati orari. Si usa **provincia di Torino, residenti, classe 1,5–3 kW, tutti i mercati, anno 2025** (scelte al §3.4.1).
 - **Imprese ed enti:** "Analisi dei consumi dei clienti non domestici in BT" per ATECO. Contiene il prelievo medio mensile per attività (fino alla classe ATECO a 4 cifre), provincia e classe di potenza. Si usa **provincia di Torino, anno 2025**.
 - **Scaricamento:** gli ZIP pesano 20–50 MB. Si scaricano a mano una volta in `data/output/cache/arera/`, poi uno script estrae solo le righe che servono e le salva in un piccolo CSV.
 
 **Passi:**
 
-1. **Volume mensile del profilo.** È la media ARERA del mese per quel profilo (2025, provincia di Torino). Lo stesso valore si usa per i mesi corrispondenti del 2024 e del 2026, perché ARERA non ha ancora pubblicato il 2026.
+1. **Volume mensile del profilo.** È la media ARERA del mese per quel profilo (2025, provincia di Torino). Lo stesso valore si usa per i mesi corrispondenti del 2024 e del 2026, perché ARERA non ha ancora pubblicato il 2026. **Conseguenza per i modelli:** i due anni hanno gli stessi volumi mensili, quindi a livello di mese la previsione dei consumi è banale; la varietà tra un anno e l'altro viene solo dal rumore e dal calendario.
 2. **Varietà tra soci.** Ogni socio ha un moltiplicatore fisso `scala`, estratto da una distribuzione lognormale con media 1. La deviazione standard è circa 0,35 per le famiglie e 0,5 per imprese ed enti. Così ci sono famiglie piccole e grandi.
 3. **Forma oraria.** Un profilo di 24 valori per tipo di socio e tipo di giorno: feriale, sabato, domenica o festivo. I festivi italiani si ricavano con la libreria `holidays`.
    - **Famiglia:** picco la mattina (7–8) e la sera (19–22), consumi bassi di notte, un po' più alti a metà giornata nel weekend.
-   - **Imprese ed enti:** consumi alti negli orari di apertura del profilo, bassi fuori orario (resta il consumo di base). Per esempio la scuola è aperta lunedì–venerdì 8–16 nei giorni di lezione del calendario scolastico della Regione Piemonte (nel 2025/26 dal 10 settembre al 10 giugno, con il ponte del 1° giugno; il 2026/27 inizia lunedì 14 settembre) ed è chiusa nelle vacanze, a luglio e ad agosto; per la versione completa serve ancora il calendario 2024/25; il ristorante lavora 11–15 e 19–23, il bar soprattutto dalla mattina al pomeriggio; l'officina lunedì–venerdì 8–18.
-   - **Primo compito sul file ARERA delle famiglie:** controllare come è fatto il "prelievo medio orario".
-     - Se contiene un valore per ogni ora del giorno, si usa direttamente quella forma.
-     - Altrimenti si usa il profilo descritto sopra, riscalato in modo da rispettare le percentuali F1/F2/F3 di ARERA.
+   - **Imprese ed enti:** consumi alti negli orari di apertura del profilo, bassi fuori orario (resta il consumo di base). Per esempio la scuola è aperta lunedì–venerdì 8–16 nei giorni di lezione del calendario scolastico della Regione Piemonte (nel 2025/26 dal 10 settembre al 10 giugno, con il ponte del 1° giugno; il 2026/27 inizia lunedì 14 settembre) ed è chiusa nelle vacanze, a luglio e ad agosto; nel 2024/25 (DGR 4-8323 del 20 marzo 2024) le lezioni vanno dall'11 settembre 2024 al 7 giugno 2025, con vacanze di Natale dal 23 dicembre al 6 gennaio, Carnevale dal 1° al 4 marzo, Pasqua dal 17 al 22 aprile e scuola chiusa anche il 1° novembre, il 25 aprile, dal 1° al 3 maggio e il 2 giugno; il ristorante lavora 11–15 e 19–23, il bar soprattutto dalla mattina al pomeriggio; l'officina lunedì–venerdì 8–18.
+   - **File ARERA delle famiglie (verificato il 27/11):** il "prelievo medio orario" ha un valore per ogni ora, per mese e tipo di giorno, quindi per le famiglie si usa direttamente la forma ARERA (§3.4.1). Il profilo descritto sopra resta solo nel campione.
    - **Le fasce:**
      - F1 = lunedì–venerdì 8–19;
      - F2 = lunedì–venerdì 7–8 e 19–23, sabato 7–23;
      - F3 = lunedì–sabato 23–7, domenica e festivi tutto il giorno.
 4. **Ora italiana e UTC.** I profili sono pensati in ora italiana, perché le persone si svegliano alle 7 locali, ma la serie si costruisce sulle ore UTC. Per ogni ora UTC si ricava l'ora italiana con `tz_convert('Europe/Rome')` e si legge il valore del profilo. Così i giorni del cambio d'ora, che hanno 23 o 25 ore, non creano ore mancanti o doppie: nel periodo sono il 30/3/2025, il 26/10/2025, il 29/3/2026 e il 25/10/2026.
 5. **Rumore.** Ogni ora si moltiplica per un fattore casuale normale con media 1 e deviazione standard 0,15, troncato a zero. In più ogni socio ha le abitudini spostate di 0 o ±1 ora.
-6. **Riscalatura finale.** Il totale mensile di ogni socio deve risultare uguale a volume ARERA × `scala`.
-7. **Facoltativo, se avanza tempo:** legare i consumi estivi alla temperatura, per cui nei giorni più caldi si usa di più il condizionatore. Così il modello di previsione dei consumi ha una variabile meteo da sfruttare.
+6. **Riscalatura finale.** Il totale di ogni **mese UTC** di ogni socio deve risultare uguale a volume ARERA × `scala`. Si usa il mese UTC perché anche le bollette lo usano (§2): così `bolletta.kwh` torna esattamente. Il periodo deve essere fatto di mesi interi, altrimenti il programma si ferma.
+7. **Facoltativo, per una v2 del dataset:** legare i consumi estivi alla temperatura, per cui nei giorni più caldi si usa di più il condizionatore. Così il modello di previsione dei consumi ha una variabile meteo da sfruttare. Non è nella v1.
+
+#### 3.4.1 Scelte sui file ARERA 2025 (parte 2, 27 novembre)
+
+Le scelte sono nel codice (`consumi.py`), non nel CSV estratto: per cambiarle basta cambiare il codice e rigenerare.
+
+**Famiglie**
+
+- **Riga usata:** provincia di Torino, Tipo Mercato "Tutti", Residenza "Residente", Classe potenza "1.5<potenza_impegnata<=3". ARERA non dice quanti clienti ci sono per classe: si sceglie il contratto da 3 kW, il più diffuso. "Tutti" comprende tutti i mercati (`CLASSE_FAMIGLIE`).
+- **Volume dal file mensile, forma dal file orario.** Il volume del mese è il "medio consumo mensile" del file mensile, cioè la media ufficiale: **1.552,4 kWh all'anno** (da gennaio a dicembre: 147,0 – 127,4 – 131,8 – 118,1 – 117,7 – 136,8 – 128,3 – 124,5 – 112,0 – 127,4 – 135,5 – 145,9). La somma ore × giorni del file orario dà circa l'1% in più, quindi quel file serve solo per la forma della giornata.
+- **Forma oraria ARERA usata così com'è:** 864 valori (12 mesi × 3 tipi di giorno × 24 ore) dal file "TOT", non da quelli per mercato. Il mese della forma è quello del giorno in ora italiana; lo spostamento di ±1 ora delle abitudini vale anche qui.
+- **"Ora1" è l'ora 00–01 in ora italiana.** Con questa lettura le quote F1/F2/F3 ricavate dalla forma (31,9 / 30,7 / 37,4%) tornano con quelle del file mensile (31,3 / 30,7 / 38,0%); con "Ora1" = 01–02 tornano peggio.
+- **Festivi trattati come domenica.** ARERA ha solo feriale, sabato e domenica, e la fascia F3 mette insieme domeniche e festivi. Con questa ipotesi ore × giorni torna con il mensile (+1%) e le fasce tornano entro 1 punto.
+- **Lettura del file:** si saltano le righe con "Anno Mese" = 2025 (totali dell'anno); il mese è una data di Excel (45658 = 1/1/2025).
+
+**Imprese ed enti**
+
+- **Codici ATECO 2007 del §1.3, senza tabella di corrispondenza.** Nel file 2025 i codici vecchi ci sono in tutti i 12 mesi, quelli nuovi (56.11, 96.21, 91.11, 25.53) solo da maggio–giugno. 25.62 vale come "meccanica generale".
+- **Classe di potenza per profilo:** negozi 6–10 kW; attività con forni, cucina o macchinari oltre 10 kW; enti oltre 16,5 kW.
+
+| profilo | ATECO | classe | kWh/anno |
+|---|---|---|---|
+| bar | 56.30 | 6–10 | 15.422 |
+| alimentari | 47.11 | 6–10 | 11.829 |
+| parrucchiere | 96.02 | 6–10 | 5.348 |
+| ristorante | 56.10 | >10 | 20.199 |
+| panificio | 10.71 | >10 | 19.272 |
+| officina | 25.62 | >10 | 10.152 |
+| scuola | 85.20 | >16,5 | 36.776 |
+| uffici_comunali | 84.11 | >16,5 | 33.305 |
+| rsa | 87.10 | >16,5 | 146.346 |
+| impianto_sportivo | 93.11 | >16,5 | 72.998 |
+| biblioteca | 91.01 | 6–10 | 18.134 |
+
+- **Biblioteca.** La 6–10 kW è l'unica classe di 91.01 con tutti i 12 mesi, ma da luglio raddoppia (da 976 a 2.092 kWh) perché i clienti sono pochi. Si prende quindi il totale annuo (18.133,6 kWh) e lo si distribuisce sui mesi con la forma degli uffici comunali (84.11) della stessa classe: 1.741, 1.552, 1.609, 1.446, 1.377, 1.310, 1.334, 1.312, 1.384, 1.572, 1.676, 1.823 kWh (`FORMA_MESI_BIBLIOTECA`).
+- **Forma oraria:** restano i profili orari approvati il 19/11, perché ARERA dà solo valori mensili.
+- **Prezzi:** le bollette di imprese ed enti usano ancora 0,351 €/kWh come le famiglie (§3.5). Va scritto nel `LEGGIMI.txt`.
+
+**File estratto: `data/output/cache/arera/arera_torino_2025.csv`**
+
+- Colonne `cliente`, `ateco`, `classe_potenza`, `mese`, `tipo_giorno`, `ora`, `grandezza`, `valore`, `file`; 1.056 righe, valori come nella fonte, senza arrotondamenti.
+- Contiene anche righe che non si usano come volume (per esempio 84.11 a 6–10 kW, che serve per la forma della biblioteca).
+- Per rifare l'estrazione basta cancellare il file. Una verifica blocca tutto se mancano mesi o ci sono valori nulli.
+- Gli xlsx si leggono con la libreria standard: `requirements.txt` non cambia.
+
+**Calendario scolastico 2024/25:** date del punto 3, con l'anno dal 1/9/2024 al 31/8/2025; tra le sospensioni ci sono anche il 1/11, il 25/4, il 1–3/5 e il 2/6, anche se sono già festivi.
+
+**Risultati (completo, 27/11):** famiglie in media 1.542 kWh all'anno in entrambi gli anni (−0,7% da ARERA); fasce 32,1 / 30,1 / 37,8% contro 31,3 / 30,5 / 38,2%; scuola con rapporto lezione/notte 1,01 a luglio–agosto e 6,72 a ottobre; bolletta annua media famiglia 541 €, impresa 4.242 €, ente 14.236 €. La comunità consuma circa 1.180 MWh all'anno (con tutte le scale a 1) e ne produce 1.181–1.230.
 
 ### 3.5 Parametri (tabella `parametro`)
 
@@ -269,13 +316,34 @@ co2_evitata_kg = kwh_condivisi × fattore_co2_kg_kwh
 - **Coerenza con i dati:**
   - per ogni `guasto` e `stringa` in `anomalie_vere.csv` ci sono 1–3 segnalazioni nei giorni successivi su quell'impianto, a volte con il nome esatto e a volte vaghe ("i pannelli della scuola");
   - ogni anomalia ha una comunicazione `interno`.
-- **Varietà:** lunghezze da una a dieci righe, registri diversi, errori di battitura e qualche caso ambiguo tra due categorie. I testi si generano con un LLM, poi un campione si controlla a mano.
+- **Varietà:** lunghezze da una a dieci righe, registri diversi, errori di battitura e qualche caso ambiguo tra due categorie (circa il 15%). Nel testo il socio scrive l'ora italiana; `ts` resta in UTC.
+- **Chi li scrive (deciso il 27/11):** il team dati (Francesco, con Claude come LLM), così Giuseppe classifica testi che non ha scritto. Un campione si controlla a mano, ma **solo nel set di sviluppo** (vedi sotto): chi legge il test non può più usarlo per la misura.
+- **Mittenti coerenti:** ogni segnalazione di un socio ha `ts` successivo alla sua `data_adesione`. Le segnalazioni sui guasti vengono di preferenza dall'ente che ospita l'impianto o da soci dello stesso comune.
+- **Giugno 2026:** le 15 segnalazioni del campione entrano nel completo con lo stesso testo, socio, impianto e ora. Cambia solo lo `stato`: al 31/10/2026 sono più vecchie di 30 giorni, quindi tutte `chiusa`.
+
+**File sorgente: `data/testi/segnalazioni_sorgente.csv`** (va su GitHub, circa 60 KB). Un testo scritto da un LLM non si rigenera dal codice, quindi i testi stanno in un file fisso e il generatore li legge. Colonne:
+
+| Colonna | Contenuto |
+|---|---|
+| `ts` | Invio, in UTC con la `Z` |
+| `socio_id` | Vuoto per il canale `interno` |
+| `canale` | `email`, `portale`, `interno` |
+| `impianto_id_indicato` | Impianto scelto dal socio nel modulo del portale, oppure quello del sistema di monitoraggio per `interno`; vuoto per le email |
+| `testo` | Il testo |
+| `categoria_vera`, `urgenza_vera`, `impianto_id_vero` | Le etichette vere (vuoto = nessun impianto) |
+| `stato` | Stato al 31/10/2026 |
+| `anomalia_vera_id` | Riferimento a `anomalie_vere.csv` quando il testo racconta un'anomalia (solo per i controlli) |
+
+Il generatore ordina le righe per `ts`, assegna gli `id` da 1 e scrive:
+
+- `segnalazione.csv`: `impianto_id` = `impianto_id_indicato`; `categoria_llm`, `urgenza_llm`, `impianto_id_llm`, `categoria` e `urgenza` **vuote** nel completo (le riempie il batch di classificazione);
+- `segnalazione_etichette.csv`: le etichette vere e la colonna `set`.
 - **Stato:** le segnalazioni più vecchie di 30 giorni sono tutte `chiusa`. Tra le più recenti, quelle già risolte sono `chiusa` e le altre `aperta` o `in_corso`.
 - **Classificazione:** con LLM (domanda aperta 4). Per il report si può aggiungere un confronto con un classificatore classico (TF-IDF + regressione logistica).
 
-#### Chi indica l'impianto **[DA CONFERMARE]**
+#### Chi indica l'impianto
 
-**Scelta attuale, ibrida:**
+**Scelta ibrida, accolta da Luca nello schema e in `api.md` il 23 novembre (commit 5f1ec52):**
 
 - Il socio **può** indicare l'impianto nel modulo, ma non è obbligato.
 - L'LLM legge il testo e restituisce anche l'impianto, se lo riconosce. Per farlo, il prompt riceve l'elenco degli impianti (id, nome, comune).
@@ -297,18 +365,21 @@ Se si sceglie un'alternativa, basta togliere `impianto_id_llm` e la parte del pr
 
 #### File delle etichette
 
-- **Il file:** `segnalazione_etichette.csv` (**non** va nel database), con le colonne `segnalazione_id`, `categoria_vera`, `urgenza_vera` e `impianto_id_vero`.
+- **Il file:** `segnalazione_etichette.csv` (**non** va nel database), con le colonne `segnalazione_id`, `categoria_vera`, `urgenza_vera`, `impianto_id_vero` e `set` (`sviluppo` o `test`).
 - **A cosa serve:** misurare l'accuratezza dell'LLM.
-- **Divisione:** circa il 30% è il set di **sviluppo**, usato per scrivere il prompt; circa il 70% è il set di **test**, usato per la misura finale. Il test non si guarda mentre si scrive il prompt.
+- **Divisione:** circa il 30% è il set di **sviluppo**, usato per scrivere il prompt; circa il 70% è il set di **test**, usato per la misura finale. Il test non si guarda mentre si scrive il prompt. La divisione si fa nel generatore, stratificata per categoria, con `numpy.random.default_rng([42, 3])`.
 - **Come si riempiono le colonne LLM:**
   - In `segnalazione.csv` le colonne `categoria_llm`, `urgenza_llm`, `impianto_id_llm`, `categoria` e `urgenza` le riempie il batch di classificazione al momento del caricamento.
-  - Nel campione del SAL 1 si riempiono a mano.
+  - Nel campione del SAL 1 si riempiono a mano. Nel completo restano vuote.
 
 #### Verbali
 
 - **Quanti:** 8 assemblee, una a trimestre: a gennaio, aprile, luglio e ottobre del 2025 e del 2026. Ogni verbale commenta i dati del trimestre appena concluso.
 - **Contenuto:** 1–2 pagine ciascuno, coerenti con i dati: nuovi soci, guasti, incentivi ricevuti.
 - **Sintesi:** la colonna `sintesi` resta vuota nel dataset, perché la scrive l'LLM.
+- **Quando si scrivono:** dopo `riepilogo_trimestri.csv` (§4), perché devono citare energia condivisa e incentivi del trimestre, che escono dalla ripartizione. Le id vanno da 1 (gennaio 2025) a 8 (ottobre 2026); il verbale del 9 luglio 2026 resta l'id 7.
+- **Il verbale di luglio 2026 nel completo è diverso da quello del campione:** commenta aprile–giugno su tutti gli 8 impianti, con la produzione tarata su PVGIS. Il campione in `data/esempi/` resta com'è.
+- **File sorgente:** `data/testi/verbali/verbale_<data>.md`, uno per assemblea; il generatore li legge e scrive `verbale.csv`.
 
 ---
 
@@ -360,7 +431,7 @@ Le colonne marcate con **(nuova)** non erano nella bozza di Luca.
 | id | int | Identificativo |
 | socio_id | int | Socio; vuoto se il canale è `interno` |
 | impianto_id | int | Impianto in uso (socio, altrimenti LLM; l'operatore può correggerlo) |
-| impianto_id_llm **(nuova, [DA CONFERMARE])** | int | Impianto estratto dall'LLM, mai modificato |
+| impianto_id_llm **(nuova)** | int | Impianto estratto dall'LLM, mai modificato |
 | ts | timestamp | Momento dell'invio (UTC) |
 | canale | text | `email`, `portale`, `interno` |
 | testo | text | Testo della segnalazione |
@@ -370,7 +441,18 @@ Le colonne marcate con **(nuova)** non erano nella bozza di Luca.
 
 **`verbale`:** `id` (int), `data_assemblea` (date), `testo` (text), `sintesi` (text, scritta dall'LLM).
 
-### Tabelle calcolate dai batch (non fanno parte del dataset completo)
+### Tabelle calcolate dai batch
+
+Le calcolano i batch del team dati, non il generatore. Lo zip v1 però le contiene comunque, perché `db/seed/carica.sql` carica 13 CSV e si ferma se ne manca uno:
+
+| Tabella | Nello zip v1 |
+|---|---|
+| `ripartizione_mensile` | Calcolo vero del §3.6 sul completo |
+| `previsione_produzione` | Provvisoria: la formula del §3.2 senza anomalie. È anche la baseline dei modelli |
+| `previsione_consumo` | Provvisoria: il profilo senza rumore. È anche la baseline dei modelli |
+| `anomalia` | Provvisoria: solo il guasto dell'impianto 3 del 1/6/2026, come nel campione. Il batch vero aggiunge le altre e salta quelle già presenti |
+
+Il `LEGGIMI.txt` dice quali sono provvisorie.
 
 - **`previsione_produzione`:** `impianto_id`, `ts`, `kwh_previsti`.
 - **`previsione_consumo`:** `socio_id`, `ts`, `kwh_previsti`.
@@ -382,12 +464,14 @@ Le colonne marcate con **(nuova)** non erano nella bozza di Luca.
 - **`anomalie_vere.csv`:** le anomalie iniettate, per misurare il rilevamento (§3.3).
 - **`segnalazione_etichette.csv`:** le etichette vere delle segnalazioni, per misurare l'LLM (§3.7).
 - **`socio_profilo.csv`:** `socio_id`, `profilo`, `ateco` e `scala` di ogni socio (§1.3 e §3.4).
+- **`riepilogo_trimestri.csv`:** un trimestre per riga, da nov-dic 2024 a lug-set 2026, con `verbale_id` da 1 a 8. Colonne: produzione per impianto e totale, consumi dei soci attivi, energia condivisa, incentivo totale e per tipo di socio, CO2 evitata (sulla produzione e sulla parte condivisa), soci attivi e nuovi, anomalie per tipo, `anomalie_dettaglio` con i kWh persi stimati, giorni di massima e minima produzione (in UTC). Serve per scrivere i verbali e per il report; l'elenco esatto delle colonne è in `config.py`.
+- **`cache/arera/arera_torino_2025.csv`:** le righe ARERA usate (§3.4.1).
 
-### Modifiche rispetto alla bozza di Luca (da approvare al SAL 1)
+### Modifiche rispetto alla bozza di Luca (accolte nello schema il 23 novembre, commit 5f1ec52)
 
 1. **`impianto`:** si aggiungono `inclinazione_gradi` e `azimut_gradi`, necessarie per PVGIS e Open-Meteo.
 2. **`meteo_orario`:** le unità entrano nei nomi (`irraggiamento_wm2`, `temperatura_c`, `nuvolosita_pct`) e si aggiungono `irraggiamento_pannelli_wm2` e `neve_cm`. Nessuna API espone questa tabella, quindi per i WSA non cambia nulla.
-3. **`segnalazione`:** si aggiunge `impianto_id_llm` **[DA CONFERMARE]**, `socio_id` può essere vuoto e il canale `interno` serve per le comunicazioni guasti.
+3. **`segnalazione`:** si aggiunge `impianto_id_llm`, `socio_id` può essere vuoto e il canale `interno` serve per le comunicazioni guasti.
 4. **Risposte alle 6 domande aperte di `team-dati.md` §11:**
    1. una sola cabina primaria;
    2. tariffa costante di 0,130 €/kWh;
@@ -411,9 +495,25 @@ Le colonne marcate con **(nuova)** non erano nella bozza di Luca.
 | parametro.csv | 8 | 8 |
 | segnalazione.csv | circa 280 | circa 15 |
 | verbale.csv | 8 | 1 |
-| anomalie_vere.csv | circa 20, più gli episodi di neve | 1 |
+| segnalazione_etichette.csv | circa 280 | — |
+| anomalie_vere.csv | 41 (19 casuali più 22 righe di neve in 4 episodi) | 1 |
+| ripartizione_mensile.csv | 4.579 (una riga per socio e mese, dal mese di adesione) | 20 |
+| previsione_produzione.csv | 140.160 (provvisoria) | 2.160 |
+| previsione_consumo.csv | 4.204.800 (provvisoria, circa 130 MB) | 14.400 |
+| anomalia.csv | 1 (provvisoria) | 1 |
+| riepilogo_trimestri.csv | 8 (file di lavoro) | — |
 
-`consumo_orario.csv` pesa circa 130 MB: resta in `data/output/` e non va mai su GitHub, che rifiuta i file oltre 100 MB.
+`consumo_orario.csv` e `previsione_consumo.csv` pesano circa 130 MB ciascuno: restano in `data/output/` e non vanno mai su GitHub, che rifiuta i file oltre 100 MB.
+
+**Come si condivide il dataset completo.** Su GitHub va solo il codice. I CSV vanno in uno zip sul Drive condiviso del gruppo.
+
+- **Nome dello zip:** versione e data, per esempio `underthesun-dataset-completo-v1_2026-11-27.zip`. Ogni nuova versione è un nuovo zip con numero più alto; quelli vecchi non si sovrascrivono.
+- **Dentro lo zip:** i CSV, senza la cartella `cache/`, e un `LEGGIMI.txt` con versione della guida, data, elenco dei file con il numero di righe e le istruzioni d'uso.
+- **Chi lo usa:**
+  - scompatta lo zip in `data/output/`, con i CSV direttamente lì e senza sottocartelle;
+  - carica il database con `CARTELLA_CSV=output docker compose run --rm seed` (Issue #18);
+  - non apre e risalva i CSV con Excel o Google Fogli, che cambiano punti decimali e date.
+- **Fonte di verità:** resta il codice. Con lo stesso codice e il seed 42 lo zip si rigenera identico.
 
 ---
 
@@ -430,9 +530,23 @@ Si lanciano dopo ogni generazione. Se un controllo fallisce, il dataset non si c
 - Rilanciando con lo stesso seed si ottengono file identici (confronto degli hash).
 - I grafici di controllo stanno in `data/notebook/`: una settimana estiva e una invernale per ogni impianto, e il profilo medio giornaliero per ogni tipo di socio.
 
+**Soglie fissate nella parte 2 (27/11):**
+
+- totale di ogni mese = ARERA × `scala` con uno scarto massimo di 0,4 kWh (744 ore × 0,0005 kWh di arrotondamento);
+- media annua delle famiglie entro ±5% da ARERA in ciascuno dei due anni (la media delle 200 scale oscilla di circa il 2,5%);
+- fasce F1/F2/F3 delle famiglie entro 3 punti dalla media ARERA pesata sui volumi (31,3 / 30,5 / 38,2%), calcolate in ora italiana, con il sabato festivo in F3;
+- scuola: rapporto tra consumo medio dei feriali 9–15 e consumo 0–5 tra 0,8 e 1,25 a luglio–agosto, sopra 3 a ottobre;
+- bollette: `kwh` uguale alla somma delle ore entro 0,0005 kWh, `importo_eur` giusto al centesimo.
+
+**Aggiunti nella parte 3a (27/11):** ripartizione rifatta da zero ora per ora (energia condivisa ≤ min(produzione, consumi), nessuna quota oltre il consumo del socio, somma dei soci = totale di comunità, nessuna quota prima della `data_adesione`), tabelle provvisorie, riepilogo dei trimestri ricalcolato e intestazioni uguali alle colonne di `carica.sql`. Completo: 142/142.
+
+**Da aggiungere con i testi (parte 3b):** ogni segnalazione di un socio dopo la sua adesione; ogni `guasto` e `stringa` con almeno una segnalazione e una comunicazione `interno`; categorie e urgenze tra i valori ammessi.
+
+Su Windows, per salvare l'output di `controlli.py` in un file, impostare prima `$env:PYTHONIOENCODING = "utf-8"`.
+
 ---
 
-## 7. Versione PICCOLA per il SAL 1 (ven 20 nov)
+## 7. Versione PICCOLA (campione per il SAL 1, su `main` dalla PR #8)
 
 **Contenuto:**
 
@@ -457,6 +571,7 @@ Si lanciano dopo ogni generazione. Se un controllo fallisce, il dataset non si c
   - `anomalia`: una riga, cioè il guasto dell'impianto 3 dal `2026-06-01T11:00:00Z` al `2026-06-01T15:00:00Z`, con `score` 0.97 e `stato` `aperta`, come in `api.md`;
   - `ripartizione_mensile`: la formula del §3.6 applicata a giugno.
 - **Testi:** 15 segnalazioni e 1 verbale scritti a mano o con un LLM, con le colonne `_llm` riempite a mano. Tra le segnalazioni, 2–3 riguardano il guasto del 1 giugno. Il verbale è quello dell'assemblea del 9 luglio 2026 (id 7) e cita i numeri di giugno degli impianti 1–3, calcolati dai CSV del campione.
+- **Il campione resta con le sue scorciatoie** (volumi provvisori, profilo della famiglia scritto a mano, `k = 1`): il vincolo è non cambiarlo. Per questo giugno 2026 nel completo è diverso dal campione.
 
 **Consegna:**
 
@@ -465,6 +580,7 @@ Si lanciano dopo ogni generazione. Se un controllo fallisce, il dataset non si c
   - `ripartizione_mensile` del campione è calcolata su 3 impianti e 20 soci, quindi l'energia condivisa è quasi uguale ai consumi diurni. Nel dataset completo i valori di giugno cambieranno, perché dipendono da tutti gli 8 impianti e i 240 soci.
   - Cambieranno anche i consumi, quando i volumi ARERA sostituiranno quelli provvisori.
   - Calerà di circa il 5% anche la produzione, quando si farà la taratura con PVGIS (§3.2).
+  - **Aggiornamento 27/11:** nel completo è successo. Produzione circa −5% (`k_impianto` ≈ 0,95), famiglie da 2.700 a circa 1.550 kWh all'anno, quindi bollette e ripartizione di giugno cambiano. Anche segnalazioni (stato) e verbale di luglio cambiano (§3.7).
 - **Mercoledì 18:** mandare a Luca le intestazioni dei CSV, anche senza dati, perché gli servono per lo script di caricamento.
 
 ---
@@ -484,8 +600,9 @@ data/
     pvgis.py             PVGIS → k_impianto e confronto 2023
     produzione.py        produzione_oraria + anomalie_vere
     consumi.py           ARERA + profili → consumo_orario
-    derivate.py          bolletta (+ tabelle calcolate provvisorie per il campione)
-    testi/               prompt e script per segnalazioni e verbali
+    derivate.py          bolletta, ripartizione_mensile, tabelle calcolate provvisorie (campione e completo), riepilogo_trimestri
+    testi.py             legge data/testi/ → segnalazione, segnalazione_etichette, verbale
+  testi/                 sorgente fisso dei testi (su GitHub): segnalazioni_sorgente.csv, verbali/
     controlli.py         §6
     genera.py            lancia tutto: python genera.py --config piccola
   notebook/              esplorazione e grafici di controllo
@@ -501,16 +618,19 @@ data/
 Valutato nella chat Dataset del progetto: è costruito sul dataset Zenodo del Politecnico di Porto (2019, ogni 15 minuti, ora locale, 15 impianti privati da 3 a 13 kWp con autoconsumo), cioè su una base diversa da questa guida.
 
 - Consumi, produzione e meteo si rifanno da zero con le regole dei §1–4.
-- Si riusano, adattandoli: i testi delle segnalazioni, la struttura dei verbali e l'impostazione del data dictionary. Categorie, urgenze, impianti e comuni vanno allineati ai §1.2, §3.7 e §4.
+- **Aggiornamento 27/11:** i suoi 329 testi sono costruiti in buona parte su modelli ripetuti (tolti saluti e firme restano circa 200 frasi diverse), sono del 2019, citano impianti privati P01–P15 e usano altre categorie (`consumi`, `portale`, `simulatore`). Si usano solo come spunti; i testi del completo si scrivono da capo (§3.7). La struttura dei verbali resta un buon riferimento.
 - I file da riusare stanno in `data/output/giuseppe/` (escluso da Git). Il dataset completo di Giuseppe non va nel repo.
 
 ---
 
 ## 10. Da portare alla prossima riunione
 
-1. **Chi indica l'impianto nelle segnalazioni** (§3.7): ibrido, solo socio o solo LLM.
-2. **Modifiche allo schema** (§4): servono l'ok di Luca e dei WSA prima del congelamento al SAL 1.
-3. **Valori da aggiornare:** valorizzazione ARERA e prezzi per imprese ed enti (§3.5).
+1. **Valori da aggiornare:** valorizzazione ARERA e prezzi per imprese ed enti (§3.5).
+2. **Design del database:** lo segue Giuseppe, in coppia con Luca, solo su PostgreSQL (deciso il 26/11). La PR #24 è una prima stesura. Il dataset non dipende da quella proposta: è il database che si costruisce sul dataset (§4).
+3. **Per una v2 del dataset:** consumi legati alla temperatura (§3.4, punto 7) e mesi in ora italiana invece che in UTC (§2), che allineerebbero dashboard e ripartizione ai bordi del mese. Oggi costa di più, perché tocca consumi, bollette e ripartizione già generati.
+4. **Data della demo:** proposta "oggi = 1/11/2026" nel portale, da concordare con i WSA.
+
+Chiusi il 23 novembre: chi indica l'impianto (§3.7) e le modifiche allo schema (§4), accolti da Luca nel commit 5f1ec52. Chiusi il 26–27 novembre: niente NoSQL, testi scritti dal team dati, colonne di categoria vuote nel completo.
 
 ---
 

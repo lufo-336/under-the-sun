@@ -28,7 +28,11 @@ SEED = 42
 
 
 def rng_impianto(impianto_id: int) -> np.random.Generator:
-    """Generatore casuale proprio di un impianto: default_rng([42, 0, id])."""
+    """Generatore casuale proprio di un impianto: default_rng([42, 0, id]).
+
+    Lo usa solo produzione.py, per le anomalie casuali del dataset completo, in
+    quest'ordine: sporcizia, stringa, guasto (vedi produzione.anomalie_casuali).
+    """
     return np.random.default_rng([SEED, 0, impianto_id])
 
 
@@ -92,6 +96,8 @@ CONFIGURAZIONI = {
         "taratura_pvgis": False,  # k_impianto = 1 (scorciatoia del §7)
         "anomalie_casuali": False,  # §3.3: in giugno 2026 sugli impianti 1-3 c'è solo il guasto fisso
         "tabelle_provvisorie": True,  # §7: previsioni, anomalia e ripartizione con valori provvisori
+        "riepilogo_trimestri": False,  # il campione è un solo mese: niente trimestri
+        "testi_da_sorgente": False,  # segnalazione e verbale scritti a mano in esempi/: il generatore non li tocca
         "cartella": CARTELLA_ESEMPI,
     },
     "completa": {
@@ -103,7 +109,12 @@ CONFIGURAZIONI = {
         "volumi_consumo": "arera",  # volumi mensili ARERA (§3.4)
         "taratura_pvgis": True,
         "anomalie_casuali": True,
-        "tabelle_provvisorie": False,  # §4: nel dataset completo le scrivono i batch
+        # §4 (v1.10): lo zip v1 contiene le 4 tabelle calcolate, perché carica.sql
+        # carica 13 CSV. ripartizione_mensile è il calcolo vero del §3.6; previsioni
+        # e anomalia sono provvisorie, come nel campione.
+        "tabelle_provvisorie": True,
+        "riepilogo_trimestri": True,  # §4: file di lavoro per scrivere i verbali
+        "testi_da_sorgente": True,  # §3.7: segnalazioni e verbali rigenerati ogni volta da data/testi/
         "cartella": CARTELLA_OUTPUT,
     },
 }
@@ -145,8 +156,21 @@ TABELLE_CALCOLATE = {
 # File di lavoro: non vanno nel database
 FILE_DI_LAVORO = {
     "anomalie_vere": ["id", "impianto_id", "inizio", "fine", "tipo", "perdita_pct"],
-    "segnalazione_etichette": ["segnalazione_id", "categoria_vera", "urgenza_vera", "impianto_id_vero"],
+    # §3.7: set = "sviluppo" (circa 30%, per scrivere il prompt) o "test" (circa 70%, per la misura finale)
+    "segnalazione_etichette": ["segnalazione_id", "categoria_vera", "urgenza_vera", "impianto_id_vero", "set"],
+    "segnalazione_etichette_sviluppo": ["segnalazione_id", "categoria_vera", "urgenza_vera", "impianto_id_vero", "set"],
     "socio_profilo": ["socio_id", "profilo", "ateco", "scala"],
+    # Un trimestre per riga, per scrivere i verbali (§3.7, §4). Solo nel completo.
+    "riepilogo_trimestri": [
+        "verbale_id", "trimestre",
+        *[f"produzione_impianto_{i}_kwh" for i in range(1, 9)], "produzione_kwh",
+        "consumi_kwh", "kwh_condivisi",
+        "incentivo_eur", "incentivo_famiglie_eur", "incentivo_imprese_eur", "incentivo_enti_eur",
+        "co2_evitata_kg", "co2_evitata_condivisa_kg",
+        "soci_attivi", "nuovi_soci",
+        "anomalie_guasto", "anomalie_stringa", "anomalie_sporcizia", "anomalie_neve", "anomalie_dettaglio",
+        "giorno_max_produzione", "kwh_giorno_max", "giorno_min_produzione", "kwh_giorno_min",
+    ],
 }
 
 COLONNE = {**TABELLE_GENERATE, **TABELLE_CALCOLATE, **FILE_DI_LAVORO}

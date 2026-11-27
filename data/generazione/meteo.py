@@ -24,23 +24,26 @@ VARIABILI = {
 }
 
 
-def scarica(impianto) -> dict:
-    """La risposta di Open-Meteo per un impianto (dalla cache, se c'è già)."""
+def scarica(impianto, dal: str = DAL, al: str = AL) -> dict:
+    """La risposta di Open-Meteo per un impianto (dalla cache, se c'è già).
+
+    Di norma il periodo del dataset; pvgis.py la usa anche per il 2023.
+    """
     parametri = {
         "latitude": impianto.lat,
         "longitude": impianto.lon,
-        "start_date": DAL,
-        "end_date": AL,
+        "start_date": dal,
+        "end_date": al,
         "timezone": "GMT",
         "tilt": impianto.inclinazione_gradi,
         "azimuth": impianto.azimut_gradi,
         "hourly": ",".join(VARIABILI),
     }
-    cache = config.CARTELLA_CACHE / "openmeteo" / f"impianto_{impianto.id}_{DAL}_{AL}.json"
+    cache = config.CARTELLA_CACHE / "openmeteo" / f"impianto_{impianto.id}_{dal}_{al}.json"
     return config.scarica_json(URL, parametri, cache)
 
 
-def controlla_risposta(risposta: dict, impianto_id: int) -> None:
+def controlla_risposta(risposta: dict, impianto_id: int, dal: str = DAL, al: str = AL) -> None:
     """Si ferma se la risposta ha una forma diversa da quella attesa (CLAUDE.md:
     meglio fermarsi e chiedere che indovinare)."""
     problemi = []
@@ -51,7 +54,7 @@ def controlla_risposta(risposta: dict, impianto_id: int) -> None:
         if unita.get(variabile) != attesa:
             problemi.append(f"{variabile}: unità {unita.get(variabile)!r}, attesa {attesa!r}")
     ore = pd.to_datetime(risposta["hourly"]["time"], utc=True)
-    attese = pd.date_range(f"{DAL}T00:00Z", f"{AL}T23:00Z", freq="h")
+    attese = pd.date_range(f"{dal}T00:00Z", f"{al}T23:00Z", freq="h")
     if not ore.equals(attese):
         problemi.append(f"ore: {len(ore)} dal {ore.min()} al {ore.max()}, attese {len(attese)} senza buchi")
     if problemi:
@@ -73,6 +76,30 @@ def tabella(impianto, risposta: dict, primo_ts: pd.Timestamp, ultimo_ts: pd.Time
     df.insert(0, "impianto_id", impianto.id)
     df.insert(1, "ts", df.index.strftime("%Y-%m-%dT%H:%M:%SZ"))
     return df.reset_index(drop=True)[config.COLONNE["meteo_orario"]]
+
+
+def celle(impianti: pd.DataFrame) -> pd.DataFrame:
+    """La cella della griglia meteo usata da Open-Meteo per ogni impianto (§1.1).
+
+    Open-Meteo restituisce le coordinate del punto di griglia (latitude,
+    longitude) e la quota usata per correggere la temperatura (elevation).
+    Due impianti nella stessa cella hanno lo stesso irraggiamento orizzontale,
+    la stessa nuvolosità e la stessa neve.
+    """
+    righe = []
+    for impianto in impianti.itertuples():
+        risposta = scarica(impianto)
+        righe.append({
+            "impianto_id": impianto.id,
+            "comune": impianto.comune,
+            "cella_lat": round(risposta["latitude"], 3),
+            "cella_lon": round(risposta["longitude"], 3),
+            "quota_m": risposta["elevation"],
+        })
+    tabella = pd.DataFrame(righe)
+    numeri = {cella: n for n, cella in enumerate(dict.fromkeys(zip(tabella["cella_lat"], tabella["cella_lon"])), start=1)}
+    tabella.insert(2, "cella", [numeri[c] for c in zip(tabella["cella_lat"], tabella["cella_lon"])])
+    return tabella
 
 
 def genera(conf: dict, impianti: pd.DataFrame) -> dict[str, pd.DataFrame]:
