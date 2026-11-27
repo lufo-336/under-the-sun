@@ -16,8 +16,8 @@ import { anomalie, impiantoProductionSeries } from '../../mocks/mockData'
 import impiantiService from '../../services/impiantiService'
 import { formatDateTime, formatShortDate } from '../../utils/formatters'
 
-const badgeDemo = (
-  <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Demo</span>
+const badgeDatiEsempio = (
+  <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Dati di esempio</span>
 )
 
 const messaggioErrore = (errore) => {
@@ -158,7 +158,7 @@ export default function OperatoreImpiantiPage() {
 
       {selectedImpianto && (
         <div className="grid gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <Panel eyebrow="Produzione" title={selectedImpianto.nome} action={badgeDemo}>
+          <Panel eyebrow="Produzione" title={selectedImpianto.nome} action={badgeDatiEsempio}>
             <div className="-ml-2 h-[300px] w-full">
               <ResponsiveContainer>
                 <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -178,7 +178,7 @@ export default function OperatoreImpiantiPage() {
             </div>
           </Panel>
 
-          <Panel eyebrow="Anomalie" title="Segnalazioni impianto" action={badgeDemo}>
+          <Panel eyebrow="Anomalie" title="Segnalazioni impianto" action={badgeDatiEsempio}>
             {impiantoAnomalie.length === 0 && (
               <p className="text-sm text-muted-foreground">Nessuna anomalia registrata per questo impianto.</p>
             )}
