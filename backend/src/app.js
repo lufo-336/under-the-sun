@@ -4,6 +4,7 @@ import { rotteAuth } from './routes/auth.js';
 import { rotteImpianti } from './routes/impianti.js';
 import { rotteMe } from './routes/me.js';
 import { rotteSalute } from './routes/salute.js';
+import { rotteVerbali } from './routes/verbali.js';
 
 // L'app riceve db e config dall'esterno: così i test le passano un database finto
 // e non serve Postgres per farli girare.
@@ -16,6 +17,7 @@ export function creaApp({ db, config }) {
   app.use('/api/auth', rotteAuth({ db, config }));
   app.use('/api/impianti', rotteImpianti({ db, config }));
   app.use('/api/me', rotteMe({ db, config }));
+  app.use('/api/verbali', rotteVerbali({ db, config }));
 
   app.use(percorsoNonTrovato);
   app.use(gestoreErrori);

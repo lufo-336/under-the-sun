@@ -17,7 +17,7 @@ window.UTS_DATA = {
     { date: 'ven 6 nov', title: '1 · Kickoff', desc: 'Creazione del repo su brief Buby Green; due team: WSA e data analyst', stato: 'fatto' },
     { date: '6 → 23 nov', title: '2 · Sprint 0 · Fondamenta', desc: 'Bozza docs 6 nov · piano v0.1 13 nov · DB in Docker 16 nov · campione dati 19 nov · backend, mappa e Pages 23 nov', stato: 'fatto' },
     { date: 'lun 23 nov', title: '3 · SAL 1 · schema e API congelati', desc: 'Schema e contratto API congelati; #6, #8, #9 su main (presentazione rimandata)', stato: 'fatto' },
-    { date: '23 nov → 4 dic', title: '4 · Sprint 1 (in corso)', desc: '11 Issue (#11–#20, #25) · PR aperte al 25 nov: #10 CI, #23 login JWT, #24 proposta DB, #28 verbali', stato: 'sprint1', link: 'sprint1' },
+    { date: '23 nov → 4 dic', title: '4 · Sprint 1 (in corso)', desc: '11 Issue (#11–#20, #25) · unite #10 CI, #23 login JWT e #28 verbali · in revisione #30, #31, #32 · proposta DB #24', stato: 'sprint1', link: 'sprint1' },
     { date: 'ven 27 nov', title: '5 · Mini SAL col cliente', desc: 'Stato progetto, architettura e 3–4 domande puntuali', stato: 'sprint1' },
     { date: 'ven 4 dic', title: '6 · SAL 2', desc: 'Dataset 2 anni, modelli, classificazione testi', stato: 'sprint2' },
     { date: '4 → 14 dic', title: '7 · Sprint 2', desc: 'Tutte le pagine, simulatore, batch e operatore/admin', stato: 'sprint2' },
@@ -28,11 +28,11 @@ window.UTS_DATA = {
   views: {
     generale: {
       title: 'UnderTheSun — Architettura della piattaforma',
-      subtitle: 'Portale della <strong>Comunità Energetica Rinnovabile Buby Green</strong> · team <strong>PlusUltra</strong> · stato al <strong>25 novembre 2026</strong>. Clicca qualunque blocco nel diagramma qui sotto per aprirne i dettagli con zoom-in.',
+      subtitle: 'Portale della <strong>Comunità Energetica Rinnovabile Buby Green</strong> · team <strong>PlusUltra</strong> · stato al <strong>27 novembre 2026</strong>. Clicca qualunque blocco nel diagramma qui sotto per aprirne i dettagli con zoom-in.',
       badges: [
-        { cls: 'fatto', text: '11 PR unite su main (#1–#3, #6, #8, #9, #21, #22, #26, #27, #29)' },
-        { cls: 'revisione', text: 'PR aperte: #10 CI, #23 frontend, #28 verbali · proposta DB #24' },
-        { cls: 'sprint1', text: 'Sprint 1 · 11 Issue (#11–#20, #25)' },
+        { cls: 'fatto', text: '14 PR unite su main (#1–#3, #6, #8–#10, #21–#23, #26–#29)' },
+        { cls: 'revisione', text: 'PR in revisione: #30, #31, #32 · proposta DB #24' },
+        { cls: 'sprint1', text: 'Sprint 1 · 11 Issue, 3 chiuse (#12, #13, #25)' },
         { cls: 'sprint2', text: 'Sprint 2 · 4 → 14 dic' }
       ],
       diagrams: [
@@ -198,15 +198,16 @@ SELECT setval(pg_get_serial_sequence('anomalia', 'id'), max(id)) FROM anomalia;`
 
     backend: {
       title: 'Backend · Node 22 + Express 5 + pg',
-      subtitle: 'Scheletro <strong>unito su main</strong> (PR #9 di <strong>Stefano (@stefanospadaccini-888)</strong>, merge <code>c0adefd</code>): Express <code>^5.3.0</code>, <code>pg ^8.23.1</code>, <code>jsonwebtoken ^9.0.3</code>, <code>bcryptjs ^3.0.3</code>, <strong>4 endpoint pronti</strong> e <strong>7 test</strong> verdi. In revisione la PR #28 di <strong>Geoffrey (@geoffreyagwasim)</strong> (<code>/api/verbali</code>); nello Sprint 1 anche area socio (<code>#14</code>) e segnalazioni LLM (<code>#16</code>).',
+      subtitle: 'Scheletro <strong>unito su main</strong> (PR #9 di <strong>Stefano (@stefanospadaccini-888)</strong>, merge <code>c0adefd</code>): Express <code>^5.3.0</code>, <code>pg ^8.23.1</code>, <code>jsonwebtoken ^9.0.3</code>, <code>bcryptjs ^3.0.3</code>, <strong>6 endpoint su main</strong> e <strong>9 test</strong> verdi: dal 27 nov anche <code>/api/verbali</code> (PR #28 di <strong>Geoffrey (@geoffreyagwasim)</strong>). In revisione la PR #32 di <strong>Stefano (@stefanospadaccini-888)</strong> (<code>/api/me/riepilogo</code>); poi segnalazioni LLM (<code>#16</code>).',
       badges: [
-        { cls: 'fatto', text: 'PR #9 unita su main · 4 endpoint · 7/7 test verdi' },
-        { cls: 'revisione', text: 'PR #28 in revisione (/api/verbali)' },
-        { cls: 'sprint1', text: 'Sprint 1: #14, #16 (Stefano) · #25 (Geoffrey)' }
+        { cls: 'fatto', text: 'PR #9 e #28 unite su main · 6 endpoint · 9/9 test verdi' },
+        { cls: 'revisione', text: 'PR #32 in revisione (/api/me/riepilogo)' },
+        { cls: 'sprint1', text: 'Sprint 1: #14, #16 (Stefano) · #25 chiusa (Geoffrey)' }
       ],
       links: [
         { label: 'PR #9 su GitHub ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/9' },
-        { label: 'PR #28 (verbali) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/28', secondary: true },
+        { label: 'PR #28 (verbali, unita) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/28', secondary: true },
+        { label: 'PR #32 (riepilogo socio) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/32', secondary: true },
         { label: 'Flusso segnalazione + LLM →', internal: 'flusso_llm', secondary: true },
         { label: 'Issue #14 ↗', href: 'https://github.com/lufo-336/under-the-sun/issues/14', secondary: true },
         { label: 'Issue #16 ↗', href: 'https://github.com/lufo-336/under-the-sun/issues/16', secondary: true },
@@ -221,7 +222,8 @@ SELECT setval(pg_get_serial_sequence('anomalia', 'id'), max(id)) FROM anomalia;`
           { date: '6 → 23 nov', who: 'Luca (@lufo-336)', what: 'Contratto API in <code>docs/api.md</code>: bozza del 6 nov (<code>29c89c6</code>), correzioni nella PR #2 (13 nov), congelato al SAL 1 nella PR #22 (21 endpoint su 6 aree e 3 ruoli)', ref: 'Storia di api.md', href: 'https://github.com/lufo-336/under-the-sun/commits/main/docs/api.md', stato: 'fatto' },
           { date: '23 nov', who: 'Stefano (@stefanospadaccini-888)', what: 'Scheletro Express 5 + <code>pg</code> + JWT HS256: 4 endpoint (<code>/api/salute</code>, <code>/api/auth/login</code>, <code>/api/auth/me</code>, <code>/api/impianti</code>), script <code>crea-utenti</code> e 7 test con <code>node:test</code> + <code>supertest</code>', ref: 'PR #9', href: 'https://github.com/lufo-336/under-the-sun/pull/9', stato: 'fatto' },
           { date: '23 nov', who: 'Luca (@lufo-336)', what: 'Approvazione PR #9 (verificati 7/7 test, build su Podman Fedora, <code>crea-utenti</code> e 200/403) e merge su <code>main</code> (<code>c0adefd</code>)', ref: 'PR #9', href: 'https://github.com/lufo-336/under-the-sun/pull/9', stato: 'fatto' },
-          { date: '25 nov', who: 'Geoffrey (@geoffreyagwasim)', what: 'Endpoint <code>GET /api/verbali</code> e <code>GET /api/verbali/:id</code> per ruolo <code>admin</code> con test su branch <code>backend/verbali</code> (<code>971541a</code>, PR aperta in revisione)', ref: 'PR #28', href: 'https://github.com/lufo-336/under-the-sun/pull/28', stato: 'revisione' },
+          { date: '25 → 27 nov', who: 'Geoffrey (@geoffreyagwasim)', what: 'Endpoint <code>GET /api/verbali</code> e <code>GET /api/verbali/:id</code> per ruolo <code>admin</code> con test (9/9 verdi) e controllo dell\'id; approvata da Luca (@lufo-336) e unita su <code>main</code> il 27 nov (<code>99606de</code>), chiude #25', ref: 'PR #28', href: 'https://github.com/lufo-336/under-the-sun/pull/28', stato: 'fatto' },
+          { date: '25 nov', who: 'Stefano (@stefanospadaccini-888)', what: 'Query del riepilogo annuale e <code>GET /api/me/riepilogo</code> per il socio loggato (12 test), con documentazione in <code>docs/api.md</code> (6 file, +181 righe, PR aperta in revisione)', ref: 'PR #32', href: 'https://github.com/lufo-336/under-the-sun/pull/32', stato: 'revisione' },
           { date: 'Sprint 1', who: 'Stefano (@stefanospadaccini-888)', what: 'Endpoint area socio <code>GET /api/me/riepilogo</code> e <code>GET /api/me/consumi</code> (US-02)', ref: 'Issue #14', href: 'https://github.com/lufo-336/under-the-sun/issues/14', stato: 'sprint1' },
           { date: 'Sprint 1', who: 'Stefano (@stefanospadaccini-888)', what: 'Endpoint segnalazioni socio <code>GET</code> / <code>POST /api/me/segnalazioni</code> con chiamata LLM e fallback <code>201</code> (US-05)', ref: 'Issue #16', href: 'https://github.com/lufo-336/under-the-sun/issues/16', stato: 'sprint1' }
         ]
@@ -233,8 +235,8 @@ SELECT setval(pg_get_serial_sequence('anomalia', 'id'), max(id)) FROM anomalia;`
           ['<span class="badge fatto">Su main</span>', '<code>GET /api/salute</code>', 'pubblico', 'Stefano (@stefanospadaccini-888) · PR #9 (healthcheck DB)'],
           ['<span class="badge fatto">Su main</span>', '<code>POST /api/auth/login</code> · <code>GET /api/auth/me</code>', 'pubblico / tutti i loggati', 'Stefano (@stefanospadaccini-888) · PR #9'],
           ['<span class="badge fatto">Su main</span>', '<code>GET /api/impianti</code>', 'operatore, admin', 'Stefano (@stefanospadaccini-888) · PR #9 (403 al socio)'],
-          ['<span class="badge revisione">In revisione</span>', '<code>GET /api/verbali</code> · <code>GET /api/verbali/:id</code>', 'admin', 'Geoffrey (@geoffreyagwasim) · Issue #25 · PR #28 (US-14)'],
-          ['<span class="badge sprint1">Sprint 1</span>', '<code>GET /api/me/riepilogo</code> · <code>GET /api/me/consumi</code>', 'socio', 'Stefano (@stefanospadaccini-888) · Issue #14 (US-02)'],
+          ['<span class="badge fatto">Su main</span>', '<code>GET /api/verbali</code> · <code>GET /api/verbali/:id</code>', 'admin', 'Geoffrey (@geoffreyagwasim) · Issue #25 · PR #28 (US-14)'],
+          ['<span class="badge revisione">In revisione</span>', '<code>GET /api/me/riepilogo</code> (PR #32) · <code>GET /api/me/consumi</code> (Sprint 1)', 'socio', 'Stefano (@stefanospadaccini-888) · Issue #14 (US-02)'],
           ['<span class="badge sprint1">Sprint 1</span>', '<code>GET</code> / <code>POST /api/me/segnalazioni</code>', 'socio', 'Stefano (@stefanospadaccini-888) · Issue #16 (US-05 + LLM)'],
           ['<span class="badge sprint2">Sprint 2</span>', '<code>POST /api/me/simulazione</code>', 'socio', 'Stefano (@stefanospadaccini-888) · US-04'],
           ['<span class="badge sprint2">Sprint 2</span>', '<code>GET /api/impianti/:id</code> · <code>/api/impianti/:id/produzione</code> · <code>GET</code> / <code>PATCH /api/anomalie</code>', 'operatore, admin', 'Stefano (@stefanospadaccini-888) · US-06, US-07'],
@@ -246,7 +248,7 @@ SELECT setval(pg_get_serial_sequence('anomalia', 'id'), max(id)) FROM anomalia;`
         {
           title: 'Dependency injection per test istantanei',
           body: '<code>creaApp({ db, config })</code> riceve pool e config dall\'esterno: <code>server.js</code> passa Postgres, i test un DB finto in memoria.',
-          why: '<code>npm test</code> (7 test in <code>backend/test/api.test.js</code> con <code>node:test</code> + <code>supertest ^7.3.2</code>) gira in meno di un secondo anche senza database acceso.'
+          why: '<code>npm test</code> (9 test in <code>backend/test/api.test.js</code> con <code>node:test</code> + <code>supertest ^7.3.2</code>) gira in meno di un secondo anche senza database acceso.'
         },
         {
           title: 'Login anti-enumerazione e JWT HS256',
@@ -381,15 +383,17 @@ router.get('/', async (req, res) => {
 
     frontend: {
       title: 'Frontend · React + Vite + Tailwind + Recharts',
-      subtitle: 'La cartella <code>frontend/</code> <strong>non è ancora su <code>main</code></strong>: tutto il codice vive nella <strong>PR #23 aperta (in revisione)</strong> di <strong>Mirko (@mirkodivincenzo)</strong> su branch <code>frontend/login-jwt</code> (+4059 righe in 34 file, chiude #12 e #13). Raccoglie il setup iniziale, il wireframe delle 8 viste e il restyling delle PR #4, #5 e #7 (chiuse perché inglobate in #23) insieme a login JWT, <code>AuthContext</code>, <code>ProtectedRoute</code>, <code>UserBar</code> e proxy <code>/api</code>.',
+      subtitle: 'La cartella <code>frontend/</code> è <strong>su <code>main</code></strong> dal 25 nov con la <strong>PR #23</strong> di <strong>Mirko (@mirkodivincenzo)</strong> (merge <code>387953b</code>, +4059 righe in 34 file, chiude #12 e #13): setup React + Vite, wireframe delle 8 viste e restyling (PR #4, #5 e #7 chiuse perché inglobate), login JWT, <code>AuthContext</code>, <code>ProtectedRoute</code>, <code>UserBar</code> e proxy <code>/api</code>. In revisione due PR di Mirko che collegano le pagine alle API: <strong>#30</strong> (lista impianti) e <strong>#31</strong> (dashboard socio).',
       badges: [
-        { cls: 'revisione', text: 'In PR #23 (in revisione, non ancora su main)' },
-        { cls: 'revisione', text: '34 file · 8 viste per ruolo · chiude #12 e #13' },
+        { cls: 'fatto', text: 'PR #23 unita su main · login JWT e 8 viste' },
+        { cls: 'revisione', text: 'PR #30 e #31 in revisione (lista impianti, dashboard socio)' },
         { cls: 'sprint2', text: 'PR #4, #5, #7 chiuse (inglobate in #23)' },
         { cls: 'sprint1', text: 'Sprint 1: #15 (dashboard) · #17 (segnalazioni) · #20 (Compose/QA)' }
       ],
       links: [
-        { label: 'PR #23 (in revisione) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/23' },
+        { label: 'PR #23 (unita) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/23' },
+        { label: 'PR #30 (impianti) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/30', secondary: true },
+        { label: 'PR #31 (dashboard socio) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/31', secondary: true },
         { label: 'PR #4 (chiusa) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/4', secondary: true },
         { label: 'PR #5 (chiusa) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/5', secondary: true },
         { label: 'PR #7 (chiusa) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/7', secondary: true },
@@ -397,7 +401,7 @@ router.get('/', async (req, res) => {
         { label: 'Issue #17 ↗', href: 'https://github.com/lufo-336/under-the-sun/issues/17', secondary: true }
       ],
       diagrams: [
-        { id: 'frontend', caption: 'Struttura dell\'app React (in PR #23, non ancora su main)' }
+        { id: 'frontend', caption: 'Struttura dell\'app React (su main dalla PR #23)' }
       ],
       fatto: {
         title: 'Già fatto in quest\'area',
@@ -405,7 +409,9 @@ router.get('/', async (req, res) => {
           { date: '15 nov', who: 'Mirko (@mirkodivincenzo)', what: 'Setup iniziale React + Vite con Router e Recharts (<code>6710a4c</code>, 16 file); PR chiusa il 23 nov perché inglobata in #23', ref: 'PR #4', href: 'https://github.com/lufo-336/under-the-sun/pull/4', stato: 'sprint2' },
           { date: '15 → 23 nov', who: 'Mirko (@mirkodivincenzo)', what: 'Bozza wireframe delle 8 viste per ruolo e allineamento mock al contratto API (29 file); PR chiusa il 24 nov perché confluita in #23', ref: 'PR #5', href: 'https://github.com/lufo-336/under-the-sun/pull/5', stato: 'sprint2' },
           { date: '17 nov', who: 'Mirko (@mirkodivincenzo)', what: 'Restyling UI responsive con Tailwind (<code>3cbe968</code>, 33 file); PR chiusa il 23 nov perché integrata in #5 e #23', ref: 'PR #7', href: 'https://github.com/lufo-336/under-the-sun/pull/7', stato: 'sprint2' },
-          { date: '23 → 24 nov', who: 'Mirko (@mirkodivincenzo)', what: 'PR aperta (<strong>non ancora su <code>main</code></strong>): login JWT reale, <code>AuthContext</code>, <code>ProtectedRoute</code>, <code>UserBar</code>, <code>authService</code>, <code>apiClient</code> con proxy <code>/api</code> e logout (34 file, chiude #12 e #13)', ref: 'PR #23', href: 'https://github.com/lufo-336/under-the-sun/pull/23', stato: 'revisione' },
+          { date: '23 → 25 nov', who: 'Mirko (@mirkodivincenzo)', what: 'Login JWT reale, <code>AuthContext</code>, <code>ProtectedRoute</code>, <code>UserBar</code>, <code>authService</code>, <code>apiClient</code> con proxy <code>/api</code> e logout (34 file, chiude #12 e #13); approvata da Luca (@lufo-336) e unita su <code>main</code> il 25 nov (<code>387953b</code>)', ref: 'PR #23', href: 'https://github.com/lufo-336/under-the-sun/pull/23', stato: 'fatto' },
+          { date: '25 nov', who: 'Mirko (@mirkodivincenzo)', what: 'Lista impianti dell\'operatore collegata a <code>GET /api/impianti</code> (2 file, +120/−6, PR aperta in revisione)', ref: 'PR #30', href: 'https://github.com/lufo-336/under-the-sun/pull/30', stato: 'revisione' },
+          { date: '25 nov', who: 'Mirko (@mirkodivincenzo)', what: 'Dashboard socio collegata alle API dell\'area socio, con ripiego sui dati di esempio se l\'endpoint manca (2 file, +196/−57, PR aperta in revisione)', ref: 'PR #31', href: 'https://github.com/lufo-336/under-the-sun/pull/31', stato: 'revisione' },
           { date: 'Sprint 1', who: 'Mirko (@mirkodivincenzo)', what: 'Dashboard socio collegata alle API reali (<code>/api/me/riepilogo</code> e <code>/api/me/consumi</code>, US-02)', ref: 'Issue #15', href: 'https://github.com/lufo-336/under-the-sun/issues/15', stato: 'sprint1' },
           { date: 'Sprint 1', who: 'Mirko (@mirkodivincenzo)', what: 'Invio e storico segnalazioni socio collegati al backend (US-05)', ref: 'Issue #17', href: 'https://github.com/lufo-336/under-the-sun/issues/17', stato: 'sprint1' },
           { date: 'Sprint 1', who: 'Geoffrey (@geoffreyagwasim)', what: 'Prova pratica della PR #23 e aggiunta del servizio <code>frontend</code> in <code>compose.yaml</code>', ref: 'Issue #20', href: 'https://github.com/lufo-336/under-the-sun/issues/20', stato: 'sprint1' }
@@ -413,12 +419,12 @@ router.get('/', async (req, res) => {
       },
       choices: [
         {
-          title: 'Le 8 viste per ruolo (nella PR #23)',
+          title: 'Le 8 viste per ruolo (PR #23, su main)',
           body: '<code>LoginPage</code>; area socio (<code>SocioDashboardPage</code>, <code>SocioSimulatorePage</code>, <code>SocioSegnalazioniPage</code>); area operatore (<code>OperatoreImpiantiPage</code>, <code>OperatoreSegnalazioniPage</code>); area admin (<code>AdminKpiPage</code>, <code>AdminAssembleePage</code>), più <code>AppLayout</code>, <code>SidebarNav</code>, <code>KpiCard</code>, <code>Panel</code>, <code>StatusBadge</code> e <code>UrgencyBadge</code>.',
-          why: 'Copre tutte le storie del piano; dopo il merge di #23 si sostituiscono i mock pagina per pagina.'
+          why: 'Copre tutte le storie del piano; i mock si sostituiscono pagina per pagina (per ora #30 e #31).'
         },
         {
-          title: 'Proxy Vite /api e auth centralizzata (nella PR #23)',
+          title: 'Proxy Vite /api e auth centralizzata (PR #23, su main)',
           body: 'In <code>vite.config.js</code> le chiamate <code>/api</code> passano dal proxy Vite; <code>apiClient.js</code> e <code>authService.js</code> gestiscono token <code>Bearer</code> e errori <code>{ errore: { codice, messaggio } }</code> con <code>AuthContext</code> e <code>ProtectedRoute</code>.',
           why: 'Zero problemi CORS in sviluppo e gestione uniforme di sessione, logout e 401.'
         },
@@ -430,7 +436,7 @@ router.get('/', async (req, res) => {
       ],
       codeBlocks: [
         {
-          file: 'frontend/src/services/apiClient.js · in PR #23 (non ancora su main)',
+          file: 'frontend/src/services/apiClient.js · su main (PR #23)',
           lang: 'js',
           code: `const accessToken = token || localStorage.getItem('under_the_sun_token')
 if (accessToken) {
@@ -445,7 +451,7 @@ if (!response.ok) {
           note: '<strong>Nota:</strong> estratto da PR #23; intercetta il formato JSON ufficiale del backend e notifica <code>AuthContext</code> in caso di token scaduto (401).'
         },
         {
-          file: 'frontend/src/components/ProtectedRoute.jsx · in PR #23 (non ancora su main)',
+          file: 'frontend/src/components/ProtectedRoute.jsx · su main (PR #23)',
           lang: 'jsx',
           code: `export default function ProtectedRoute({ allowedRole, children }) {
   const { isAuthenticated, loading, user } = useAuth()
@@ -553,14 +559,14 @@ def rng_socio(socio_id: int) -> np.random.Generator:
 
     devops: {
       title: 'CI, DevOps e processo Git',
-      subtitle: 'Su <code>main</code> ci sono <code>compose.yaml</code> (4 servizi: <code>db</code> Postgres 17, <code>migrate</code> dbmate, <code>seed</code>, <code>backend</code> Node 22 da PR #6 e #9), la mappa D2 (PR #21, #22, #26) e il deploy su GitHub Pages (<strong>PR #27</strong>, <code>.github/workflows/pages.yml</code>). Il workflow CI (<code>.github/workflows/ci.yml</code>, 3 job) è aperto nella <strong>PR #10 (in revisione, non ancora su <code>main</code>)</strong>.',
+      subtitle: 'Su <code>main</code> ci sono <code>compose.yaml</code> (4 servizi: <code>db</code> Postgres 17, <code>migrate</code> dbmate, <code>seed</code>, <code>backend</code> Node 22 da PR #6 e #9), la mappa (PR #21, #22, #26, #29), il deploy su GitHub Pages (<strong>PR #27</strong>, <code>.github/workflows/pages.yml</code>) e, dal 27 nov, la <strong>CI</strong> (<strong>PR #10</strong>, <code>.github/workflows/ci.yml</code>, 3 job). Restano da attivare i check obbligatori su <code>protezione-main</code> (Issue #11).',
       badges: [
         { cls: 'fatto', text: 'Compose (4 servizi) e GitHub Pages (PR #27) su main' },
-        { cls: 'revisione', text: 'PR #10 (CI) in revisione · 3/3 check verdi · non ancora su main' },
+        { cls: 'fatto', text: 'CI su main (PR #10, 27 nov) · 3/3 check verdi' },
         { cls: 'sprint1', text: 'Sprint 1: #11 (check obbligatori) · #20 (QA + frontend Compose)' }
       ],
       links: [
-        { label: 'PR #10 (CI, aperta) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/10' },
+        { label: 'PR #10 (CI, su main) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/10' },
         { label: 'PR #27 (Pages, su main) ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/27', secondary: true },
         { label: 'Mappa live su Pages ↗', href: 'https://lufo-336.github.io/under-the-sun/', secondary: true },
         { label: 'Issue #11 ↗', href: 'https://github.com/lufo-336/under-the-sun/issues/11', secondary: true },
@@ -577,19 +583,19 @@ def rng_socio(socio_id: int) -> np.random.Generator:
           { date: '23 nov', who: 'Luca (@lufo-336)', what: 'Mappa interattiva D2 (<code>docs/mappa/</code>, script <code>compila.sh</code>) pubblicata e aggiornata con storico GitHub e barra rapida', ref: 'PR #21 · #22 · #26', href: 'https://github.com/lufo-336/under-the-sun/pull/26', stato: 'fatto' },
           { date: '23 nov', who: 'Luca (@lufo-336)', what: 'Workflow <code>.github/workflows/pages.yml</code> unito su <code>main</code> (<code>ac7e13b</code>) per pubblicare la mappa D2 su GitHub Pages', ref: 'PR #27', href: 'https://github.com/lufo-336/under-the-sun/pull/27', stato: 'fatto' },
           { date: '25 nov', who: 'Luca (@lufo-336)', what: 'Mappa web animata (questa pagina) al posto degli SVG statici: <code>pages.yml</code> pubblica <code>docs/mappa/out/</code>', ref: 'PR #29', href: 'https://github.com/lufo-336/under-the-sun/pull/29', stato: 'fatto' },
-          { date: '23 nov', who: 'Luca (@lufo-336)', what: 'Workflow <code>.github/workflows/ci.yml</code> (3 job: backend, frontend, Compose + seed, +126 righe) in <strong>PR aperta, non ancora su <code>main</code></strong>', ref: 'PR #10', href: 'https://github.com/lufo-336/under-the-sun/pull/10', stato: 'revisione' },
-          { date: 'Sprint 1', who: 'Luca (@lufo-336)', what: 'Chiusura dei merge di base e attivazione dei check CI obbligatori su <code>main</code>', ref: 'Issue #11', href: 'https://github.com/lufo-336/under-the-sun/issues/11', stato: 'sprint1' },
+          { date: '23 → 27 nov', who: 'Luca (@lufo-336)', what: 'Workflow <code>.github/workflows/ci.yml</code> (3 job: backend, frontend, Compose + seed, +126 righe); approvato da Mirko (@mirkodivincenzo) e unito su <code>main</code> il 27 nov (<code>f8c2b71</code>)', ref: 'PR #10', href: 'https://github.com/lufo-336/under-the-sun/pull/10', stato: 'fatto' },
+          { date: 'Sprint 1', who: 'Luca (@lufo-336)', what: 'Merge di base chiusi con la PR #10 (27 nov); restano i check CI obbligatori su <code>main</code>', ref: 'Issue #11', href: 'https://github.com/lufo-336/under-the-sun/issues/11', stato: 'sprint1' },
           { date: 'Sprint 1', who: 'Geoffrey (@geoffreyagwasim)', what: 'Review PR #10 (CI), prova pratica PR #23 e aggiunta del servizio <code>frontend</code> in <code>compose.yaml</code>', ref: 'Issue #20', href: 'https://github.com/lufo-336/under-the-sun/issues/20', stato: 'sprint1' }
         ]
       },
       table: {
-        title: 'Workflow CI (in PR #10, non ancora su main) e deploy GitHub Pages (su main)',
+        title: 'Workflow CI e deploy GitHub Pages (entrambi su main)',
         headers: ['Job / Workflow', 'Cosa verifica / esegue', 'Stato e nota tecnica'],
         rows: [
           ['<strong>Pubblica mappa D2</strong> (<code>pages.yml</code>)', 'Deploy di <code>docs/mappa/out/index/</code> su <code>lufo-336.github.io/under-the-sun/</code>', '<span class="badge fatto">Su main</span> · PR #27 (<code>actions/deploy-pages@v4</code>)'],
-          ['<strong>Backend (test)</strong> (<code>ci.yml</code>)', 'Node 22 · <code>npm ci</code> · lint · <code>npm test</code> (7 test)', '<span class="badge revisione">In PR #10</span> · salta pulitamente se <code>backend/</code> manca'],
-          ['<strong>Frontend (lint e build)</strong> (<code>ci.yml</code>)', 'Node 22 · <code>npm ci</code> · <code>oxlint</code> · <code>vite build</code>', '<span class="badge revisione">In PR #10</span> · intercetta lockfile rotti e import case-sensitive'],
-          ['<strong>Database, seed e Compose</strong> (<code>ci.yml</code>)', '<code>up --build --wait backend</code> · <code>seed</code> 13 CSV · <code>crea-utenti</code> · <code>curl /api/salute</code>', '<span class="badge revisione">In PR #10</span> · verifica contratto schema ↔ CSV; <code>down -v</code>']
+          ['<strong>Backend (test)</strong> (<code>ci.yml</code>)', 'Node 22 · <code>npm ci</code> · lint · <code>npm test</code> (9 test)', '<span class="badge fatto">Su main (PR #10)</span> · salta pulitamente se <code>backend/</code> manca'],
+          ['<strong>Frontend (lint e build)</strong> (<code>ci.yml</code>)', 'Node 22 · <code>npm ci</code> · <code>oxlint</code> · <code>vite build</code>', '<span class="badge fatto">Su main (PR #10)</span> · intercetta lockfile rotti e import case-sensitive'],
+          ['<strong>Database, seed e Compose</strong> (<code>ci.yml</code>)', '<code>up --build --wait backend</code> · <code>seed</code> 13 CSV · <code>crea-utenti</code> · <code>curl /api/salute</code>', '<span class="badge fatto">Su main (PR #10)</span> · verifica contratto schema ↔ CSV; <code>down -v</code>']
         ]
       },
       choices: [
@@ -600,7 +606,7 @@ def rng_socio(socio_id: int) -> np.random.Generator:
         },
         {
           title: 'La CI prova il contratto dati, non solo la build',
-          body: 'In PR #10 (non ancora su <code>main</code>), il job integrazione avvia Postgres 17, applica le migrazioni e carica i 13 CSV reali con <code>HEADER match</code>.',
+          body: 'Nella CI (PR #10, su <code>main</code>), il job integrazione avvia Postgres 17, applica le migrazioni e carica i 13 CSV reali con <code>HEADER match</code>.',
           why: 'Se una PR rompe l\'allineamento tra schema SQL e CSV, il controllo fallisce prima del merge.'
         },
         {
@@ -611,7 +617,7 @@ def rng_socio(socio_id: int) -> np.random.Generator:
       ],
       codeBlocks: [
         {
-          file: '.github/workflows/ci.yml · estratto dalla PR #10 (non ancora su main)',
+          file: '.github/workflows/ci.yml · estratto dalla PR #10 (su main)',
           lang: 'yaml',
           code: `- name: Avvia stack completo (database, migrazioni e backend)
   if: steps.presente.outputs.compose == 'true' && steps.presente.outputs.backend == 'true'
@@ -626,18 +632,18 @@ def rng_socio(socio_id: int) -> np.random.Generator:
   run: |
     docker compose exec -T backend npm run crea-utenti
     curl --fail --silent --show-error --retry 5 --retry-delay 2 --retry-all-errors http://127.0.0.1:3000/api/salute`,
-          note: '<strong>Nota:</strong> estratto da PR #10 (in revisione); si usa <code>--wait backend</code> (non <code>--wait</code> su tutto) perché <code>migrate</code> è un container one-shot che esce con 0.'
+          note: '<strong>Nota:</strong> estratto da PR #10 (su main); si usa <code>--wait backend</code> (non <code>--wait</code> su tutto) perché <code>migrate</code> è un container one-shot che esce con 0.'
         }
       ]
     },
 
     sprint1: {
       title: 'Piano Sprint 1 · Primo percorso completo (23 nov → 4 dic)',
-      subtitle: '<strong>Stato al 25 novembre 2026 · obiettivo SAL 2:</strong> un socio accede con login reale, vede la dashboard con dati veri dal DB e invia una segnalazione classificata dall\'LLM (US-01, US-02, US-05), mentre il team dati prepara i 2 anni completi e Geoffrey (@geoffreyagwasim) realizza l\'endpoint verbali (US-14, PR #28).',
+      subtitle: '<strong>Stato al 27 novembre 2026 · obiettivo SAL 2:</strong> un socio accede con login reale, vede la dashboard con dati veri dal DB e invia una segnalazione classificata dall\'LLM (US-01, US-02, US-05), mentre il team dati prepara i 2 anni completi e Geoffrey (@geoffreyagwasim) ha realizzato l\'endpoint verbali (US-14, PR #28 unita il 27 nov).',
       badges: [
-        { cls: 'fatto', text: '#6, #8, #9 su main' },
-        { cls: 'revisione', text: 'PR aperte: #10 CI, #23 login JWT, #28 verbali' },
-        { cls: 'sprint1', text: '11 Issue aperte (#11–#20, #25)' },
+        { cls: 'fatto', text: '#6, #8, #9, #10, #23, #28 su main' },
+        { cls: 'revisione', text: 'PR in revisione: #30, #31 (frontend), #32 (backend)' },
+        { cls: 'sprint1', text: '11 Issue · 3 chiuse (#12, #13, #25)' },
         { cls: 'sprint2', text: 'Scadenza SAL 2: ven 4 dic' }
       ],
       links: [
@@ -648,20 +654,20 @@ def rng_socio(socio_id: int) -> np.random.Generator:
         { id: 'sprint1', caption: 'Grafo delle dipendenze delle 11 Issue (clicca un blocco per aprire la Issue su GitHub)' }
       ],
       table: {
-        title: 'Stato delle 11 Issue al 25 nov',
+        title: 'Stato delle 11 Issue al 27 nov',
         headers: ['Issue', 'Responsabile', 'PR collegata', 'Stato'],
         rows: [
-          ['<a href="https://github.com/lufo-336/under-the-sun/issues/11" target="_blank" rel="noopener">#11</a> · Merge di base (#6, #8, #9, #10) e check CI su main', 'Luca (@lufo-336)', '<a href="https://github.com/lufo-336/under-the-sun/pull/10" target="_blank" rel="noopener">PR #10</a> (in revisione)', '<span class="badge sprint1">Aperta</span>'],
-          ['<a href="https://github.com/lufo-336/under-the-sun/issues/12" target="_blank" rel="noopener">#12</a> · Riunire wireframe e restyling allineati al contratto API', 'Mirko (@mirkodivincenzo)', '<a href="https://github.com/lufo-336/under-the-sun/pull/23" target="_blank" rel="noopener">PR #23</a> (in revisione)', '<span class="badge revisione">Aperta · PR in revisione</span>'],
-          ['<a href="https://github.com/lufo-336/under-the-sun/issues/13" target="_blank" rel="noopener">#13</a> · [US-01] Frontend: login reale JWT e gestione errori', 'Mirko (@mirkodivincenzo)', '<a href="https://github.com/lufo-336/under-the-sun/pull/23" target="_blank" rel="noopener">PR #23</a> (in revisione)', '<span class="badge revisione">Aperta · PR in revisione</span>'],
-          ['<a href="https://github.com/lufo-336/under-the-sun/issues/14" target="_blank" rel="noopener">#14</a> · [US-02] Backend: endpoint area socio (riepilogo e consumi)', 'Stefano (@stefanospadaccini-888)', '—', '<span class="badge sprint1">Aperta</span>'],
-          ['<a href="https://github.com/lufo-336/under-the-sun/issues/15" target="_blank" rel="noopener">#15</a> · [US-02] Frontend: dashboard socio collegata alle API reali', 'Mirko (@mirkodivincenzo)', '—', '<span class="badge sprint1">Aperta</span>'],
+          ['<a href="https://github.com/lufo-336/under-the-sun/issues/11" target="_blank" rel="noopener">#11</a> · Merge di base (#6, #8, #9, #10) e check CI su main', 'Luca (@lufo-336)', '<a href="https://github.com/lufo-336/under-the-sun/pull/10" target="_blank" rel="noopener">PR #10</a> (unita 27 nov)', '<span class="badge sprint1">Aperta · restano i check CI</span>'],
+          ['<a href="https://github.com/lufo-336/under-the-sun/issues/12" target="_blank" rel="noopener">#12</a> · Riunire wireframe e restyling allineati al contratto API', 'Mirko (@mirkodivincenzo)', '<a href="https://github.com/lufo-336/under-the-sun/pull/23" target="_blank" rel="noopener">PR #23</a> (unita 25 nov)', '<span class="badge fatto">Chiusa</span>'],
+          ['<a href="https://github.com/lufo-336/under-the-sun/issues/13" target="_blank" rel="noopener">#13</a> · [US-01] Frontend: login reale JWT e gestione errori', 'Mirko (@mirkodivincenzo)', '<a href="https://github.com/lufo-336/under-the-sun/pull/23" target="_blank" rel="noopener">PR #23</a> (unita 25 nov)', '<span class="badge fatto">Chiusa</span>'],
+          ['<a href="https://github.com/lufo-336/under-the-sun/issues/14" target="_blank" rel="noopener">#14</a> · [US-02] Backend: endpoint area socio (riepilogo e consumi)', 'Stefano (@stefanospadaccini-888)', '<a href="https://github.com/lufo-336/under-the-sun/pull/32" target="_blank" rel="noopener">PR #32</a> (riepilogo, in revisione)', '<span class="badge revisione">Aperta · PR in revisione</span>'],
+          ['<a href="https://github.com/lufo-336/under-the-sun/issues/15" target="_blank" rel="noopener">#15</a> · [US-02] Frontend: dashboard socio collegata alle API reali', 'Mirko (@mirkodivincenzo)', '<a href="https://github.com/lufo-336/under-the-sun/pull/31" target="_blank" rel="noopener">PR #31</a> (in revisione)', '<span class="badge revisione">Aperta · PR in revisione</span>'],
           ['<a href="https://github.com/lufo-336/under-the-sun/issues/16" target="_blank" rel="noopener">#16</a> · [US-05] Backend: segnalazioni socio con LLM e fallback', 'Stefano (@stefanospadaccini-888)', '—', '<span class="badge sprint1">Aperta</span>'],
           ['<a href="https://github.com/lufo-336/under-the-sun/issues/17" target="_blank" rel="noopener">#17</a> · [US-05] Frontend: invio e storico segnalazioni socio', 'Mirko (@mirkodivincenzo)', '—', '<span class="badge sprint1">Aperta</span>'],
           ['<a href="https://github.com/lufo-336/under-the-sun/issues/18" target="_blank" rel="noopener">#18</a> · [Dati] Dataset completo di 2 anni (seed fisso e compatibilità)', 'Francesco (@francescocolohan)', '—', '<span class="badge sprint1">Aperta</span>'],
           ['<a href="https://github.com/lufo-336/under-the-sun/issues/19" target="_blank" rel="noopener">#19</a> · [Dati] 200-300 segnalazioni etichettate, prompt LLM e formule', 'Francesco (@francescocolohan)', '—', '<span class="badge sprint1">Aperta</span>'],
           ['<a href="https://github.com/lufo-336/under-the-sun/issues/20" target="_blank" rel="noopener">#20</a> · [QA / DevOps] Review PR #10, prova PR #23 e frontend in Compose', 'Geoffrey (@geoffreyagwasim)', '—', '<span class="badge sprint1">Aperta</span>'],
-          ['<a href="https://github.com/lufo-336/under-the-sun/issues/25" target="_blank" rel="noopener">#25</a> · [US-14] Backend: endpoint verbali assemblee', 'Geoffrey (@geoffreyagwasim)', '<a href="https://github.com/lufo-336/under-the-sun/pull/28" target="_blank" rel="noopener">PR #28</a> (in revisione)', '<span class="badge revisione">Aperta · PR in revisione</span>']
+          ['<a href="https://github.com/lufo-336/under-the-sun/issues/25" target="_blank" rel="noopener">#25</a> · [US-14] Backend: endpoint verbali assemblee', 'Geoffrey (@geoffreyagwasim)', '<a href="https://github.com/lufo-336/under-the-sun/pull/28" target="_blank" rel="noopener">PR #28</a> (unita 27 nov)', '<span class="badge fatto">Chiusa</span>']
         ]
       },
       choicesTitle: 'Regole di lavoro dello Sprint 1',
@@ -686,10 +692,10 @@ def rng_socio(socio_id: int) -> np.random.Generator:
 
     storico: {
       title: 'Storico del repository GitHub',
-      subtitle: 'Linea temporale verticale di tutte le <strong>Pull Request</strong> di <code>lufo-336/under-the-sun</code> dal 6 al 25 novembre 2026: <strong>11 PR unite su main</strong>, <strong>4 aperte</strong>, <strong>3 chiuse senza merge</strong>.',
+      subtitle: 'Linea temporale verticale di tutte le <strong>Pull Request</strong> di <code>lufo-336/under-the-sun</code> dal 6 al 27 novembre 2026: <strong>14 PR unite su main</strong>, <strong>4 aperte</strong>, <strong>3 chiuse senza merge</strong>.',
       badges: [
-        { cls: 'fatto', text: '11 PR unite su main' },
-        { cls: 'revisione', text: '3 PR in revisione (#10, #23, #28)' },
+        { cls: 'fatto', text: '14 PR unite su main' },
+        { cls: 'revisione', text: '3 PR in revisione (#30, #31, #32)' },
         { cls: 'sprint2', text: '1 proposta team dati (#24) · 3 chiuse (#4, #5, #7)' }
       ],
       links: [
@@ -698,6 +704,81 @@ def rng_socio(socio_id: int) -> np.random.Generator:
       ],
       isTimeline: true,
       timeline: [
+        {
+          id: 'pr32',
+          order: 22,
+          date: '25 nov',
+          pr: 'PR #32',
+          status: 'revisione',
+          statusLabel: 'In revisione',
+          category: 'aperta',
+          author: 'Stefano (@stefanospadaccini-888)',
+          title: 'Aggiunge GET /api/me/riepilogo per l\'area socio (US-02)',
+          desc: 'Query del riepilogo annuale, rotta per il socio loggato, 12 test e documentazione su branch backend/me-riepilogo (+181 righe in 6 file).',
+          files: [
+            'backend/README.md',
+            'backend/src/app.js',
+            'backend/src/routes/me.js',
+            'backend/src/servizi/riepilogo.js',
+            'backend/test/me.test.js',
+            'docs/api.md'
+          ],
+          commits: [
+            { hash: 'cf0a618', date: '25 nov', who: 'Stefano (@stefanospadaccini-888)', what: 'Aggiunge la query del riepilogo annuale di un socio' },
+            { hash: '6cb6eeb', date: '25 nov', who: 'Stefano (@stefanospadaccini-888)', what: 'Aggiunge GET /api/me/riepilogo per il socio loggato (US-02)' },
+            { hash: '36bcdcd', date: '25 nov', who: 'Stefano (@stefanospadaccini-888)', what: 'Aggiunge i test di GET /api/me/riepilogo' },
+            { hash: 'a054fd0', date: '25 nov', who: 'Stefano (@stefanospadaccini-888)', what: 'Documenta GET /api/me/riepilogo: anno facoltativo e valori null' }
+          ],
+          links: [
+            { label: 'Apri PR #32 ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/32' },
+            { label: 'Issue #14 ↗', href: 'https://github.com/lufo-336/under-the-sun/issues/14', secondary: true }
+          ]
+        },
+        {
+          id: 'pr31',
+          order: 21,
+          date: '25 nov',
+          pr: 'PR #31',
+          status: 'revisione',
+          statusLabel: 'In revisione',
+          category: 'aperta',
+          author: 'Mirko (@mirkodivincenzo)',
+          title: 'feat(frontend): collega la dashboard socio alle API con fallback demo',
+          desc: 'Dashboard socio collegata alle API dell\'area socio, con ripiego sui dati di esempio se l\'endpoint manca, su branch frontend/socio-dashboard-api (+196/−57 righe in 2 file).',
+          files: [
+            'frontend/src/pages/socio/SocioDashboardPage.jsx',
+            'frontend/src/services/socioService.js'
+          ],
+          commits: [
+            { hash: 'eaaf1cc', date: '25 nov', who: 'Mirko (@mirkodivincenzo)', what: 'feat(frontend): collega la dashboard socio alle API con fallback demo' }
+          ],
+          links: [
+            { label: 'Apri PR #31 ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/31' },
+            { label: 'Issue #15 ↗', href: 'https://github.com/lufo-336/under-the-sun/issues/15', secondary: true }
+          ]
+        },
+        {
+          id: 'pr30',
+          order: 20,
+          date: '25 nov',
+          pr: 'PR #30',
+          status: 'revisione',
+          statusLabel: 'In revisione',
+          category: 'aperta',
+          author: 'Mirko (@mirkodivincenzo)',
+          title: 'feat(frontend): collega la lista impianti a GET /api/impianti',
+          desc: 'Lista impianti dell\'operatore collegata a GET /api/impianti, su branch frontend/api-impianti (+120/−6 righe in 2 file).',
+          files: [
+            'frontend/src/pages/operatore/OperatoreImpiantiPage.jsx',
+            'frontend/src/services/impiantiService.js'
+          ],
+          commits: [
+            { hash: '0cf31d3', date: '25 nov', who: 'Mirko (@mirkodivincenzo)', what: 'feat(frontend): collega la lista impianti a GET /api/impianti' }
+          ],
+          links: [
+            { label: 'Apri PR #30 ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/30' }
+          ]
+        },
         {
           id: 'pr29',
           order: 19,
@@ -728,21 +809,22 @@ def rng_socio(socio_id: int) -> np.random.Generator:
         {
           id: 'pr28',
           order: 18,
-          date: '25 nov',
+          date: '25 → 27 nov',
           pr: 'PR #28',
-          status: 'revisione',
-          statusLabel: 'In revisione',
-          category: 'aperta',
+          status: 'fatto',
+          statusLabel: 'Unita su main',
+          category: 'unita',
           author: 'Geoffrey (@geoffreyagwasim)',
           title: 'Aggiunge GET /api/verbali e /api/verbali/:id (US-14)',
-          desc: 'Nuove rotte per i verbali delle assemblee e relativi test su branch backend/verbali (+75 righe in 3 file, collegata alla Issue #25).',
+          desc: 'Nuove rotte per i verbali delle assemblee e relativi test su branch backend/verbali (+75 righe in 3 file). Approvata da Luca (@lufo-336), unita il 27 nov (99606de); chiude la Issue #25.',
           files: [
             'backend/src/app.js',
             'backend/src/routes/verbali.js',
             'backend/test/api.test.js'
           ],
           commits: [
-            { hash: '971541a', date: '25 nov', who: 'Geoffrey (@geoffreyagwasim)', what: 'Aggiunge GET /api/verbali e /api/verbali/:id (US-14)' }
+            { hash: '971541a', date: '25 nov', who: 'Geoffrey (@geoffreyagwasim)', what: 'Aggiunge GET /api/verbali e /api/verbali/:id (US-14)' },
+            { hash: '92ed0ff', date: '26 nov', who: 'Geoffrey (@geoffreyagwasim)', what: 'Fix validazione ID verbali' }
           ],
           links: [
             { label: 'Apri PR #28 ↗', href: 'https://github.com/lufo-336/under-the-sun/pull/28' },
@@ -752,14 +834,14 @@ def rng_socio(socio_id: int) -> np.random.Generator:
         {
           id: 'pr23',
           order: 17,
-          date: '23 → 24 nov',
+          date: '23 → 25 nov',
           pr: 'PR #23',
-          status: 'revisione',
-          statusLabel: 'In revisione',
-          category: 'aperta',
+          status: 'fatto',
+          statusLabel: 'Unita su main',
+          category: 'unita',
           author: 'Mirko (@mirkodivincenzo)',
           title: 'Frontend: collegare login JWT e protezione ruoli (US-01)',
-          desc: 'Include la base di #4, #5 e #7 più proxy /api, ApiError, AuthContext, ProtectedRoute e logout su branch frontend/login-jwt (+4059 righe in 34 file, chiude #12 e #13). Verifiche eseguite: npm ci, oxlint e vite build verdi.',
+          desc: 'Include la base di #4, #5 e #7 più proxy /api, ApiError, AuthContext, ProtectedRoute e logout su branch frontend/login-jwt (+4059 righe in 34 file, chiude #12 e #13). Approvata da Luca (@lufo-336), unita il 25 nov (387953b).',
           files: [
             'frontend/src/App.jsx',
             'frontend/src/components/ProtectedRoute.jsx',
@@ -949,14 +1031,14 @@ def rng_socio(socio_id: int) -> np.random.Generator:
         {
           id: 'pr10',
           order: 10,
-          date: '23 nov',
+          date: '23 → 27 nov',
           pr: 'PR #10',
-          status: 'revisione',
-          statusLabel: 'In revisione',
-          category: 'aperta',
+          status: 'fatto',
+          statusLabel: 'Unita su main',
+          category: 'unita',
           author: 'Luca (@lufo-336)',
           title: 'CI di base con GitHub Actions: backend, frontend, Compose e seed',
-          desc: 'Workflow .github/workflows/ci.yml con 3 job condizionali e concurrency su branch devops/ci (+126 righe in 1 file).',
+          desc: 'Workflow .github/workflows/ci.yml con 3 job condizionali e concurrency su branch devops/ci (+126 righe in 1 file). 3 check verdi, approvata da Mirko (@mirkodivincenzo), unita il 27 nov (f8c2b71).',
           files: [
             '.github/workflows/ci.yml'
           ],
