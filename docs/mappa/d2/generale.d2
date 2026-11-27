@@ -20,14 +20,14 @@ piattaforma: "Piattaforma applicativa · Docker Compose" {
   label.near: top-left
   direction: down
 
-  frontend: "Frontend · React 19 + Vite\n8 viste · PR #23 (in revisione)\nClicca per esplorare →" {
+  frontend: "Frontend · React 19 + Vite\n8 viste · login su main (PR #23)\nPR #30 e #31 in revisione\nClicca per esplorare →" {
     class: revisione
     icon: ./icons/react.svg
     link: "#frontend"
     tooltip: "Clicca per aprire struttura React, stato Sprint 1 e codice reale"
   }
 
-  backend: "Backend · Node 22 + Express 5\nJWT HS256 · 7 test · PR #9 su main\nClicca per esplorare →" {
+  backend: "Backend · Node 22 + Express 5\nJWT HS256 · 9 test · PR #9 e #28 su main\nClicca per esplorare →" {
     class: fatto
     link: "#backend"
     tooltip: "Clicca per aprire pipeline Express, endpoint e codice reale"
@@ -87,8 +87,8 @@ devops: "GitHub · CI, Piano Sprint 1 e Storico" {
   grid-columns: 3
   grid-gap: 32
 
-  ci: "CI GitHub Actions · 3 job\nPR #10 (3/3 verdi · in revisione)\nClicca per esplorare →" {
-    class: revisione
+  ci: "CI GitHub Actions · 3 job\nPR #10 su main (3/3 verdi)\nClicca per esplorare →" {
+    class: fatto
     link: "#devops"
     tooltip: "Clicca per i 3 job della CI, Compose e processo Git"
   }
@@ -99,7 +99,7 @@ devops: "GitHub · CI, Piano Sprint 1 e Storico" {
     tooltip: "Clicca per il grafo delle dipendenze dello Sprint 1"
   }
 
-  storico: "Storico GitHub · Timeline\n11 PR unite · 4 aperte · 3 chiuse\nClicca per la linea temporale →" {
+  storico: "Storico GitHub · Timeline\n14 PR unite · 4 aperte · 3 chiuse\nClicca per la linea temporale →" {
     class: fatto
     link: "#storico"
     tooltip: "Clicca per la timeline verticale di tutte le PR"
@@ -110,7 +110,7 @@ utenti -> piattaforma.frontend: "HTTPS" {class: f-neutra}
 piattaforma.backend -> llm: "POST segnalazione · solo backend (#16)" {class: f-sprint1}
 piattaforma.db <-> dati: "13 CSV (seed HEADER match) · risultati batch offline" {class: f-fatto}
 dati -> devops: "verifica CI ad ogni PR · 11 Issue · storico completo" {
-  class: f-revisione
+  class: f-fatto
   source-arrowhead.shape: arrow
   target-arrowhead.shape: none
 }
