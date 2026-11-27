@@ -15,6 +15,10 @@ export default function KpiCard({ label, value, suffix, helper, tone = 'emerald'
   const formatValue = () => {
     const normalizedLabel = String(label ?? '').toLowerCase()
 
+    if (value == null) {
+      return '—'
+    }
+
     if (typeof value === 'number' && (format === 'eur' || normalizedLabel.includes('€') || normalizedLabel.includes('euro'))) {
       return formatCurrency(value)
     }

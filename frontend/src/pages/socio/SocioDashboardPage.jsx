@@ -27,7 +27,8 @@ export default function SocioDashboardPage() {
   const [granularity, setGranularity] = useState('giorno')
   const [riepilogo, setRiepilogo] = useState(null)
   const [consumi, setConsumi] = useState([])
-  const [datiDemo, setDatiDemo] = useState(false)
+  const [riepilogoDemo, setRiepilogoDemo] = useState(false)
+  const [consumiDemo, setConsumiDemo] = useState(false)
   const [caricamento, setCaricamento] = useState(true)
   const [errore, setErrore] = useState('')
   const [tentativo, setTentativo] = useState(0)
@@ -45,7 +46,8 @@ export default function SocioDashboardPage() {
         if (!attivo) return
         setRiepilogo(rispostaRiepilogo.dati)
         setConsumi(rispostaConsumi.dati)
-        setDatiDemo(rispostaRiepilogo.demo || rispostaConsumi.demo)
+        setRiepilogoDemo(Boolean(rispostaRiepilogo.demo))
+        setConsumiDemo(Boolean(rispostaConsumi.demo))
         setCaricamento(false)
       })
       .catch((requestError) => {
@@ -81,10 +83,10 @@ export default function SocioDashboardPage() {
   // Con i dati veri la granularità la calcola il backend; sui mock, che sono
   // una serie giornaliera, la ricampioniamo per far vedere le tre viste.
   const chartData = useMemo(() => {
-    if (!datiDemo) return consumi
+    if (!consumiDemo) return consumi
     const ratio = granularity === 'ora' ? 1 : granularity === 'giorno' ? 2 : 4
     return consumi.filter((_, index) => index % ratio === 0)
-  }, [consumi, datiDemo, granularity])
+  }, [consumi, consumiDemo, granularity])
 
   const kpis = riepilogo
     ? [
@@ -112,7 +114,7 @@ export default function SocioDashboardPage() {
         </label>
       </div>
 
-      {datiDemo && !caricamento && !errore && (
+      {riepilogoDemo && !caricamento && !errore && (
         <p role="status" className="rounded-xl bg-accent-soft px-3 py-2 text-sm font-semibold text-accent-strong">
           Dati di esempio: il backend non espone ancora gli endpoint dell'area socio.
         </p>
@@ -148,8 +150,8 @@ export default function SocioDashboardPage() {
             title="Consumo reale vs previsto"
             action={
               <div className="flex flex-wrap items-center justify-end gap-2">
-                {datiDemo && (
-                  <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Demo</span>
+                {consumiDemo && (
+                  <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Dati di esempio</span>
                 )}
                 <div className="flex rounded-full bg-muted p-1">
                   {granularities.map((value) => (
