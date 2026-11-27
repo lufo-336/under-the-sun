@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   CartesianGrid,
   Legend,
@@ -12,8 +12,19 @@ import {
 import { CheckCircle2, MapPin, Sun, TriangleAlert } from 'lucide-react'
 import Panel from '../../components/Panel'
 import StatusBadge from '../../components/StatusBadge'
-import { anomalie, impiantoProductionSeries, impianti } from '../../mocks/mockData'
+import { anomalie, impiantoProductionSeries } from '../../mocks/mockData'
+import impiantiService from '../../services/impiantiService'
 import { formatDateTime, formatShortDate } from '../../utils/formatters'
+
+const badgeDatiEsempio = (
+  <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Dati di esempio</span>
+)
+
+const messaggioErrore = (errore) => {
+  if (errore?.status === 403) return 'Non hai i permessi per vedere gli impianti.'
+  if (errore?.status === 401) return 'Sessione scaduta: accedi di nuovo.'
+  return errore?.message || 'Impossibile caricare gli impianti.'
+}
 
 function health(openCount) {
   if (openCount === 0) return { label: 'Ottimo', style: 'bg-success-soft text-primary' }
@@ -22,8 +33,45 @@ function health(openCount) {
 }
 
 export default function OperatoreImpiantiPage() {
-  const [selectedImpiantoId, setSelectedImpiantoId] = useState(impianti[0]?.id ?? '')
+  const [impianti, setImpianti] = useState([])
+  const [selectedImpiantoId, setSelectedImpiantoId] = useState('')
   const [anomalieState, setAnomalieState] = useState(anomalie)
+  const [caricamento, setCaricamento] = useState(true)
+  const [errore, setErrore] = useState('')
+  const [datiDemo, setDatiDemo] = useState(false)
+  const [tentativo, setTentativo] = useState(0)
+
+  useEffect(() => {
+    let attivo = true
+
+    impiantiService.elenco()
+      .then(({ dati, demo }) => {
+        if (!attivo) return
+        setImpianti(dati)
+        setDatiDemo(demo)
+        setSelectedImpiantoId((corrente) => (
+          dati.some((impianto) => Number(impianto.id) === Number(corrente))
+            ? corrente
+            : dati[0]?.id ?? ''
+        ))
+        setCaricamento(false)
+      })
+      .catch((requestError) => {
+        if (!attivo) return
+        setErrore(messaggioErrore(requestError))
+        setCaricamento(false)
+      })
+
+    return () => {
+      attivo = false
+    }
+  }, [tentativo])
+
+  const ricaricaImpianti = () => {
+    setCaricamento(true)
+    setErrore('')
+    setTentativo((corrente) => corrente + 1)
+  }
 
   const selectedImpianto = impianti.find((impianto) => Number(impianto.id) === Number(selectedImpiantoId)) ?? impianti[0]
   const chartData = impiantoProductionSeries[Number(selectedImpiantoId)] ?? []
@@ -44,11 +92,48 @@ export default function OperatoreImpiantiPage() {
     )
   }
 
+  if (caricamento) {
+    return (
+      <div role="status" className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-soft">
+        Caricamento impianti…
+      </div>
+    )
+  }
+
+  if (errore) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+        <p role="alert" className="rounded-xl bg-destructive-soft px-3 py-2 text-sm font-semibold text-destructive-foreground">{errore}</p>
+        <button
+          type="button"
+          onClick={ricaricaImpianti}
+          className="mt-4 h-10 rounded-xl bg-secondary px-4 text-sm font-semibold text-secondary-foreground transition hover:bg-secondary/80"
+        >
+          Riprova
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
+      {datiDemo && (
+        <p role="status" className="rounded-xl bg-accent-soft px-3 py-2 text-sm font-semibold text-accent-strong">
+          Elenco impianti di esempio: il backend non ha risposto.
+        </p>
+      )}
+
+      {impianti.length === 0 && (
+        <p className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground shadow-soft">
+          Nessun impianto disponibile.
+        </p>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {impianti.map((impianto) => {
-          const openCount = anomalieState.filter((item) => Number(item.impianto_id) === Number(impianto.id) && item.stato === 'aperta').length
+          const openCount = datiDemo
+            ? anomalieState.filter((item) => Number(item.impianto_id) === Number(impianto.id) && item.stato === 'aperta').length
+            : Number(impianto.anomalie_aperte ?? 0)
           const state = health(openCount)
           return (
             <button
@@ -73,7 +158,7 @@ export default function OperatoreImpiantiPage() {
 
       {selectedImpianto && (
         <div className="grid gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <Panel eyebrow="Produzione" title={selectedImpianto.nome}>
+          <Panel eyebrow="Produzione" title={selectedImpianto.nome} action={badgeDatiEsempio}>
             <div className="-ml-2 h-[300px] w-full">
               <ResponsiveContainer>
                 <LineChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -93,7 +178,10 @@ export default function OperatoreImpiantiPage() {
             </div>
           </Panel>
 
-          <Panel eyebrow="Anomalie" title="Segnalazioni impianto">
+          <Panel eyebrow="Anomalie" title="Segnalazioni impianto" action={badgeDatiEsempio}>
+            {impiantoAnomalie.length === 0 && (
+              <p className="text-sm text-muted-foreground">Nessuna anomalia registrata per questo impianto.</p>
+            )}
             <ul className="space-y-3">
               {impiantoAnomalie.map((item) => (
                 <li key={item.id} className={`rounded-xl border border-border p-4 ${item.stato === 'chiusa' ? 'bg-muted/50' : ''}`}>
