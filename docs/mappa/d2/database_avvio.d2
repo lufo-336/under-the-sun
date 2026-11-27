@@ -1,0 +1,18 @@
+# Avvio in Docker Compose: ordine garantito da healthcheck e depends_on
+...@tema
+
+direction: right
+
+db: "1 · db (postgres:17)\n127.0.0.1:5433 · TZ=UTC\nhealthcheck: pg_isready" {
+  class: fatto
+  shape: cylinder
+}
+migrate: "2 · migrate (dbmate)\napplica migrazioni nuove\npoi esce con 0" {class: fatto}
+seed: "3a · seed (a richiesta)\n13 CSV · HEADER match\n1 transazione + setval" {class: fatto}
+backend: "3b · backend (Node 22)\ncrea-utenti con bcrypt\nhealthcheck /api/salute" {class: fatto}
+completo: "Sprint 1 (#18)\nCARTELLA_CSV=output\ncarica i 2 anni locali" {class: sprint1}
+
+db -> migrate: "healthy" {class: f-fatto}
+migrate -> seed: "exit 0" {class: f-fatto}
+migrate -> backend: "exit 0" {class: f-fatto}
+seed -> completo: "stesso comando" {class: f-sprint1}

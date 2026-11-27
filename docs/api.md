@@ -1,7 +1,7 @@
-# UnderTheSun — contratto API (bozza)
+# UnderTheSun — contratto API
 
-> Bozza da rivedere insieme (WSA + team dati) e **congelare al SAL 1 (20 nov)**.
-> Dopo il congelamento i WSA sviluppano su dati di esempio con queste stesse forme di risposta.
+> Versione del SAL 1 (lun 23 nov 2026), base per lo Sprint 1: i WSA sviluppano sui dati di esempio con queste stesse forme di risposta.
+> Ogni modifica passa da una PR rivista da WSA e team dati.
 
 ## Convenzioni
 

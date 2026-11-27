@@ -1,0 +1,116 @@
+# Vista generale semplificata: pochi blocchi nitidi, ognuno cliccabile per esplodere nel dettaglio
+...@tema
+
+direction: down
+
+utenti: "Utenti del portale · 3 ruoli (GDPR)" {
+  class: area
+  label.near: top-left
+  grid-rows: 1
+  grid-columns: 3
+  grid-gap: 24
+
+  socio: "Socio CER\nsolo i propri dati" {class: attore}
+  operatore: "Operatore\nimpianti e coda" {class: attore}
+  admin: "Admin CER\nKPI e assemblee" {class: attore}
+}
+
+piattaforma: "Piattaforma applicativa · Docker Compose" {
+  class: area
+  label.near: top-left
+  direction: down
+
+  frontend: "Frontend · React 19 + Vite\n8 viste · login su main (PR #23)\nPR #30 e #31 in revisione\nClicca per esplorare →" {
+    class: revisione
+    icon: ./icons/react.svg
+    link: "#frontend"
+    tooltip: "Clicca per aprire struttura React, stato Sprint 1 e codice reale"
+  }
+
+  backend: "Backend · Node 22 + Express 5\nJWT HS256 · 9 test · PR #9 e #28 su main\nClicca per esplorare →" {
+    class: fatto
+    link: "#backend"
+    tooltip: "Clicca per aprire pipeline Express, endpoint e codice reale"
+  }
+
+  db: "Database · PostgreSQL 17 + dbmate\n14 tabelle · UTC · PR #6 su main\nClicca per esplorare →" {
+    class: fatto
+    shape: cylinder
+    icon: ./icons/postgresql.svg
+    link: "#database"
+    tooltip: "Clicca per aprire il modello ER (14 tabelle), Compose e SQL reale"
+  }
+
+  frontend -> backend: "HTTP JSON /api · Bearer JWT (US-01)" {class: f-revisione}
+  backend -> db: "SQL (pg.Pool · NUMERIC → number)" {class: f-fatto}
+}
+
+llm: "LLM API · piano gratuito (servizio esterno)\nclassifica segnalazioni + fallback 201\nClicca per il flusso →" {
+  class: esterno
+  shape: cloud
+  link: "#flusso_llm"
+  tooltip: "Clicca per la sequenza completa di una segnalazione (US-05)"
+}
+
+dati: "Pipeline Dati · Python (Team DA)" {
+  class: area
+  icon: ./icons/python.svg
+  grid-rows: 1
+  grid-columns: 3
+  grid-gap: 96
+
+  fonti: "Fonti reali\nOpen-Meteo · PVGIS\nARERA · ISPRA · GSE" {
+    class: esterno
+    shape: cloud
+  }
+
+  generatore: "Generatore + 123 controlli\ncampione giugno su main (PR #8)\nSprint 1: 2 anni (#18)\nClicca per esplorare →" {
+    class: fatto
+    link: "#dati"
+    tooltip: "Clicca per pipeline Python, configurazioni e codice reale"
+  }
+
+  batch: "Batch offline & Modelli\nprevisioni · anomalie · ripartizione\nSprint 1-2 (#19, US-11)\nClicca per esplorare →" {
+    class: sprint1
+    link: "#dati"
+    tooltip: "Clicca per pipeline Python, prompt LLM e modelli"
+  }
+
+  fonti -> generatore: "dati reali" {class: f-neutra}
+  generatore -> batch: "stessi ID" {class: f-sprint1}
+}
+
+devops: "GitHub · CI, Piano Sprint 1 e Storico" {
+  class: area
+  label.near: top-left
+  grid-rows: 1
+  grid-columns: 3
+  grid-gap: 32
+
+  ci: "CI GitHub Actions · 3 job\nPR #10 su main (3/3 verdi)\nClicca per esplorare →" {
+    class: fatto
+    link: "#devops"
+    tooltip: "Clicca per i 3 job della CI, Compose e processo Git"
+  }
+
+  sprint1: "Piano Sprint 1 · 11 Issue\n#11–#20 e #25 (SAL 2: 4 dic)\nClicca per le dipendenze →" {
+    class: sprint1
+    link: "#sprint1"
+    tooltip: "Clicca per il grafo delle dipendenze dello Sprint 1"
+  }
+
+  storico: "Storico GitHub · Timeline\n14 PR unite · 4 aperte · 3 chiuse\nClicca per la linea temporale →" {
+    class: fatto
+    link: "#storico"
+    tooltip: "Clicca per la timeline verticale di tutte le PR"
+  }
+}
+
+utenti -> piattaforma.frontend: "HTTPS" {class: f-neutra}
+piattaforma.backend -> llm: "POST segnalazione · solo backend (#16)" {class: f-sprint1}
+piattaforma.db <-> dati: "13 CSV (seed HEADER match) · risultati batch offline" {class: f-fatto}
+dati -> devops: "verifica CI ad ogni PR · 11 Issue · storico completo" {
+  class: f-fatto
+  source-arrowhead.shape: arrow
+  target-arrowhead.shape: none
+}

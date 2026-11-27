@@ -1,0 +1,24 @@
+# Backend: percorso di una richiesta dentro Express 5
+...@tema
+
+direction: down
+
+in: "Richiesta HTTP\nGET /api/impianti\nAuthorization: Bearer eyJ…" {
+  style: {
+    fill: "#1E293B"
+    stroke: "#94A3B8"
+    border-radius: 10
+  }
+}
+json: "express.json({ limit: '100kb' })\nlegge JSON · x-powered-by spento" {class: fatto}
+router: "Router per prefisso\n/api/salute · /api/auth · /api/impianti\n/api/verbali (PR #28, unita 27 nov)\nSprint 1: /api/me (#14: PR #32 in revisione · #16)" {class: fatto}
+autentica: "autentica(config)\nverifica JWT (solo HS256)\nmette { id, ruolo, socio_id } in req.utente" {class: fatto}
+ruolo: "richiediRuolo('operatore', 'admin')\nil socio riceve 403 VIETATO" {class: fatto}
+handler: "Handler della rotta\nquery SQL parametrizzata (\$1) con pg.Pool" {class: fatto}
+ok: "200 · JSON snake_case\nnumeri veri · date ISO UTC" {class: fatto}
+errori: "gestoreErrori (ultimo middleware)\n{ errore: { codice, messaggio } }\n400 · 401 · 403 · 404 · 500" {class: fatto}
+
+in -> json -> router -> autentica -> ruolo -> handler -> ok: {class: f-fatto}
+autentica -> errori: "401 NON_AUTENTICATO" {class: f-neutra}
+ruolo -> errori: "403 VIETATO" {class: f-neutra}
+router -> errori: "404 NON_TROVATO" {class: f-neutra}

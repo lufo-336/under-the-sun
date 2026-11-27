@@ -1,0 +1,38 @@
+# CI, DevOps e flusso di integrazione su main
+...@tema
+
+direction: down
+
+giro: "Il giro di ogni modifica su under-the-sun" {
+  class: area
+  grid-rows: 1
+  grid-columns: 5
+  grid-gap: 24
+
+  branch: "1 · Branch\nbackend/… · frontend/…\ndati/… · devops/…" {class: fatto}
+  pr: "2 · Pull Request\nrevisore indicato\nall'apertura" {class: fatto}
+  ci: "3 · CI (3 job)\nbackend · frontend\nCompose + 13 CSV" {class: fatto}
+  review: "4 · Review + QA\n1 Approve obbligatoria\nprova manuale (#20)" {class: sprint1}
+  main: "5 · main\nprotezione-main\ncheck obbligatori (#11)" {class: fatto}
+
+  branch -> pr -> ci -> review -> main: {class: f-neutra}
+}
+
+merge: "Stato dei merge di fondazione (#11)" {
+  class: area
+  grid-rows: 1
+  grid-columns: 5
+  grid-gap: 24
+
+  pr6: "PR #6 · DB\nunita su main" {class: fatto}
+  pr8: "PR #8 · Dati\nunita su main" {class: fatto}
+  pr9: "PR #9 · Backend\nunita su main" {class: fatto}
+  pr10: "PR #10 · CI\nunita su main · 27 nov\n3/3 verdi" {class: fatto}
+  check: "Check CI obbligatori\nsu protezione-main" {class: sprint1}
+
+  pr6 -> pr8 -> pr9: {class: f-fatto}
+  pr9 -> pr10: {class: f-fatto}
+  pr10 -> check: {class: f-sprint1}
+}
+
+giro -> merge: {class: invisibile}

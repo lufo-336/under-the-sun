@@ -1,0 +1,196 @@
+# Database: modello ER completo delle 14 tabelle, colorate per chi le scrive
+...@tema
+
+direction: down
+
+modello: "Modello dati · 14 tabelle (viola = anagrafiche CSV · viola chiaro = serie CSV · blu = backend · ambra = segnalazioni · grigio = batch)" {
+  class: area
+  label.near: top-left
+  direction: down
+
+  anag: "Anagrafiche · CSV" {
+    class: sottoarea
+    label.near: top-left
+
+    socio: {
+      shape: sql_table
+      style.fill: "#5B21B6"
+      style.font-color: "#F5F3FF"
+      id: integer {constraint: primary_key}
+      nome: text
+      tipo: "famiglia | impresa | ente"
+      comune: text
+      data_adesione: date
+    }
+    impianto: {
+      shape: sql_table
+      style.fill: "#5B21B6"
+      style.font-color: "#F5F3FF"
+      id: integer {constraint: primary_key}
+      nome: text
+      comune: text
+      lat: double
+      lon: double
+      kwp: "double > 0"
+      inclinazione_gradi: "0..90"
+      azimut_gradi: "-180..180"
+      data_attivazione: date
+    }
+    parametro: {
+      shape: sql_table
+      style.fill: "#5B21B6"
+      style.font-color: "#F5F3FF"
+      chiave: text {constraint: primary_key}
+      valore: double
+      fonte: text
+    }
+    verbale: {
+      shape: sql_table
+      style.fill: "#5B21B6"
+      style.font-color: "#F5F3FF"
+      id: integer {constraint: primary_key}
+      data_assemblea: date
+      testo: text
+      sintesi: "text · LLM"
+    }
+  }
+
+  serie: "Serie orarie (UTC) e bollette · CSV" {
+    class: sottoarea
+    label.near: top-left
+
+    produzione_oraria: {
+      shape: sql_table
+      style.fill: "#6D28D9"
+      style.font-color: "#F5F3FF"
+      impianto_id: int {constraint: [primary_key; foreign_key]}
+      ts: timestamptz {constraint: primary_key}
+      kwh: "double >= 0"
+    }
+    meteo_orario: {
+      shape: sql_table
+      style.fill: "#6D28D9"
+      style.font-color: "#F5F3FF"
+      impianto_id: int {constraint: [primary_key; foreign_key]}
+      ts: timestamptz {constraint: primary_key}
+      irraggiamento_wm2: double
+      irraggiamento_pannelli_wm2: double
+      temperatura_c: double
+      nuvolosita_pct: "0..100"
+      neve_cm: "double >= 0"
+    }
+    consumo_orario: {
+      shape: sql_table
+      style.fill: "#6D28D9"
+      style.font-color: "#F5F3FF"
+      socio_id: int {constraint: [primary_key; foreign_key]}
+      ts: timestamptz {constraint: primary_key}
+      kwh: "double >= 0"
+    }
+    bolletta: {
+      shape: sql_table
+      style.fill: "#6D28D9"
+      style.font-color: "#F5F3FF"
+      id: int {constraint: primary_key}
+      socio_id: int {constraint: foreign_key}
+      mese: "date · giorno 1"
+      kwh: double
+      importo_eur: "numeric(10,2)"
+    }
+    produzione_oraria -> meteo_orario: {class: invisibile}
+    consumo_orario -> bolletta: {class: invisibile}
+  }
+
+  app: "Accesso e segnalazioni · backend" {
+    class: sottoarea
+    label.near: top-left
+
+    utente: {
+      shape: sql_table
+      style.fill: "#0369A1"
+      style.font-color: "#F0F9FF"
+      id: "int identity" {constraint: primary_key}
+      email: text {constraint: unique}
+      password_hash: "bcrypt"
+      ruolo: "socio | operatore | admin"
+      socio_id: "int · solo socio" {constraint: [foreign_key; unique]}
+    }
+    segnalazione: {
+      shape: sql_table
+      style.fill: "#B45309"
+      style.font-color: "#FFFBEB"
+      id: "int identity" {constraint: primary_key}
+      socio_id: "int · null se interna" {constraint: foreign_key}
+      impianto_id: "int · in uso" {constraint: foreign_key}
+      impianto_id_llm: "int · immutabile" {constraint: foreign_key}
+      ts: timestamptz
+      canale: "email | portale | interno"
+      testo: text
+      categoria_llm: "immutabile"
+      urgenza_llm: "immutabile"
+      categoria: "6 valori · correggibile"
+      urgenza: "alta | media | bassa"
+      stato: "aperta | in_corso | chiusa"
+    }
+  }
+
+  derivate: "Derivate · batch Python" {
+    class: sottoarea
+    label.near: top-left
+
+    previsione_produzione: {
+      shape: sql_table
+      style.fill: "#475569"
+      style.font-color: "#F8FAFC"
+      impianto_id: int {constraint: [primary_key; foreign_key]}
+      ts: timestamptz {constraint: primary_key}
+      kwh_previsti: "double >= 0"
+    }
+    previsione_consumo: {
+      shape: sql_table
+      style.fill: "#475569"
+      style.font-color: "#F8FAFC"
+      socio_id: int {constraint: [primary_key; foreign_key]}
+      ts: timestamptz {constraint: primary_key}
+      kwh_previsti: "double >= 0"
+    }
+    ripartizione_mensile: {
+      shape: sql_table
+      style.fill: "#475569"
+      style.font-color: "#F8FAFC"
+      socio_id: int {constraint: [primary_key; foreign_key]}
+      mese: date {constraint: primary_key}
+      kwh_condivisi: double
+      incentivo_eur: "numeric(10,2)"
+      co2_evitata_kg: double
+    }
+    anomalia: {
+      shape: sql_table
+      style.fill: "#475569"
+      style.font-color: "#F8FAFC"
+      id: "int identity" {constraint: primary_key}
+      impianto_id: int {constraint: foreign_key}
+      inizio: timestamptz
+      fine: "timestamptz · null se aperta"
+      tipo: "guasto | sporcizia | stringa | neve"
+      score: "0..1"
+      stato: "aperta | chiusa"
+    }
+    previsione_produzione -> anomalia: {class: invisibile}
+    previsione_consumo -> ripartizione_mensile: {class: invisibile}
+  }
+
+  # Frecce con "<-": la punta indica comunque socio/impianto, ma ELK mette le anagrafiche in alto.
+  anag.socio.id <- app.utente.socio_id {class: f-neutra}
+  anag.socio.id <- serie.consumo_orario.socio_id {class: f-neutra}
+  anag.socio.id <- serie.bolletta.socio_id {class: f-neutra}
+  anag.impianto.id <- serie.produzione_oraria.impianto_id {class: f-neutra}
+  anag.impianto.id <- serie.meteo_orario.impianto_id {class: f-neutra}
+  anag.impianto.id <- derivate.previsione_produzione.impianto_id {class: f-neutra}
+  anag.socio.id <- derivate.previsione_consumo.socio_id {class: f-neutra}
+  anag.socio.id <- derivate.ripartizione_mensile.socio_id {class: f-neutra}
+  anag.impianto.id <- derivate.anomalia.impianto_id {class: f-neutra}
+  anag.socio.id <- app.segnalazione.socio_id {class: f-neutra}
+  anag.impianto.id <- app.segnalazione.impianto_id {class: f-neutra}
+  anag.impianto.id <- app.segnalazione.impianto_id_llm {class: f-neutra}
+}
