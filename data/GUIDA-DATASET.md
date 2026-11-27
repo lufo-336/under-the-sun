@@ -464,7 +464,7 @@ Il `LEGGIMI.txt` dice quali sono provvisorie.
 - **`anomalie_vere.csv`:** le anomalie iniettate, per misurare il rilevamento (§3.3).
 - **`segnalazione_etichette.csv`:** le etichette vere delle segnalazioni, per misurare l'LLM (§3.7).
 - **`socio_profilo.csv`:** `socio_id`, `profilo`, `ateco` e `scala` di ogni socio (§1.3 e §3.4).
-- **`riepilogo_trimestri.csv`:** un trimestre per riga (produzione per impianto, energia condivisa, incentivo, CO2 evitata, soci attivi e nuovi, anomalie). Serve per scrivere i verbali e per il report.
+- **`riepilogo_trimestri.csv`:** un trimestre per riga, da nov-dic 2024 a lug-set 2026, con `verbale_id` da 1 a 8. Colonne: produzione per impianto e totale, consumi dei soci attivi, energia condivisa, incentivo totale e per tipo di socio, CO2 evitata (sulla produzione e sulla parte condivisa), soci attivi e nuovi, anomalie per tipo, `anomalie_dettaglio` con i kWh persi stimati, giorni di massima e minima produzione (in UTC). Serve per scrivere i verbali e per il report; l'elenco esatto delle colonne è in `config.py`.
 - **`cache/arera/arera_torino_2025.csv`:** le righe ARERA usate (§3.4.1).
 
 ### Modifiche rispetto alla bozza di Luca (accolte nello schema il 23 novembre, commit 5f1ec52)
@@ -538,7 +538,9 @@ Si lanciano dopo ogni generazione. Se un controllo fallisce, il dataset non si c
 - scuola: rapporto tra consumo medio dei feriali 9–15 e consumo 0–5 tra 0,8 e 1,25 a luglio–agosto, sopra 3 a ottobre;
 - bollette: `kwh` uguale alla somma delle ore entro 0,0005 kWh, `importo_eur` giusto al centesimo.
 
-**Da aggiungere con le tabelle derivate e i testi:** energia condivisa ≤ min(produzione, consumi) ogni ora; somma dei soci = totale di comunità; nessuna quota prima della `data_adesione`; ogni segnalazione di un socio dopo la sua adesione; ogni `guasto` e `stringa` con almeno una segnalazione e una comunicazione `interno`; categorie e urgenze tra i valori ammessi.
+**Aggiunti nella parte 3a (27/11):** ripartizione rifatta da zero ora per ora (energia condivisa ≤ min(produzione, consumi), nessuna quota oltre il consumo del socio, somma dei soci = totale di comunità, nessuna quota prima della `data_adesione`), tabelle provvisorie, riepilogo dei trimestri ricalcolato e intestazioni uguali alle colonne di `carica.sql`. Completo: 142/142.
+
+**Da aggiungere con i testi (parte 3b):** ogni segnalazione di un socio dopo la sua adesione; ogni `guasto` e `stringa` con almeno una segnalazione e una comunicazione `interno`; categorie e urgenze tra i valori ammessi.
 
 Su Windows, per salvare l'output di `controlli.py` in un file, impostare prima `$env:PYTHONIOENCODING = "utf-8"`.
 
@@ -598,7 +600,7 @@ data/
     pvgis.py             PVGIS → k_impianto e confronto 2023
     produzione.py        produzione_oraria + anomalie_vere
     consumi.py           ARERA + profili → consumo_orario
-    derivate.py          bolletta (+ tabelle calcolate provvisorie per il campione)
+    derivate.py          bolletta, ripartizione_mensile, tabelle calcolate provvisorie (campione e completo), riepilogo_trimestri
     testi.py             legge data/testi/ → segnalazione, segnalazione_etichette, verbale
   testi/                 sorgente fisso dei testi (su GitHub): segnalazioni_sorgente.csv, verbali/
     controlli.py         §6
