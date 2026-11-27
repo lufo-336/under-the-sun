@@ -3,10 +3,10 @@
 Uso, dalla cartella data/:
     python generazione/controlli.py --config piccola
     python generazione/controlli.py --config piccola --senza-rigenerare   (salta i due rilanci)
-    python generazione/controlli.py --config completa                     (per ora la parte 1)
+    python generazione/controlli.py --config completa
 
-Dataset completo, parte 1 (impianti, soci, meteo, produzione, anomalie): vedi
-main_completa più sotto. I controlli di consumi e bollette arrivano con la parte 2.
+Dataset completo (impianti, soci, meteo, produzione, anomalie, consumi e bollette):
+vedi main_completa più sotto.
 
 Ogni controllo stampa [ok] o [FALLITO]. Se anche uno solo fallisce, il programma
 esce con codice 1: il dataset non si consegna (§6).
@@ -194,41 +194,49 @@ def formato(cartella: Path) -> None:
         if not dati.endswith(b"\n"):
             problemi.append("manca l'a capo finale")
         try:
-            righe = list(csv.reader(io.StringIO(dati.decode("utf-8"), newline="")))
+            testo = dati.decode("utf-8")
         except UnicodeDecodeError:
             controlla(f"{nome}.csv", False, "non è UTF-8")
             continue
-        intestazione, corpo = righe[0], righe[1:]
+        # Le righe si contano con il modulo csv, una alla volta; le colonne si
+        # controllano con pandas, tutte insieme: così basta poca memoria anche
+        # per consumo_orario.csv (4,2 milioni di righe).
+        lettore = csv.reader(io.StringIO(testo, newline=""))
+        intestazione = next(lettore)
+        n_righe = campi_diversi = 0
+        for r in lettore:
+            n_righe += 1
+            campi_diversi += len(r) != len(intestazione)
         if not all(re.fullmatch(r"[a-z][a-z0-9_]*", c) for c in intestazione):
             problemi.append("intestazioni non in snake_case")
-        if any(len(r) != len(intestazione) for r in corpo):
+        if campi_diversi:
             problemi.append("righe con un numero di campi diverso dall'intestazione")
-        for i, colonna in enumerate(intestazione):
-            valori = [r[i] for r in corpo if len(r) == len(intestazione)]
-            pieni = [v for v in valori if v != ""]
+            controlla(f"{nome}.csv", False, "; ".join(problemi))
+            continue
+        tabella = pd.read_csv(io.StringIO(testo), dtype=str, keep_default_na=False)
+        for colonna in intestazione:
+            valori = tabella[colonna]
+            pieni = valori[valori != ""]
             if len(pieni) < len(valori) and (nome, colonna) not in VUOTI_AMMESSI:
                 problemi.append(f"{colonna}: celle vuote")
-            if any(v.strip().lower() in VALORI_VIETATI for v in valori):
+            if valori.str.strip().str.lower().isin(VALORI_VIETATI).any():
                 problemi.append(f"{colonna}: NaN, None o '-'")
             if colonna in ISTANTI:
                 forma = r"\d{4}-\d{2}-\d{2}T\d{2}:00:00Z" if nome in SERIE_ORARIE else r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
-                if not all(re.fullmatch(forma, v) for v in pieni):
+                if not pieni.str.fullmatch(forma).all():
                     problemi.append(f"{colonna}: istanti non nel formato {'a ora piena ' if nome in SERIE_ORARIE else ''}UTC con la Z")
             if colonna in DATE:
-                try:
-                    giorni = [date.fromisoformat(v) for v in pieni]
-                    if not all(re.fullmatch(r"\d{4}-\d{2}-\d{2}", v) for v in pieni):
-                        raise ValueError
-                    if colonna == "mese" and any(g.day != 1 for g in giorni):
-                        problemi.append("mese: non è il primo giorno del mese")
-                except ValueError:
+                if not (pieni.str.fullmatch(r"\d{4}-\d{2}-\d{2}").all()
+                        and pd.to_datetime(pieni, format="%Y-%m-%d", errors="coerce").notna().all()):
                     problemi.append(f"{colonna}: date non nel formato AAAA-MM-GG")
+                elif colonna == "mese" and (pieni.str[8:10] != "01").any():
+                    problemi.append("mese: non è il primo giorno del mese")
             if colonna in DECIMALI:
-                if not all(re.fullmatch(r"-?\d+(\.\d+)?", v) for v in pieni):
+                if not pieni.str.fullmatch(r"-?\d+(\.\d+)?").all():
                     problemi.append(f"{colonna}: numeri non nel formato 123.456")
-                elif any(len(v.split(".")[1]) > DECIMALI[colonna] for v in pieni if "." in v):
+                elif (pieni.str.extract(r"\.(\d+)$", expand=False).str.len() > DECIMALI[colonna]).any():
                     problemi.append(f"{colonna}: più di {DECIMALI[colonna]} decimali")
-        controlla(f"{nome}.csv", not problemi, "; ".join(problemi) or f"{len(corpo)} righe, UTF-8 senza BOM, fine riga LF")
+        controlla(f"{nome}.csv", not problemi, "; ".join(problemi) or f"{n_righe} righe, UTF-8 senza BOM, fine riga LF")
 
 
 def serie_complete(T: dict[str, pd.DataFrame], conf: dict) -> None:
@@ -534,15 +542,19 @@ def elenco_file(cartella: Path, T: dict[str, pd.DataFrame]) -> None:
 
 
 # =============================================================================
-# Dataset completo, parte 1: impianti, soci, meteo, produzione e anomalie
+# Dataset completo: parte 1 (impianti, soci, meteo, produzione e anomalie) e
+# parte 2 (consumi e bollette)
 # =============================================================================
 
-PASSO_PARTE_1 = "produzione"  # genera.py --fino-a produzione
 RIGHE_COMPLETA = {  # §5
     "impianto": 8, "socio": 240, "socio_profilo": 240, "parametro": 8,
     "meteo_orario": 140_160, "produzione_oraria": 140_160,
+    "consumo_orario": 4_204_800, "bolletta": 5_760,
 }
-FILE_PARTE_1 = sorted([*RIGHE_COMPLETA, "anomalie_vere"])
+FILE_COMPLETA = sorted([*RIGHE_COMPLETA, "anomalie_vere"])
+TOLLERANZA_MESE = 0.4  # kWh: un mese ha al massimo 744 ore, ognuna arrotondata di al massimo 0,0005 kWh
+TOLLERANZA_FAMIGLIE = 0.05  # ±5%: la media di 200 scale lognormali (σ = 0,35) oscilla di circa il 2,5%
+TOLLERANZA_FASCE = 0.03  # 3 punti: spostamenti di ±1 ora e rumore muovono un po' di consumo tra le fasce
 ANOMALIE_CONTATE = {"guasto": 10, "stringa": 4, "sporcizia": 5}  # §3.3; i guasti comprendono quello fisso
 ANNI = {"nov 2024-ott 2025": ("2024-11-01", "2025-11-01"), "nov 2025-ott 2026": ("2025-11-01", "2026-11-01")}
 SETTIMANE = {"estiva": "2025-07-14", "invernale": "2026-02-02"}  # lunedì, ora italiana
@@ -561,9 +573,9 @@ def utc(testo: str) -> pd.Timestamp:
 def file_e_righe_completa(T: dict[str, pd.DataFrame]) -> None:
     sezione("File, intestazioni (data dictionary) e righe (§5)")
     presenti = sorted(T)
-    controlla("in output/ ci sono i file della parte 1", presenti == FILE_PARTE_1,
-              ", ".join(presenti) if presenti == FILE_PARTE_1
-              else f"mancano {sorted(set(FILE_PARTE_1) - set(presenti))}, in più {sorted(set(presenti) - set(FILE_PARTE_1))}")
+    controlla("in output/ ci sono i file del dataset completo", presenti == FILE_COMPLETA,
+              ", ".join(presenti) if presenti == FILE_COMPLETA
+              else f"mancano {sorted(set(FILE_COMPLETA) - set(presenti))}, in più {sorted(set(presenti) - set(FILE_COMPLETA))}")
     voci = leggi_dizionario(DIZIONARIO)
     for nome in presenti:
         df, problemi = T[nome], []
@@ -582,17 +594,23 @@ def serie_complete_completa(T: dict[str, pd.DataFrame], conf: dict) -> None:
         df = T[nome]
         ok = sorted(df["impianto_id"].unique()) == impianti and all(sorted(g["ts"]) == attese for _, g in df.groupby("impianto_id"))
         controlla(f"{nome}: {italiano(len(attese))} ore per ognuno degli {len(impianti)} impianti, senza buchi né duplicati", ok)
+    soci = sorted(T["socio"]["id"])
+    c = T["consumo_orario"]
+    ok = sorted(c["socio_id"].unique()) == soci and all(sorted(g["ts"]) == attese for _, g in c.groupby("socio_id"))
+    controlla(f"consumo_orario: {italiano(len(attese))} ore per ognuno dei {len(soci)} soci, senza buchi né duplicati "
+              "(anche nei 4 giorni del cambio d'ora)", ok)
 
 
 def integrita_completa(T: dict[str, pd.DataFrame]) -> None:
     sezione("ID: unici e coerenti tra i file (§2, §6)")
-    for nome in ["impianto", "socio", "anomalie_vere"]:
+    for nome in ["impianto", "socio", "anomalie_vere", "bolletta"]:
         ids = T[nome]["id"].astype(int).tolist()
         controlla(f"{nome}.id: 1, 2, 3, ... senza buchi né doppioni", sorted(ids) == list(range(1, len(ids) + 1)))
     soci, impianti = set(T["socio"]["id"]), set(T["impianto"]["id"])
     for nome, colonna, insieme, tabella in [
         ("socio_profilo", "socio_id", soci, "socio"), ("meteo_orario", "impianto_id", impianti, "impianto"),
         ("produzione_oraria", "impianto_id", impianti, "impianto"), ("anomalie_vere", "impianto_id", impianti, "impianto"),
+        ("consumo_orario", "socio_id", soci, "socio"), ("bolletta", "socio_id", soci, "socio"),
     ]:
         mancanti = set(T[nome][colonna]) - insieme
         controlla(f"{nome}.{colonna} esiste in {tabella}", not mancanti, f"non trovati: {sorted(mancanti)}" if mancanti else "")
@@ -781,6 +799,172 @@ def anomalie_completa(T: dict[str, pd.DataFrame], d: pd.DataFrame) -> None:
               (d.loc[fuori, "kwh_num"] - d.loc[fuori, "attesa"].round(3)).abs().max() < TOLLERANZA)
 
 
+def ore_italiane(ts: pd.Series) -> pd.DataFrame:
+    """Per ogni istante UTC distinto: ora, mese e tipo di giorno in ora italiana, e
+    fascia ARERA (§3.4). Si calcola sulle 17.520 ore una volta sola; per le righe
+    di consumo_orario si usa poi la posizione dell'istante (get_indexer)."""
+    unici = pd.Index(ts.unique())
+    t = pd.DatetimeIndex(pd.to_datetime(unici, utc=True)).tz_convert(FUSO)
+    ora = np.asarray(t.hour)
+    festivo = np.array([g in consumi.FESTIVI or g.weekday() == 6 for g in t.date])
+    sabato = (np.asarray(t.day_of_week) == 5) & ~festivo
+    feriale = ~festivo & ~sabato
+    f1 = feriale & (ora >= 8) & (ora < 19)
+    f2 = (feriale & ((ora == 7) | ((ora >= 19) & (ora < 23)))) | (sabato & (ora >= 7) & (ora < 23))
+    return pd.DataFrame({
+        "ora": ora,
+        "mese": np.asarray(t.month),
+        "tipo_giorno": np.where(festivo, "festivo", np.where(sabato, "sabato", "feriale")),
+        "fascia": np.where(f1, "F1", np.where(f2, "F2", "F3")),
+    }, index=unici)
+
+
+def consumi_completa(T: dict[str, pd.DataFrame]) -> None:
+    sezione("Consumi (§3.4, §6)")
+    c = T["consumo_orario"]
+    kwh = num(c, "kwh").to_numpy()
+    s = T["socio"].merge(T["socio_profilo"], left_on="id", right_on="socio_id").set_index("id")
+    controlla("consumi mai negativi", (kwh >= 0).all(), f"da {kwh.min():.3f} a {kwh.max():.3f} kWh nell'ora")
+
+    volumi = consumi.volumi_mensili()
+    controlla("ARERA Torino 2025: 12 mesi positivi per ognuno dei 12 profili (classi di potenza del 27/11/2026)",
+              set(volumi) == set(PROFILI) and all(len(v) == 12 and (v > 0).all() for v in volumi.values()),
+              ", ".join(f"{p} {italiano(v.sum())}" for p, v in volumi.items()) + " kWh/anno")
+
+    # §3.4, passo 6: il totale di ogni mese è volume ARERA × scala
+    tot = pd.Series(kwh).groupby([c["socio_id"].to_numpy(), c["ts"].str.slice(0, 7).to_numpy()]).sum()
+    soci, mesi = tot.index.get_level_values(0), tot.index.get_level_values(1)
+    scala = num(s, "scala")
+    attesi = np.array([volumi[s.at[i, "profilo"]][int(m[5:7]) - 1] * scala[i] for i, m in zip(soci, mesi)])
+    scarto = np.abs(tot.to_numpy() - attesi).max()
+    controlla(f"ogni socio, ogni mese UTC: totale = volume ARERA del mese × scala (scarto ≤ {italiano(TOLLERANZA_MESE, 1)} kWh, arrotondamenti)",
+              len(tot) == len(s) * 24 and scarto <= TOLLERANZA_MESE, f"{italiano(len(tot))} mesi, scarto massimo {scarto:.3f} kWh")
+
+    # §6: media annua delle famiglie vicina al valore ARERA di Torino
+    famiglia = c["socio_id"].isin(set(s.index[s["tipo"] == "famiglia"])).to_numpy()
+    n_famiglie = int((s["tipo"] == "famiglia").sum())
+    arera_anno = volumi["famiglia"].sum()
+    ok, righe = True, []
+    for nome, (dal, al) in ANNI.items():
+        anno = famiglia & (c["ts"] >= f"{dal}T00:00:00Z").to_numpy() & (c["ts"] < f"{al}T00:00:00Z").to_numpy()
+        media = kwh[anno].sum() / n_famiglie
+        ok &= abs(media / arera_anno - 1) <= TOLLERANZA_FAMIGLIE
+        righe.append(f"{nome}: {italiano(media)} kWh ({(media / arera_anno - 1) * 100:+.1f}%)")
+    controlla(f"famiglie: consumo annuo medio entro ±{TOLLERANZA_FAMIGLIE:.0%} del valore ARERA di Torino "
+              f"({italiano(arera_anno)} kWh, somma dei 12 mesi), in ognuno dei due anni", ok, "; ".join(righe))
+
+    # Fasce F1/F2/F3 delle famiglie contro ARERA (media dell'anno pesata sui volumi dei mesi)
+    info = ore_italiane(c["ts"])
+    posizione = info.index.get_indexer(c["ts"])
+    fascia = info["fascia"].to_numpy()[posizione]
+    quote = pd.Series(kwh[famiglia]).groupby(fascia[famiglia]).sum()
+    quote /= quote.sum()
+    q = consumi.quote_fasce_arera().loc[range(1, 13)]
+    attese = q.mul(volumi["famiglia"], axis=0).sum() / arera_anno
+    differenza = (quote - attese).abs().max()
+    controlla(f"famiglie: quote F1/F2/F3 entro {TOLLERANZA_FASCE * 100:.0f} punti da quelle ARERA", differenza <= TOLLERANZA_FASCE,
+              ", ".join(f"{f} {quote[f] * 100:.1f}% (ARERA {attese[f] * 100:.1f}%)" for f in ["F1", "F2", "F3"]))
+
+    # Scuola: chiusa a luglio e agosto, aperta a ottobre (calendari scolastici, §3.4)
+    scuola = c["socio_id"].isin(set(s.index[s["profilo"] == "scuola"])).to_numpy()
+    ora = info["ora"].to_numpy()[posizione]
+    mese = info["mese"].to_numpy()[posizione]
+    lezione = (info["tipo_giorno"].to_numpy()[posizione] == "feriale") & (ora >= 9) & (ora < 15)
+    notte = ora < 5
+
+    def rapporto(mesi_scelti: list[int]) -> float:
+        sel = scuola & np.isin(mese, mesi_scelti)
+        return kwh[sel & lezione].mean() / kwh[sel & notte].mean()
+
+    estate, ottobre = rapporto([7, 8]), rapporto([10])
+    controlla("scuola: nessun picco nelle ore di lezione a luglio e agosto, picco a ottobre "
+              "(consumo medio feriale 9-15 diviso consumo medio 0-5, ora italiana)",
+              0.8 <= estate <= 1.25 and ottobre > 3, f"luglio-agosto {italiano(estate, 2)}, ottobre {italiano(ottobre, 2)}")
+
+
+def bollette_completa(T: dict[str, pd.DataFrame]) -> None:
+    sezione("Bollette (§4)")
+    b, c = T["bolletta"], T["consumo_orario"]
+    mesi_attesi = list(pd.date_range("2024-11-01", "2026-10-01", freq="MS").strftime("%Y-%m-%d"))
+    ok = b["socio_id"].nunique() == len(T["socio"]) and all(list(g["mese"]) == mesi_attesi for _, g in b.groupby("socio_id"))
+    controlla("bolletta: 24 mesi in ordine per ognuno dei 240 soci, da novembre 2024 a ottobre 2026", ok and len(b) == 240 * 24,
+              f"{italiano(len(b))} righe")
+
+    somma = num(c, "kwh").groupby([c["socio_id"], c["ts"].str.slice(0, 7) + "-01"]).sum().round(3)
+    dalle_ore = somma.reindex(pd.MultiIndex.from_arrays([b["socio_id"], b["mese"]])).to_numpy()
+    kwh = num(b, "kwh").to_numpy()
+    controlla("bolletta.kwh = somma di consumo_orario del mese (in UTC)",
+              not np.isnan(dalle_ore).any() and np.abs(kwh - dalle_ore).max() < 0.0005)
+
+    prezzi = dict(zip(T["parametro"]["chiave"], num(T["parametro"], "valore")))
+    tipo = b["socio_id"].map(T["socio"].set_index("id")["tipo"])
+    prezzo = tipo.map(lambda t: prezzi[f"prezzo_energia_{t}_eur_kwh"]).to_numpy()
+    importo = num(b, "importo_eur").to_numpy()
+    controlla("bolletta.importo_eur = kwh × prezzo del tipo di socio (§3.5), al centesimo",
+              np.abs(importo - np.round(kwh * prezzo, 2)).max() < 0.005)
+    annua = pd.Series(importo).groupby(tipo.to_numpy()).sum() / tipo.groupby(b["socio_id"]).first().value_counts() / 2
+    print("  bolletta annua media: " + ", ".join(f"{t} {italiano(annua[t])} €" for t in ["famiglia", "impresa", "ente"]))
+
+
+def grafico_consumi(T: dict[str, pd.DataFrame]) -> Path:
+    """Profilo medio giornaliero per tipo di socio (giorni feriali, ora italiana) e
+    consumo mensile medio delle famiglie contro ARERA (§6)."""
+    NOTEBOOK.mkdir(exist_ok=True)
+    colori = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"]  # palette categorica, in ordine fisso
+    grigio = "#52514e"
+    c = T["consumo_orario"]
+    kwh = num(c, "kwh").to_numpy()
+    s = T["socio"].merge(T["socio_profilo"], left_on="id", right_on="socio_id").set_index("id")
+    profilo = c["socio_id"].map(s["profilo"]).to_numpy()
+    info = ore_italiane(c["ts"])
+    posizione = info.index.get_indexer(c["ts"])
+    feriale = info["tipo_giorno"].to_numpy()[posizione] == "feriale"
+    d = pd.DataFrame({"profilo": profilo[feriale], "ora": info["ora"].to_numpy()[posizione][feriale], "kwh": kwh[feriale]})
+    medie = d.groupby(["profilo", "ora"])["kwh"].mean().unstack()
+    quote = medie.div(medie.sum(axis=1), axis=0) * 100  # % del consumo del giorno in ogni ora
+
+    fig, assi = plt.subplots(2, 2, figsize=(14, 9), facecolor="#fcfcfb")
+    ax = assi[0, 0]
+    forma = consumi.forma_famiglia_arera()
+    arera = np.mean([forma[(m, "feriale")] for m in range(1, 13)], axis=0)
+    ax.plot(range(24), quote.loc["famiglia"], lw=1.8, color=colori[0], label="famiglie del dataset (200)")
+    ax.plot(range(24), arera / arera.sum() * 100, lw=1.5, ls="--", color=grigio, label="ARERA Torino, residenti 1,5-3 kW")
+    ax.set_title("Famiglie: profilo medio dei giorni feriali", fontsize=10)
+
+    for ax, tipo, elenco in [(assi[1, 0], "Imprese", anagrafiche.IMPRESE), (assi[1, 1], "Enti", anagrafiche.ENTI)]:
+        profili = list(dict.fromkeys(p for p, *_ in elenco))
+        for colore, p in zip(colori, profili):
+            ax.plot(range(24), quote.loc[p], lw=1.8, color=colore, label=f"{p} ({(s['profilo'] == p).sum()})")
+        ax.set_title(f"{tipo}: profilo medio dei giorni feriali", fontsize=10)
+    for ax in [assi[0, 0], assi[1, 0], assi[1, 1]]:
+        ax.set_xticks(range(0, 24, 2))
+        ax.set_xlabel("ora italiana (inizio dell'ora)")
+        ax.set_ylabel("% del consumo del giorno")
+
+    ax = assi[0, 1]
+    famiglie = c["socio_id"].isin(set(s.index[s["tipo"] == "famiglia"])).to_numpy()
+    mensile = pd.Series(kwh[famiglie]).groupby(c["ts"].str.slice(0, 7).to_numpy()[famiglie]).sum() / int((s["tipo"] == "famiglia").sum())
+    x = np.arange(len(mensile))
+    ax.bar(x, mensile.to_numpy(), width=0.8, color=colori[0], label="famiglie del dataset: media per famiglia")
+    volumi = consumi.volumi_mensili()["famiglia"]
+    ax.plot(x, [volumi[int(m[5:7]) - 1] for m in mensile.index], color=grigio, lw=1.5, ls="--", marker="o", ms=5,
+            label="ARERA Torino 2025, stesso mese")
+    ax.set_xticks(x[::2], [m for m in mensile.index][::2], rotation=45, fontsize=8)
+    ax.set_ylim(0, mensile.max() * 1.3)  # spazio per la legenda sopra le barre
+    ax.set_ylabel("kWh nel mese")
+    ax.set_title("Famiglie: consumo mensile, nov 2024 - ott 2026 (mesi in UTC)", fontsize=10)
+
+    for ax in assi.flat:
+        ax.set_facecolor("#fcfcfb")
+        ax.grid(alpha=0.3)
+        ax.legend(fontsize=8)
+    fig.tight_layout()
+    percorso = NOTEBOOK / "completa_consumi_profili.png"
+    fig.savefig(percorso, dpi=90, metadata={"Software": None})
+    plt.close(fig)
+    return percorso
+
+
 def confronto_campione(T: dict[str, pd.DataFrame]) -> None:
     piccola = config.CONFIGURAZIONI["piccola"]
     sezione("Giugno 2026, impianti 1-3: confronto con il campione (data/esempi/)")
@@ -909,25 +1093,25 @@ def grafici_completa(T: dict[str, pd.DataFrame], d: pd.DataFrame) -> list[Path]:
 def main_completa(args: argparse.Namespace) -> None:
     conf = config.CONFIGURAZIONI["completa"]
     cartella = conf["cartella"]
-    print(f"Controlli del dataset completo, parte 1 (impianti, soci, meteo, produzione, anomalie), in {cartella}")
+    print(f"Controlli del dataset completo (impianti, soci, meteo, produzione, anomalie, consumi, bollette), in {cartella}")
     if not args.senza_rigenerare:
-        riproducibilita("completa", cartella, ("--fino-a", PASSO_PARTE_1))
+        riproducibilita("completa", cartella)
     T = {f.stem: pd.read_csv(f, dtype=str, keep_default_na=False) for f in sorted(cartella.glob("*.csv"))}
 
     stato = {}
     for passo in [lambda: file_e_righe_completa(T), lambda: formato(cartella), lambda: serie_complete_completa(T, conf),
                   lambda: integrita_completa(T), lambda: anagrafiche_completa(T, conf), lambda: meteo_completa(T),
                   lambda: stato.update(d=produzione_completa(T, conf)), lambda: anomalie_completa(T, stato["d"]),
-                  lambda: confronto_campione(T)]:
+                  lambda: consumi_completa(T), lambda: bollette_completa(T), lambda: confronto_campione(T)]:
         try:
             passo()
         except Exception as errore:  # un errore in una sezione non deve nascondere le altre
             controlla("sezione interrotta da un errore", False, f"{type(errore).__name__}: {errore}")
 
-    if "d" in stato:
-        sezione("Grafici di controllo")
-        for percorso in grafici_completa(T, stato["d"]):
-            print(f"  {percorso.relative_to(config.CARTELLA_DATA)}")
+    sezione("Grafici di controllo")
+    grafici = grafici_completa(T, stato["d"]) if "d" in stato else []
+    for percorso in [*grafici, grafico_consumi(T)]:
+        print(f"  {percorso.relative_to(config.CARTELLA_DATA)}")
     elenco_file(cartella, T)
 
     falliti = [nome for nome, ok in ESITI if not ok]
