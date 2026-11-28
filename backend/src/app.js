@@ -2,6 +2,7 @@ import express from 'express';
 import { gestoreErrori, percorsoNonTrovato } from './errori.js';
 import { rotteAuth } from './routes/auth.js';
 import { rotteImpianti } from './routes/impianti.js';
+import { rotteMe } from './routes/me.js';
 import { rotteSalute } from './routes/salute.js';
 import { rotteVerbali } from './routes/verbali.js';
 
@@ -15,6 +16,7 @@ export function creaApp({ db, config }) {
   app.use('/api/salute', rotteSalute({ db }));
   app.use('/api/auth', rotteAuth({ db, config }));
   app.use('/api/impianti', rotteImpianti({ db, config }));
+  app.use('/api/me', rotteMe({ db, config }));
   app.use('/api/verbali', rotteVerbali({ db, config }));
 
   app.use(percorsoNonTrovato);
